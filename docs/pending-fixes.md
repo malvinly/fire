@@ -20,7 +20,10 @@ cited below) first. [DEVELOPMENT.md](DEVELOPMENT.md) has the layout and scripts.
    new design question that the docs don't answer, it belongs to the maintainer. Ask; don't choose.
 2. **Write a failing test first** where the item says how to test it. It goes in the matching file in
    `tests/`; `tests/helpers.ts` has plan builders and fixed-return helpers.
-3. **Make the change**, then run `npm run typecheck`, `npm run lint`, `npm test` and `npm run build`.
+3. **Make the change**, then run `npm run typecheck`, `npm run lint`, `npm test` and `npm run build` (lint has
+   8 warnings that predate this list; add none). For a UI change, check it in the browser: `.claude/launch.json`
+   has `fire-dev` (the dev server on port 5391) and `fire-built` (the `dist/` preview on 4391). Commit each item
+   once its checks pass.
 4. **Update the records:**
    - If results change for the same inputs, bump `DATA_VERSIONS.engine` in `src/engine/assumptions.ts`
      (D59) so saved sessions are flagged for recalculation.
@@ -40,7 +43,8 @@ cited below) first. [DEVELOPMENT.md](DEVELOPMENT.md) has the layout and scripts.
 
 ## Priority
 
-Items are ordered by criticality:
+Line numbers below are as of commit `8aecdce`; if they have moved, search for the name given. Items are
+ordered by criticality:
 
 - **P0**: the app gives a wrong or dangerously misleading answer that a user would act on.
 - **P1**: materially changes a typical user's answer, or silently breaks on a plausible input.
@@ -93,8 +97,8 @@ None pending.
   decide a 90% answer, bond interest is under-taxed; in the low-rate 1940s it is over-taxed. The fixed 2% dividend
   yield has the same issue, more weakly (history's dividend yields ran 4–6% for long periods).
 - **Where:** `TAXABLE_YIELDS` in `src/engine/context.ts`; `investmentIncome` in `src/engine/simulate.ts`;
-  `scripts/build-market-data.ts` already parses Shiller's GS10 column (and dividends) but doesn't keep them in
-  `src/data/market.json`.
+  `scripts/build-market-data.ts` already reads Shiller's January GS10 yield (column 6, `shillerJanuaries`) but
+  doesn't keep it in `src/data/market.json`; the dividend column (D, column 2) isn't read yet.
 - **Change:** keep the January 10-year yield (and optionally the dividend yield) per year in `market.json`, carry it
   through `ReturnPaths` like `cash`, and use it in `investmentIncome`. Needs `npm run data:build` (network).
 - **Test:** a path with a 10% bond yield taxes 10% of the bond share as interest.
@@ -108,21 +112,25 @@ None pending.
 
 - **Problem:** the year-by-year table says money in equals spending plus taxes and penalty. In a year with an RMD
   that isn't all spent, "From 401(k)/IRA" includes the reinvested surplus, so the two sides differ.
-- **Where:** the table caption and the `withdrawals.pretax` record in `src/engine/simulate.ts`.
+- **Where:** the caption above the year-by-year table (`src/ui/Results.tsx:334`) and the `withdrawals.pretax`
+  record in `src/engine/simulate.ts` (RMDs are taken in full; what spending doesn't need goes back to the
+  brokerage account, as the "Required withdrawal" column's help says).
 - **Change:** record the reinvested RMD surplus separately (or subtract it from "From 401(k)/IRA") and say where it went.
 
 ### 27. Typing a year into the year picker (robustness)
 
 - **Problem:** the "Retire in" box accepts only complete, valid years, so typing a new year digit by digit is undone
   at the first keystroke; only − / + and selecting-and-replacing work.
-- **Where:** the year input in `src/App.tsx`.
-- **Change:** keep the typed text locally and apply it when it is a valid year (as `NumberField` does).
+- **Where:** `year-input` in `src/App.tsx:311`; the detail request waits 250 ms after the last change (D80).
+- **Change:** keep the typed text locally and apply it when it is a valid year, as `NumberField`
+  (`src/ui/fields.tsx`) does; reset the text on blur.
 
 ### 28. Detail view of a stale session (clarity)
 
 - **Problem:** opening a session whose results came from an older engine shows the saved cards, but the detail view
   is recalculated with the current engine, so the two can disagree until Recalculate.
-- **Where:** `openSession` and the detail effect in `src/App.tsx`.
+- **Where:** `openSession` (`src/App.tsx:156`; `staleData` comes from `isStale` in `src/ui/sessions.ts`, D59)
+  and the detail effect in `src/App.tsx`.
 - **Change:** show the saved detail only (no refetch) while the recalculate banner is up, or recalculate on open.
 
 ### 29. Stronger detail-view and income-stacking tests (tests)
