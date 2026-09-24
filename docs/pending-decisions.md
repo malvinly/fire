@@ -13,6 +13,10 @@ audit's reviewers pulled in different directions.
 - A new design question that the docs don't answer belongs to the maintainer. Add it under
   [Open decisions](#open-decisions) with options and a recommendation, and ask. Don't choose.
 
+Decisions 1 (which way to correct) and 6 (validation strictness) covered only fixes, which have all landed; they
+are recorded as D66, D77 and D71, D76 in DECISIONS.md. Fix numbers below refer to the v1 audit's fixes, all of
+which have landed (D63–D80).
+
 The project's stance, from [DESIGN.md](DESIGN.md) and the README, is **conservative**: plans must survive
 a "significantly below average" market (Fidelity's 90% standard), with no dependence on part-time work.
 

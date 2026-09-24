@@ -5,9 +5,10 @@ calculator more correct or harder to misread. New capabilities are in
 [pending-features.md](pending-features.md). Design choices already made for this work are in
 [pending-decisions.md](pending-decisions.md).
 
-Source: a five-reviewer audit of v1 (accuracy, planning completeness, competitive features, first-time-user
-clarity, robustness). Numbers come from the v1 engine on the example plan unless marked *estimate*. See
-[Reproducing the numbers](#reproducing-the-numbers).
+The 24 fixes from the five-reviewer audit of v1 (accuracy, planning completeness, competitive features,
+first-time-user clarity, robustness) have all landed; their decisions are D63–D80 in
+[DECISIONS.md](DECISIONS.md). New items go under their priority below. See
+[Reproducing the numbers](#reproducing-the-numbers) for the example plan's current results.
 
 ## How to work on an item
 
@@ -24,19 +25,19 @@ cited below) first. [DEVELOPMENT.md](DEVELOPMENT.md) has the layout and scripts.
 4. **Update the records:**
    - If results change for the same inputs, bump `DATA_VERSIONS.engine` in `src/engine/assumptions.ts`
      (D59) so saved sessions are flagged for recalculation.
-   - Record any judgement call as a new D-number in DECISIONS.md (the next free number is **D63**). Update
+   - Record any judgement call as a new D-number in DECISIONS.md (the next free number is **D81**). Update
      an existing D-row if its behavior changes, and update the "Which way the assumptions lean" table.
    - If the change affects an assumption shown to users, update its row in `describeAssumptions` in
      `src/engine/assumptions.ts` (the "How this works" page) and its help text in `src/ui/helpText.ts`.
    - Remove the item from this file.
 5. **Adding a field to `Plan`** (`src/engine/types.ts`) needs care. Session files (`schemaVersion: 1`,
-   `src/ui/sessions.ts`) and the browser draft (`loadDraft` in `src/App.tsx`) are loaded as saved, with no
-   defaults filled in, so an old file would have the field undefined. Add a small migration that fills
-   defaults from `examplePlan()` / `DEFAULT_ASSUMPTIONS` (`src/engine/defaults.ts`), ideally together with fix 9.
+   `src/ui/sessions.ts`) and the browser draft (`loadDraft` in `src/App.tsx`) are loaded as saved. A new
+   assumption gets its default from `DEFAULT_ASSUMPTIONS` automatically (`migratePlan` in
+   `src/engine/migrate.ts`, D65); any other new field needs a line there, and a check in
+   `src/engine/validate.ts` (D71).
 6. **Docs rules:** keep docs in neutral voice with no personal financial details. Commit messages carry no
    AI attribution.
 
-Line numbers were written against commit `6394336` and have moved since; search for the function name given.
 
 ## Priority
 
@@ -49,43 +50,50 @@ Items are ordered by criticality:
 
 ## Where warnings go
 
-Decided in [decision 5](pending-decisions.md#5-precision-vs-hedging): **the result cards stay crisp**. They
-show the target numbers only, with no caveat text. Every caution goes in one new panel, **"Before you act on
-these numbers"**, placed directly below the cards and above "Try a different retirement year" (in
-`src/App.tsx`, between the `cards` div and that panel).
+Decided in [decision 5](pending-decisions.md#5-precision-vs-hedging) (D67): **the result cards stay crisp**.
+They show the target numbers only, with no caveat text. Every caution goes in the **"Before you act on these
+numbers"** panel directly below the cards and above "Try a different retirement year". Its lines are built by
+`beforeYouAct` in `src/ui/warnings.ts`.
 
 - One short line per warning, and **only the lines that apply** to the current results.
 - Lines name the tier they apply to ("Traditional 2039 …", "Coast …").
-- Fixes 4, 6, 7, 13 (disclaimer), 18 and 19 (today's dollars) each add a line here. Fix 12's longer
-  explanation goes in the detail view instead.
+- Longer explanations go in the detail view (as D74 does for the markets that fail).
 - Nothing new is added to `TierCard`.
 
-Example for the example plan:
+The panel for the example plan today:
 
 > **Before you act on these numbers**
-> - Traditional 2039 and Chubby 2043 assume you'll have about $2.70M and $3.30M by then. Re-run each year
+> - Traditional 2039 and Chubby 2043 assume you'll have about $2.63M and $3.27M by then. Re-run each year
 >   with your real balances.
-> - Traditional 2039 is borderline (90.2%); it could be a year later.
-> - In 19% of markets the Traditional plan pays a 10% penalty on early 401(k)/IRA withdrawals.
-> - Coast assumes you both keep working until 65 with pay covering all spending, and stopping saving
->   includes giving up employer matches.
+> - Traditional 2039 is borderline (90.3%); it could be a year later.
+> - In 27% of markets the Traditional plan pays a 10% penalty on early 401(k)/IRA withdrawals.
+> - Coast assumes you both keep working until 2049 (You 65) with pay covering all spending, and that stopping
+>   saving includes giving up employer matches.
 > - All amounts are in today's dollars. These are estimates, not financial advice. *What this doesn't model →*
 
 ---
 
 ## P0: wrong or dangerously misleading
 
+None pending.
+
 ---
 
 ## P1: materially changes answers or breaks on plausible input
+
+None pending.
 
 ---
 
 ## P2: narrower wrong answers, clarity gaps
 
+None pending.
+
 ---
 
 ## P3: polish and rare edges
+
+None pending.
 
 ---
 
@@ -106,15 +114,18 @@ Example for the example plan:
 ## Reproducing the numbers
 
 "Example plan" means `examplePlan(2026)` from `src/engine/defaults.ts`: plan start 2026, 10,000 simulated
-markets, seed 20260924. Baseline results with the 10% bracket-fill default (fix 5), after fixes 1–5:
+markets, seed 20260924. Baseline results after all 24 fixes (engine version 4, 10% bracket-fill default):
 
-| Tier | Earliest year | FIRE number | Penalty rate at that year |
-|---|---|---|---|
-| Traditional | 2039 | $2,627,800 | 22.5% |
-| Chubby | 2043 | $3,270,900 | 0% |
-| Coast | stop saving now | $774,400 needed today | — |
+| Tier | Earliest year | FIRE number | Success at that year | Penalty rate at that year |
+|---|---|---|---|---|
+| Traditional | 2039 | $2,630,700 | 90.3% | 26.9% |
+| Chubby | 2043 | $3,274,700 | 91.9% | 0% |
+| Coast | stop saving now | $803,000 needed today | 92.4% | 0% |
 
-v1 (12% fill) gave Traditional 2039 / $2,695,200 (37.5% penalty rate), Chubby 2043 / $3,297,400 and Coast $783,000.
+v1 (engine 3, 12% fill) gave Traditional 2039 / $2,695,200 (37.5% penalty rate), Chubby 2043 / $3,297,400
+and Coast $783,000. The main moves: the 10% fill (fix 5) lowered Traditional's number and penalty rate; deflating
+basis and Roth principal (fix 1) and taxing dividends and interest yearly (fix 8) pushed them back up, and fix 8
+raised Coast's number by about 3%.
 
 Probes are easiest as a throwaway Vitest file **outside the repo**, run with the repo's dependencies:
 

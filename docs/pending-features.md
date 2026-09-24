@@ -10,14 +10,17 @@ Each feature starts with a plain-language explanation of what it is and what you
 **For implementers** part at the end of each gives code locations and a first version to build. The
 workflow for any change is in pending-fixes.md: [How to work on an item](pending-fixes.md#how-to-work-on-an-item)
 (tests, engine version, D-numbers, adding `Plan` fields safely) and
-[Reproducing the numbers](pending-fixes.md#reproducing-the-numbers). Line numbers are as of commit `6394336`.
+[Reproducing the numbers](pending-fixes.md#reproducing-the-numbers). Line numbers were written against commit
+`6394336` and have moved since; search for the function name given. The v1 audit's fixes, cited below as
+"fix N", have all landed (D63–D80 in DECISIONS.md).
 
 Features are ordered by **importance**: how much each changes a typical user's answer. Numbers come from the
 v1 engine on the example plan unless marked *estimate*. Example screen text is illustrative; the final
 wording is up to whoever builds it.
 
 **Any feature that adds a `Plan` or `Assumptions` field** must fill in that field's default for older
-session files and drafts. The first one to do so should add the migration hook (see fix 9).
+session files and drafts: a new assumption is filled automatically by `migratePlan` (`src/engine/migrate.ts`,
+D65); any other field needs a line there and a check in `src/engine/validate.ts` (D71).
 
 ## Summary
 
@@ -126,7 +129,7 @@ Blank means no survivor test, as today.
 ### Today
 
 - Not modeled; listed in the README's limitations and D13.
-- Not shown inside the app (fix 13 adds that disclosure).
+- Listed in the app under How this works → "What this doesn't model" (D75).
 
 ### For implementers
 
@@ -223,7 +226,7 @@ common legal ways around that for early retirees:
   penalty from the retirement year.
 - **72(t) (later):** an option to start fixed penalty-free IRA payments at retirement. The app computes
   the allowed amount and shows it in the year-by-year table.
-- Both default to off. The penalty line in the panel below the cards (fix 6) and the detail view's
+- Both default to off. The penalty line in the panel below the cards (D68) and the detail view's
   "Markets needing an early-withdrawal penalty" figure would drop accordingly.
 
 ### Why it's worth doing
@@ -290,8 +293,8 @@ plan copes with a bad decade. FI Calc and cFIREsim both offer it.
 
 ### Today
 
-A fixed list of the 5 worst start years; rows aren't clickable. Fix 20 adds the "retirement began in"
-column, which this builds on.
+A fixed list of the 5 worst start years; rows aren't clickable. The "Retiring into" column (fix 20, D47)
+shows the market year retirement began, which this builds on.
 
 ### For implementers
 
@@ -351,7 +354,7 @@ A typical-market, retired-years-only table; no export of any kind.
   - A path toggle and a "working years" checkbox on the existing table.
   - A client-side CSV builder over the visible `YearRecord[]`, downloaded via a Blob link.
   - CSV files are already git-ignored (DEVELOPMENT.md → Privacy); session data never leaves the browser.
-- **Depends on:** fix 11 (so "typical" and "bad" really are typical and bad paths).
+- **Depends on:** fix 11, now landed (D73: "typical" and "bad" follow the markets closest to those lines).
 
 ---
 

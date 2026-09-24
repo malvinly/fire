@@ -44,11 +44,14 @@ src/
     returns.ts     historical windows and block bootstrap
     assumptions.ts the "How this works" content
     defaults.ts    default assumptions and the example plan
+    migrate.ts     fills fields missing from older session files and drafts
+    validate.ts    checks loaded plans and inputs before a calculation
   data/
     market.json    generated annual returns (committed)
     rules.ts       tax brackets, SSA constants, RMD table (update yearly)
   worker/          Web Worker pool that runs the engine off the main thread
-  ui/              React components, charts, session files, input help text (helpText.ts)
+  ui/              React components, charts, session files, input help text (helpText.ts), the warnings
+                   panel's lines (warnings.ts)
 public/
   Start FIRE Planner.cmd  double-click launcher, copied into dist/ by the build
   serve.ps1               tiny localhost-only static server (Windows PowerShell, no Node) used by the launcher
@@ -85,6 +88,9 @@ Layered so each kind of mistake has a test that can catch it:
 6. **Headline numbers** (`tests/solve.test.ts`) — the FIRE number, earliest date and Coast number pass at
    the value shown and fail just below it; stricter-of-two; percentile bands; worst-years ordering.
 7. **Properties** (`tests/properties.test.ts`) — more spending never helps, more savings never delays FIRE.
+8. **Loading and the UI's logic** (`tests/sessions.test.ts`, `tests/warnings.test.ts`, `tests/format.test.ts`,
+   `tests/client.test.ts`) — damaged files rejected and old ones migrated, the warnings panel's lines, field
+   parsing and limits, and superseded worker requests cancelled.
 
 ## Yearly data update
 
