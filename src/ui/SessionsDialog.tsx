@@ -126,7 +126,14 @@ export function SessionsDialog({ open, onClose, meta, makeFile, onSaved, onOpen,
         {folderSupported ? (
           <div className="session-list">
             {list.length === 0 && <p className="muted">{dir ? 'No sessions in this folder yet.' : 'Choose a folder to see saved sessions.'}</p>}
-            {list.map(({ fileName, session }) => {
+            {list.map(({ fileName, session, problem }) => {
+              if (!session) {
+                return (
+                  <div key={fileName} className="session-item" aria-disabled="true">
+                    <span><b>{fileName}</b><br /><span className="muted">Can't be opened: {problem}</span></span>
+                  </div>
+                );
+              }
               const trad = session.results?.tiers.find((t) => t.tier === 'traditional');
               return (
                 <button key={fileName} className="session-item"

@@ -79,29 +79,6 @@ Example for the example plan:
 
 ## P1: materially changes answers or breaks on plausible input
 
-### 9. Validate session files and the local draft (robustness)
-
-- **Problem:**
-  - `parseSession` checks only the outer wrapper (`app`, `schemaVersion`, and that `plan` is an object).
-  - `loadDraft` checks nothing.
-  - There is no React error boundary, so a bad plan blanks the page.
-- **Where:** `src/ui/sessions.ts:36`, `src/App.tsx:23`, `src/main.tsx`.
-- **Evidence:**
-  - A browser draft missing `datedItems` blanks the page on every load until storage is cleared.
-  - `household.taxable: "150000"` (text) makes the balance a concatenated string and moves Traditional from
-    **2040 to 2027**.
-  - The engine also accepts out-of-range values the UI would clamp: `birthMonth: 0`, `claimAge: 50`,
-    `blockLength: 0` (every path becomes 1871 history), and `paths: 0` (crash).
-- **Change:**
-  - Add one `validatePlan()` (types, required fields, ranges) used by both loaders; reject with a clear
-    message.
-  - Fill defaults for missing optional fields (the migration hook for step 5 of
-    [How to work on an item](#how-to-work-on-an-item)).
-  - Add an error boundary with a "reset draft" button.
-- **Test:** `parseSession` rejects each of the cases above. A plan missing an optional field loads with the
-  default filled in.
-- **Related:** D62.
-
 ### 10. Round whole-number fields (robustness)
 
 - **Problem:** fields with `kind='int'` only set the input's `step`; typed decimals pass straight through.

@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { examplePlan, untouchedSections } from './engine/defaults';
 import { migratePlan } from './engine/migrate';
+import { fieldProblems, planProblems } from './engine/validate';
 import type { Detail, Tier, TierResult } from './engine/solve';
 import { MARKET } from './engine/returns';
 import type { Plan } from './engine/types';
@@ -9,11 +10,10 @@ import { Icon, TIER_ICONS } from './ui/icons';
 import { InputsPanel } from './ui/InputsPanel';
 import { BeforeYouAct, DetailView, TIER_NAMES, TierCard } from './ui/Results';
 import { SessionsDialog, type SessionMeta } from './ui/SessionsDialog';
-import { isStale, makeSession, type SessionFile } from './ui/sessions';
+import { DRAFT_KEY, REJECTED_DRAFT_KEY, describeProblems, isStale, makeSession, type SessionFile } from './ui/sessions';
 import { beforeYouAct } from './ui/warnings';
 import { detail as fetchDetail, solveAll } from './worker/client';
 
-const DRAFT_KEY = 'fire-planner:draft';
 
 interface Results {
   plan: Plan;
@@ -22,14 +22,31 @@ interface Results {
   done: boolean;
 }
 
-function loadDraft(): { plan: Plan; meta: SessionMeta | null } | null {
+interface Draft {
+  plan?: Plan;
+  meta?: SessionMeta | null;
+  /** Why a saved draft couldn't be used. */
+  rejected?: string;
+}
+
+function loadDraft(): Draft | null {
+  let raw: string | null = null;
   try {
-    const raw = localStorage.getItem(DRAFT_KEY);
+    raw = localStorage.getItem(DRAFT_KEY);
     if (!raw) return null;
     const draft = JSON.parse(raw);
-    return { ...draft, plan: migratePlan(draft.plan) };
-  } catch {
-    return null;
+    const plan = migratePlan(draft?.plan);
+    const problems = fieldProblems(plan);
+    if (problems.length) throw new Error(describeProblems(problems));
+    return { plan: plan as Plan, meta: draft.meta ?? null };
+  } catch (e) {
+    if (raw === null) return null; // storage unavailable (private window etc.)
+    try {
+      localStorage.setItem(REJECTED_DRAFT_KEY, raw);
+    } catch {
+      // Nowhere to keep it.
+    }
+    return { rejected: e instanceof Error ? e.message : String(e) };
   }
 }
 
@@ -43,7 +60,8 @@ export default function App() {
   const [selYear, setSelYear] = useState<number | null>(null);
   const [detail, setDetail] = useState<Detail | null>(null);
   const [detailLoading, setDetailLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(() =>
+    draft?.rejected ? `Your unsaved draft couldn't be loaded, so the example plan is shown. ${draft.rejected}` : null);
   const [staleData, setStaleData] = useState(false);
   // When the results on screen came from a session file rather than this app's own calculation.
   const [savedAt, setSavedAt] = useState<string | null>(null);
@@ -74,6 +92,11 @@ export default function App() {
   const inputsChanged = results !== null && JSON.stringify(results.plan) !== JSON.stringify(plan);
 
   const calculate = async () => {
+    const problems = planProblems(plan);
+    if (problems.length) {
+      setError(`Fix these inputs first: ${describeProblems(problems)}`);
+      return;
+    }
     const snapshot = structuredClone(plan);
     running.current = snapshot;
     setError(null);

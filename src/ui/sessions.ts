@@ -3,8 +3,14 @@
 
 import { DATA_VERSIONS, describeAssumptions, type AssumptionRow } from '../engine/assumptions';
 import { migratePlan } from '../engine/migrate';
+import { fieldProblems } from '../engine/validate';
 import type { Detail, TierResult } from '../engine/solve';
 import type { Plan } from '../engine/types';
+
+/** The working plan auto-saved in the browser (D38). */
+export const DRAFT_KEY = 'fire-planner:draft';
+/** A draft that failed validation is kept here, so it isn't lost when the example plan replaces it (D71). */
+export const REJECTED_DRAFT_KEY = 'fire-planner:rejected-draft';
 
 export interface SessionFile {
   app: 'fire-planner';
@@ -43,7 +49,15 @@ export function parseSession(text: string): SessionFile {
     (s.results === null || (typeof s.results === 'object' && typeof s.results.calculatedAt === 'string' && Array.isArray(s.results.tiers)));
   if (!ok) throw new Error('This FIRE Planner session file is damaged.');
   s.plan = migratePlan(s.plan);
+  const problems = fieldProblems(s.plan);
+  if (problems.length) throw new Error(`This session file's plan can't be used: ${describeProblems(problems)}`);
   return s as SessionFile;
+}
+
+/** The first few problems, for a message (D71). */
+export function describeProblems(problems: string[]): string {
+  const more = problems.length > 3 ? ` (and ${problems.length - 3} more)` : '';
+  return problems.slice(0, 3).join(' ') + more;
 }
 
 /** True when the session's results were computed with older data tables than this app has. */
@@ -117,21 +131,33 @@ export async function ensurePermission(dir: DirHandle): Promise<boolean> {
 
 export interface SessionListing {
   fileName: string;
-  session: SessionFile;
+  /** Null for a FIRE Planner session file that can't be opened; `problem` says why (D71). */
+  session: SessionFile | null;
+  problem?: string;
 }
 
 export async function listSessions(dir: DirHandle): Promise<SessionListing[]> {
   const out: SessionListing[] = [];
   for await (const entry of dir.values()) {
     if (entry.kind !== 'file' || !entry.name.endsWith('.json')) continue;
+    let text = '';
     try {
-      const file = await (await dir.getFileHandle(entry.name)).getFile();
-      out.push({ fileName: entry.name, session: parseSession(await file.text()) });
-    } catch {
-      // Not a session file; skip.
+      text = await (await (await dir.getFileHandle(entry.name)).getFile()).text();
+      out.push({ fileName: entry.name, session: parseSession(text) });
+    } catch (e) {
+      // Other JSON files are skipped; a damaged session file is listed with the reason it can't be opened.
+      if (looksLikeSession(text)) out.push({ fileName: entry.name, session: null, problem: e instanceof Error ? e.message : String(e) });
     }
   }
-  return out.sort((a, b) => b.session.savedAt.localeCompare(a.session.savedAt));
+  return out.sort((a, b) => (b.session?.savedAt ?? '').localeCompare(a.session?.savedAt ?? ''));
+}
+
+function looksLikeSession(text: string): boolean {
+  try {
+    return JSON.parse(text)?.app === 'fire-planner';
+  } catch {
+    return false;
+  }
 }
 
 export async function writeSession(dir: DirHandle, fileName: string, s: SessionFile): Promise<void> {
