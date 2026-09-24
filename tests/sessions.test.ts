@@ -6,7 +6,7 @@ import { simulatePath } from '../src/engine/simulate';
 import { planProblems } from '../src/engine/validate';
 import type { Detail } from '../src/engine/solve';
 import { moneyShort } from '../src/ui/format';
-import { detailArea, detailMatches, detailSelection, makeSession, parseSession } from '../src/ui/sessions';
+import { detailArea, detailMatches, detailSelection, isStale, makeSession, parseSession } from '../src/ui/sessions';
 import { ctxFor, simplePlan, START } from './helpers';
 
 function sessionText(edit: (plan: Record<string, unknown>) => void = () => {}): string {
@@ -137,4 +137,17 @@ test('detail saved before the “Reinvested” column existed still opens, and t
   expect(loaded).toHaveLength(2);
   expect(loaded[0].reinvested).toBeUndefined();
   expect(moneyShort(loaded[0].reinvested)).toBe('—');
+});
+
+test('results saved from a stale session keep the versions they were calculated with, so they reopen as stale (D86)', () => {
+  const old = JSON.parse(sessionText());
+  old.results = { calculatedAt: 'x', tiers: [], detail: null };
+  old.dataVersions = { ...old.dataVersions, engine: 1 };
+  const opened = parseSession(JSON.stringify(old));
+  expect(isStale(opened)).toBe(true);
+  const resaved = parseSession(JSON.stringify(makeSession('test', opened.plan, opened.results, undefined, opened.dataVersions)));
+  expect(isStale(resaved)).toBe(true);
+  expect(resaved.dataVersions.engine).toBe(1);
+  // A fresh calculation is saved with the app's own versions.
+  expect(isStale(parseSession(JSON.stringify(makeSession('test', opened.plan, opened.results))))).toBe(false);
 });

@@ -24,7 +24,13 @@ export interface SessionFile {
   results: { calculatedAt: string; tiers: TierResult[]; detail: Detail | null } | null;
 }
 
-export function makeSession(name: string, plan: Plan, results: SessionFile['results'], createdAt?: string): SessionFile {
+/**
+ * A session file. `dataVersions` are those the results were calculated with: the app's own for a new calculation,
+ * the opened file's for stale results saved again, so they still reopen as stale (D86).
+ */
+export function makeSession(
+  name: string, plan: Plan, results: SessionFile['results'], createdAt?: string, dataVersions: SessionFile['dataVersions'] = DATA_VERSIONS,
+): SessionFile {
   const now = new Date().toISOString();
   return {
     app: 'fire-planner',
@@ -34,7 +40,7 @@ export function makeSession(name: string, plan: Plan, results: SessionFile['resu
     savedAt: now,
     plan,
     assumptions: describeAssumptions(plan),
-    dataVersions: DATA_VERSIONS,
+    dataVersions,
     results,
   };
 }

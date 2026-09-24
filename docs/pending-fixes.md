@@ -27,7 +27,7 @@ cited below) first. [DEVELOPMENT.md](DEVELOPMENT.md) has the layout and scripts.
 4. **Update the records:**
    - If results change for the same inputs, bump `DATA_VERSIONS.engine` in `src/engine/assumptions.ts`
      (D59) so saved sessions are flagged for recalculation.
-   - Record any judgement call as a new D-number in DECISIONS.md (the next free number is **D86**). Update
+   - Record any judgement call as a new D-number in DECISIONS.md (the next free number is **D88**). Update
      an existing D-row if its behavior changes, and update the "Which way the assumptions lean" table.
    - If the change affects an assumption shown to users, update its row in `describeAssumptions` in
      `src/engine/assumptions.ts` (the "How this works" page) and its help text in `src/ui/helpText.ts`.
@@ -89,16 +89,7 @@ None pending.
 
 ## P2: narrower wrong answers, clarity gaps
 
-### 30. Saving a stale session marks it current (clarity)
-
-- **Problem:** while the "calculated with older data or an older version" banner is up (D59), saving the session
-  writes the older cards and detail with the app's current `DATA_VERSIONS`, so the file opens next time as a current
-  calculation. Saved results from an older engine then pass for the app's own (against D59 and D62).
-- **Where:** `sessionFor` in `src/App.tsx` (passes results whenever `results.done && !inputsChanged`) and
-  `makeSession` in `src/ui/sessions.ts` (always writes `DATA_VERSIONS`).
-- **Change:** keep the opened file's `dataVersions` when saving while `staleData` is true (or save without results).
-- **Test:** saving a session opened as stale and reopening it still shows the recalculate banner.
-- **Source:** found while fixing #28.
+None pending.
 
 ---
 

@@ -69,7 +69,10 @@ export default function App() {
   const [detailLoading, setDetailLoading] = useState(false);
   const [error, setError] = useState<string | null>(() =>
     draft?.rejected ? `Your unsaved draft couldn't be loaded, so the example plan is shown. ${draft.rejected}` : null);
-  const [staleData, setStaleData] = useState(false);
+  // The versions stale saved results were calculated with (D59), kept so saving them again doesn't mark them
+  // current (D86); null when the results on screen aren't stale.
+  const [staleVersions, setStaleVersions] = useState<SessionFile['dataVersions'] | null>(null);
+  const staleData = staleVersions !== null;
   // When the results on screen came from a session file rather than this app's own calculation.
   const [savedAt, setSavedAt] = useState<string | null>(null);
   const [dirty, setDirty] = useState(false);
@@ -107,7 +110,7 @@ export default function App() {
     const snapshot = structuredClone(plan);
     running.current = snapshot;
     setError(null);
-    setStaleData(false);
+    setStaleVersions(null);
     setSavedAt(null);
     setDetail(null);
     setResults({ plan: snapshot, calculatedAt: new Date().toISOString(), tiers: {}, done: false });
@@ -152,8 +155,10 @@ export default function App() {
     if (r && results) setSelYear(defaultYear(results.plan, r));
   };
 
-  const sessionFor = (name: string, createdAt?: string): SessionFile =>
-    makeSession(name, plan, results?.done && !inputsChanged ? { calculatedAt: results.calculatedAt, tiers: Object.values(results.tiers), detail } : null, createdAt);
+  const sessionFor = (name: string, createdAt?: string): SessionFile => {
+    const saved = results?.done && !inputsChanged ? { calculatedAt: results.calculatedAt, tiers: Object.values(results.tiers), detail } : null;
+    return makeSession(name, plan, saved, createdAt, saved && staleVersions ? staleVersions : undefined);
+  };
 
   const openSession = (s: SessionFile, m: SessionMeta) => {
     running.current = null;
@@ -183,7 +188,7 @@ export default function App() {
     } else {
       setResults(null);
     }
-    setStaleData(!!s.results && isStale(s));
+    setStaleVersions(s.results && isStale(s) ? s.dataVersions : null);
     setSavedAt(s.results?.calculatedAt ?? null);
   };
 
@@ -194,7 +199,7 @@ export default function App() {
     setResults(null);
     setDetail(null);
     setDirty(false);
-    setStaleData(false);
+    setStaleVersions(null);
     setSavedAt(null);
   };
 
