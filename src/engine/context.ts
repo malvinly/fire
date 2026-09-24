@@ -66,6 +66,10 @@ export interface Context {
 export function planYears(plan: Plan): { startYear: number; endYear: number; len: number } {
   const youngerBirth = Math.max(plan.you.birthYear, plan.spouse.birthYear);
   const endYear = youngerBirth + plan.assumptions.endAge;
+  // A fractional year count would make every per-year array the wrong length.
+  if (![plan.startYear, plan.you.birthYear, plan.spouse.birthYear, plan.assumptions.endAge].every(Number.isInteger)) {
+    throw new Error('Plan start year, birth years and "Plan until … age" must be whole numbers.');
+  }
   const len = endYear - plan.startYear + 1;
   if (len < 2) throw new Error(`"Plan to age" (${plan.assumptions.endAge}) must be above the younger spouse's current age.`);
   // A typo (plan start "202", plan to age "960") would otherwise run for hours.

@@ -17,3 +17,15 @@ export function percent(x: number | null | undefined, digits = 0): string {
   if (x === null || x === undefined || !Number.isFinite(x)) return '—';
   return `${(x * 100).toFixed(digits)}%`;
 }
+
+/**
+ * What a number field holds for the text typed into it: null when empty, undefined when it isn't a number yet.
+ * Percent fields store a fraction; whole-number fields round (a fractional year or age breaks the plan).
+ */
+export function parseFieldText(text: string, kind: 'money' | 'percent' | 'int' | 'number'): number | null | undefined {
+  if (text.trim() === '') return null;
+  const n = Number(text);
+  if (!Number.isFinite(n)) return undefined;
+  if (kind === 'int') return Math.round(n);
+  return kind === 'percent' ? n / 100 : n;
+}

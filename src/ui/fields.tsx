@@ -1,4 +1,5 @@
 import { useId, useRef, useState, type ReactNode } from 'react';
+import { parseFieldText } from './format';
 import { Icon, type IconName } from './icons';
 
 /**
@@ -56,7 +57,7 @@ export function NumberField({ label, value, onChange, kind = 'money', min, max, 
   const [text, setText] = useState(toText(value));
   const [seen, setSeen] = useState(value);
   const [focused, setFocused] = useState(false);
-  const parsed = text === '' ? null : Number(text) / scale;
+  const parsed = parseFieldText(text, kind);
   // Keep the text in sync when the value changes from outside (loading a session, defaults button). While
   // typing, a caller that clamps (claim age 62–70) would otherwise rewrite a half-typed "6" to "62"; the
   // clamped value is shown on blur instead.
@@ -67,17 +68,17 @@ export function NumberField({ label, value, onChange, kind = 'money', min, max, 
 
   const commit = (t: string) => {
     setText(t);
-    if (t.trim() === '') {
+    const v = parseFieldText(t, kind);
+    if (v === null) {
       if (allowEmpty) {
         setSeen(null);
         onChange(null);
       }
       return;
     }
-    const n = Number(t);
-    if (Number.isFinite(n)) {
-      setSeen(n / scale);
-      onChange(n / scale);
+    if (v !== undefined) {
+      setSeen(v);
+      onChange(v);
     }
   };
 
@@ -95,7 +96,7 @@ export function NumberField({ label, value, onChange, kind = 'money', min, max, 
         step={step ?? (kind === 'money' ? 100 : kind === 'percent' ? 0.1 : 1)}
         onChange={(e) => commit(e.target.value)}
         onFocus={() => setFocused(true)}
-        onBlur={() => { setFocused(false); if (parsed !== value) setText(toText(value)); }}
+        onBlur={() => { setFocused(false); setText(toText(value)); }}
       />
       {warn && <span className="warn">{warn}</span>}
       {hint && <span className="hint">{hint}</span>}

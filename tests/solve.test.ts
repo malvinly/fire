@@ -211,3 +211,11 @@ describe('price level in retirement-only runs', () => {
     expect(() => simulatePath(ctx, constantPath(ctx.len, 0), 0, { startIdx: 10, pathShift: 10 })).toThrow();
   });
 });
+
+describe('fractional years (fix 10)', () => {
+  test('a fractional "plan to age" is rejected with a readable message instead of crashing', () => {
+    const p = smallPlan();
+    p.assumptions.endAge = 96.5;
+    expect(() => makeEngine(p)).toThrow(/whole number/);
+  });
+});

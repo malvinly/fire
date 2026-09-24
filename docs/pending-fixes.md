@@ -79,21 +79,6 @@ Example for the example plan:
 
 ## P1: materially changes answers or breaks on plausible input
 
-### 10. Round whole-number fields (robustness)
-
-- **Problem:** fields with `kind='int'` only set the input's `step`; typed decimals pass straight through.
-- **Where:** `NumberField` and its `commit` in `src/ui/fields.tsx:52–68`.
-- **Evidence:**
-  - End age 96.5 or start year 2026.5 crashes Calculate ("Cannot read properties of undefined (reading
-    'portfolio')"), because the year count becomes fractional.
-  - Birth year 1984.5 gives NaN.
-  - A one-time item at year 2030.5 adds $0.
-  - Claim age 62.5 gets the 62.5 reduction but payments start at 63.
-- **Change:** `Math.round` the parsed value before `onChange` when `kind === 'int'`. Consider also rounding
-  in `planYears`/`buildContext` as a guard.
-- **Test:** unit-test `commit` rounding. An engine test with a fractional end age either rounds or rejects
-  cleanly.
-
 ### 11. Representative paths (accuracy)
 
 - **Problem:**
