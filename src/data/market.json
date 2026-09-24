@@ -1,0 +1,1098 @@
+{
+ "description": "Annual nominal US returns, January-to-January. See scripts/build-market-data.ts.",
+ "sources": {
+  "stocksBondsInflation": "Robert J. Shiller, ie_data.xls (https://shillerdata.com/)",
+  "cash1928Plus": "Aswath Damodaran, histretSP.xls 3-month T-bill (https://pages.stern.nyu.edu/~adamodar/)",
+  "cashPre1928": "Shiller January GS10 long-term yield used as income-only cash return (approximation)"
+ },
+ "generated": "2026-09-24",
+ "firstYear": 1871,
+ "lastYear": 2025,
+ "years": [
+  {
+   "year": 1871,
+   "stocks": 0.156448,
+   "bonds": 0.051486,
+   "cash": 0.0532,
+   "inflation": 0.01527
+  },
+  {
+   "year": 1872,
+   "stocks": 0.112347,
+   "bonds": 0.038467,
+   "cash": 0.0536,
+   "inflation": 0.022555
+  },
+  {
+   "year": 1873,
+   "stocks": -0.024675,
+   "bonds": 0.065574,
+   "cash": 0.0558,
+   "inflation": -0.044121
+  },
+  {
+   "year": 1874,
+   "stocks": 0.047129,
+   "bonds": 0.087022,
+   "cash": 0.0547,
+   "inflation": -0.069226
+  },
+  {
+   "year": 1875,
+   "stocks": 0.053542,
+   "bonds": 0.089795,
+   "cash": 0.0507,
+   "inflation": -0.057856
+  },
+  {
+   "year": 1876,
+   "stocks": -0.141699,
+   "bonds": 0.057916,
+   "cash": 0.0459,
+   "inflation": 0.008774
+  },
+  {
+   "year": 1877,
+   "stocks": -0.013361,
+   "bonds": 0.054125,
+   "cash": 0.0445,
+   "inflation": -0.156525
+  },
+  {
+   "year": 1878,
+   "stocks": 0.162533,
+   "bonds": 0.053819,
+   "cash": 0.0434,
+   "inflation": -0.103088
+  },
+  {
+   "year": 1879,
+   "stocks": 0.494132,
+   "bonds": 0.059091,
+   "cash": 0.0422,
+   "inflation": 0.2069
+  },
+  {
+   "year": 1880,
+   "stocks": 0.266867,
+   "bonds": 0.067058,
+   "cash": 0.0402,
+   "inflation": -0.057146
+  },
+  {
+   "year": 1881,
+   "stocks": 0.003061,
+   "bonds": 0.044148,
+   "cash": 0.037,
+   "inflation": 0.080808
+  },
+  {
+   "year": 1882,
+   "stocks": 0.03614,
+   "bonds": 0.035994,
+   "cash": 0.0362,
+   "inflation": -0.018687
+  },
+  {
+   "year": 1883,
+   "stocks": -0.054846,
+   "bonds": 0.037723,
+   "cash": 0.0363,
+   "inflation": -0.076198
+  },
+  {
+   "year": 1884,
+   "stocks": -0.123767,
+   "bonds": 0.044986,
+   "cash": 0.0362,
+   "inflation": -0.103088
+  },
+  {
+   "year": 1885,
+   "stocks": 0.298957,
+   "bonds": 0.048132,
+   "cash": 0.0352,
+   "inflation": -0.034484
+  },
+  {
+   "year": 1886,
+   "stocks": 0.1194,
+   "bonds": 0.022025,
+   "cash": 0.0337,
+   "inflation": 0
+  },
+  {
+   "year": 1887,
+   "stocks": -0.006287,
+   "bonds": 0.023647,
+   "cash": 0.0352,
+   "inflation": 0.047623
+  },
+  {
+   "year": 1888,
+   "stocks": 0.032902,
+   "bonds": 0.055418,
+   "cash": 0.0367,
+   "inflation": -0.045458
+  },
+  {
+   "year": 1889,
+   "stocks": 0.070646,
+   "bonds": 0.037511,
+   "cash": 0.0345,
+   "inflation": -0.047619
+  },
+  {
+   "year": 1890,
+   "stocks": -0.061584,
+   "bonds": 0.018558,
+   "cash": 0.0342,
+   "inflation": 0.025
+  },
+  {
+   "year": 1891,
+   "stocks": 0.188833,
+   "bonds": 0.038434,
+   "cash": 0.0362,
+   "inflation": -0.060976
+  },
+  {
+   "year": 1892,
+   "stocks": 0.06155,
+   "bonds": 0.024512,
+   "cash": 0.036,
+   "inflation": 0.077923
+  },
+  {
+   "year": 1893,
+   "stocks": -0.187969,
+   "bonds": 0.042207,
+   "cash": 0.0375,
+   "inflation": -0.132531
+  },
+  {
+   "year": 1894,
+   "stocks": 0.035553,
+   "bonds": 0.057374,
+   "cash": 0.037,
+   "inflation": -0.041666
+  },
+  {
+   "year": 1895,
+   "stocks": 0.049586,
+   "bonds": 0.023801,
+   "cash": 0.0346,
+   "inflation": 0.014492
+  },
+  {
+   "year": 1896,
+   "stocks": 0.032194,
+   "bonds": 0.053076,
+   "cash": 0.036,
+   "inflation": -0.028571
+  },
+  {
+   "year": 1897,
+   "stocks": 0.203732,
+   "bonds": 0.038648,
+   "cash": 0.034,
+   "inflation": 0.029412
+  },
+  {
+   "year": 1898,
+   "stocks": 0.293421,
+   "bonds": 0.054893,
+   "cash": 0.0335,
+   "inflation": 0.014286
+  },
+  {
+   "year": 1899,
+   "stocks": 0.036805,
+   "bonds": 0.027307,
+   "cash": 0.031,
+   "inflation": 0.169014
+  },
+  {
+   "year": 1900,
+   "stocks": 0.209518,
+   "bonds": 0.036114,
+   "cash": 0.0315,
+   "inflation": -0.024097
+  },
+  {
+   "year": 1901,
+   "stocks": 0.194644,
+   "bonds": 0.024837,
+   "cash": 0.031,
+   "inflation": 0.024692
+  },
+  {
+   "year": 1902,
+   "stocks": 0.082884,
+   "bonds": 0.022413,
+   "cash": 0.0318,
+   "inflation": 0.096386
+  },
+  {
+   "year": 1903,
+   "stocks": -0.170872,
+   "bonds": 0.025321,
+   "cash": 0.033,
+   "inflation": -0.043956
+  },
+  {
+   "year": 1904,
+   "stocks": 0.321017,
+   "bonds": 0.028007,
+   "cash": 0.034,
+   "inflation": 0.022983
+  },
+  {
+   "year": 1905,
+   "stocks": 0.213055,
+   "bonds": 0.039461,
+   "cash": 0.0348,
+   "inflation": 0
+  },
+  {
+   "year": 1906,
+   "stocks": 0.006989,
+   "bonds": 0.015481,
+   "cash": 0.0343,
+   "inflation": 0.044944
+  },
+  {
+   "year": 1907,
+   "stocks": -0.241829,
+   "bonds": 0.021302,
+   "cash": 0.0367,
+   "inflation": -0.021501
+  },
+  {
+   "year": 1908,
+   "stocks": 0.394236,
+   "bonds": 0.048306,
+   "cash": 0.0387,
+   "inflation": 0.032964
+  },
+  {
+   "year": 1909,
+   "stocks": 0.161882,
+   "bonds": 0.026244,
+   "cash": 0.0376,
+   "inflation": 0.106387
+  },
+  {
+   "year": 1910,
+   "stocks": -0.033794,
+   "bonds": 0.034209,
+   "cash": 0.0391,
+   "inflation": -0.067313
+  },
+  {
+   "year": 1911,
+   "stocks": 0.035209,
+   "bonds": 0.038135,
+   "cash": 0.0398,
+   "inflation": -0.010303
+  },
+  {
+   "year": 1912,
+   "stocks": 0.071793,
+   "bonds": 0.006578,
+   "cash": 0.0401,
+   "inflation": 0.072914
+  },
+  {
+   "year": 1913,
+   "stocks": -0.047377,
+   "bonds": 0.068626,
+   "cash": 0.0445,
+   "inflation": 0.020408
+  },
+  {
+   "year": 1914,
+   "stocks": -0.054699,
+   "bonds": 0.036071,
+   "cash": 0.0416,
+   "inflation": 0.01
+  },
+  {
+   "year": 1915,
+   "stocks": 0.31219,
+   "bonds": 0.058474,
+   "cash": 0.0424,
+   "inflation": 0.029703
+  },
+  {
+   "year": 1916,
+   "stocks": 0.082342,
+   "bonds": 0.02704,
+   "cash": 0.0405,
+   "inflation": 0.125
+  },
+  {
+   "year": 1917,
+   "stocks": -0.18538,
+   "bonds": 0.016719,
+   "cash": 0.0423,
+   "inflation": 0.196581
+  },
+  {
+   "year": 1918,
+   "stocks": 0.180649,
+   "bonds": 0.05217,
+   "cash": 0.0457,
+   "inflation": 0.178571
+  },
+  {
+   "year": 1919,
+   "stocks": 0.196281,
+   "bonds": 0.010095,
+   "cash": 0.045,
+   "inflation": 0.169697
+  },
+  {
+   "year": 1920,
+   "stocks": -0.139772,
+   "bonds": 0.041673,
+   "cash": 0.0497,
+   "inflation": -0.015544
+  },
+  {
+   "year": 1921,
+   "stocks": 0.100825,
+   "bonds": 0.115626,
+   "cash": 0.0509,
+   "inflation": -0.110526
+  },
+  {
+   "year": 1922,
+   "stocks": 0.291281,
+   "bonds": 0.03913,
+   "cash": 0.043,
+   "inflation": -0.005917
+  },
+  {
+   "year": 1923,
+   "stocks": 0.054573,
+   "bonds": 0.068592,
+   "cash": 0.0436,
+   "inflation": 0.029762
+  },
+  {
+   "year": 1924,
+   "stocks": 0.271165,
+   "bonds": 0.057534,
+   "cash": 0.0406,
+   "inflation": 0
+  },
+  {
+   "year": 1925,
+   "stocks": 0.258727,
+   "bonds": 0.053943,
+   "cash": 0.0386,
+   "inflation": 0.034682
+  },
+  {
+   "year": 1926,
+   "stocks": 0.115647,
+   "bonds": 0.065594,
+   "cash": 0.0368,
+   "inflation": -0.022346
+  },
+  {
+   "year": 1927,
+   "stocks": 0.371595,
+   "bonds": 0.034739,
+   "cash": 0.0334,
+   "inflation": -0.011429
+  },
+  {
+   "year": 1928,
+   "stocks": 0.476212,
+   "bonds": 0.011982,
+   "cash": 0.0308,
+   "inflation": -0.011561
+  },
+  {
+   "year": 1929,
+   "stocks": -0.09427,
+   "bonds": 0.062317,
+   "cash": 0.0316,
+   "inflation": 0
+  },
+  {
+   "year": 1930,
+   "stocks": -0.227271,
+   "bonds": 0.029295,
+   "cash": 0.0455,
+   "inflation": -0.070175
+  },
+  {
+   "year": 1931,
+   "stocks": -0.442641,
+   "bonds": 0.006557,
+   "cash": 0.0231,
+   "inflation": -0.100629
+  },
+  {
+   "year": 1932,
+   "stocks": -0.061641,
+   "bonds": 0.068137,
+   "cash": 0.0107,
+   "inflation": -0.097902
+  },
+  {
+   "year": 1933,
+   "stocks": 0.566645,
+   "bonds": 0.049436,
+   "cash": 0.0096,
+   "inflation": 0.023256
+  },
+  {
+   "year": 1934,
+   "stocks": -0.080049,
+   "bonds": 0.059612,
+   "cash": 0.002783,
+   "inflation": 0.030303
+  },
+  {
+   "year": 1935,
+   "stocks": 0.549564,
+   "bonds": 0.040138,
+   "cash": 0.001675,
+   "inflation": 0.014706
+  },
+  {
+   "year": 1936,
+   "stocks": 0.327169,
+   "bonds": 0.024292,
+   "cash": 0.001725,
+   "inflation": 0.021739
+  },
+  {
+   "year": 1937,
+   "stocks": -0.320824,
+   "bonds": 0.037347,
+   "cash": 0.002758,
+   "inflation": 0.007092
+  },
+  {
+   "year": 1938,
+   "stocks": 0.172736,
+   "bonds": 0.043103,
+   "cash": 0.00065,
+   "inflation": -0.014085
+  },
+  {
+   "year": 1939,
+   "stocks": 0.03057,
+   "bonds": 0.036823,
+   "cash": 0.000458,
+   "inflation": -0.007143
+  },
+  {
+   "year": 1940,
+   "stocks": -0.088789,
+   "bonds": 0.045107,
+   "cash": 0.000358,
+   "inflation": 0.014388
+  },
+  {
+   "year": 1941,
+   "stocks": -0.090702,
+   "bonds": -0.023256,
+   "cash": 0.001292,
+   "inflation": 0.113475
+  },
+  {
+   "year": 1942,
+   "stocks": 0.216061,
+   "bonds": 0.024027,
+   "cash": 0.003425,
+   "inflation": 0.076433
+  },
+  {
+   "year": 1943,
+   "stocks": 0.236215,
+   "bonds": 0.02413,
+   "cash": 0.0038,
+   "inflation": 0.029586
+  },
+  {
+   "year": 1944,
+   "stocks": 0.19692,
+   "bonds": 0.03452,
+   "cash": 0.0038,
+   "inflation": 0.022989
+  },
+  {
+   "year": 1945,
+   "stocks": 0.393633,
+   "bonds": 0.039542,
+   "cash": 0.0038,
+   "inflation": 0.022472
+  },
+  {
+   "year": 1946,
+   "stocks": -0.120326,
+   "bonds": 0.01697,
+   "cash": 0.0038,
+   "inflation": 0.181319
+  },
+  {
+   "year": 1947,
+   "stocks": 0.026345,
+   "bonds": 0.0066,
+   "cash": 0.006008,
+   "inflation": 0.102326
+  },
+  {
+   "year": 1948,
+   "stocks": 0.095681,
+   "bonds": 0.035859,
+   "cash": 0.01045,
+   "inflation": 0.012658
+  },
+  {
+   "year": 1949,
+   "stocks": 0.176096,
+   "bonds": 0.022489,
+   "cash": 0.01115,
+   "inflation": -0.020833
+  },
+  {
+   "year": 1950,
+   "stocks": 0.345809,
+   "bonds": 0.002364,
+   "cash": 0.012033,
+   "inflation": 0.080851
+  },
+  {
+   "year": 1951,
+   "stocks": 0.218857,
+   "bonds": 0.016738,
+   "cash": 0.015175,
+   "inflation": 0.043307
+  },
+  {
+   "year": 1952,
+   "stocks": 0.146893,
+   "bonds": 0.014585,
+   "cash": 0.017225,
+   "inflation": 0.003774
+  },
+  {
+   "year": 1953,
+   "stocks": 0.030259,
+   "bonds": 0.060252,
+   "cash": 0.018908,
+   "inflation": 0.011278
+  },
+  {
+   "year": 1954,
+   "stocks": 0.468254,
+   "bonds": 0.012624,
+   "cash": 0.009375,
+   "inflation": -0.007435
+  },
+  {
+   "year": 1955,
+   "stocks": 0.289401,
+   "bonds": 0.002981,
+   "cash": 0.017243,
+   "inflation": 0.003745
+  },
+  {
+   "year": 1956,
+   "stocks": 0.068774,
+   "bonds": -0.015863,
+   "cash": 0.026214,
+   "inflation": 0.029851
+  },
+  {
+   "year": 1957,
+   "stocks": -0.058012,
+   "bonds": 0.069256,
+   "cash": 0.032246,
+   "inflation": 0.036232
+  },
+  {
+   "year": 1958,
+   "stocks": 0.403758,
+   "bonds": -0.043756,
+   "cash": 0.017665,
+   "inflation": 0.013986
+  },
+  {
+   "year": 1959,
+   "stocks": 0.076476,
+   "bonds": -0.012951,
+   "cash": 0.03386,
+   "inflation": 0.010345
+  },
+  {
+   "year": 1960,
+   "stocks": 0.065455,
+   "bonds": 0.117971,
+   "cash": 0.02873,
+   "inflation": 0.017065
+  },
+  {
+   "year": 1961,
+   "stocks": 0.190967,
+   "bonds": 0.019236,
+   "cash": 0.023525,
+   "inflation": 0.006711
+  },
+  {
+   "year": 1962,
+   "stocks": -0.025801,
+   "bonds": 0.061566,
+   "cash": 0.027724,
+   "inflation": 0.013333
+  },
+  {
+   "year": 1963,
+   "stocks": 0.212324,
+   "bonds": 0.012293,
+   "cash": 0.03156,
+   "inflation": 0.016447
+  },
+  {
+   "year": 1964,
+   "stocks": 0.160016,
+   "bonds": 0.040981,
+   "cash": 0.035457,
+   "inflation": 0.009709
+  },
+  {
+   "year": 1965,
+   "stocks": 0.116227,
+   "bonds": 0.009144,
+   "cash": 0.039491,
+   "inflation": 0.019231
+  },
+  {
+   "year": 1966,
+   "stocks": -0.064022,
+   "bonds": 0.052353,
+   "cash": 0.048557,
+   "inflation": 0.034591
+  },
+  {
+   "year": 1967,
+   "stocks": 0.161221,
+   "bonds": -0.023125,
+   "cash": 0.042935,
+   "inflation": 0.036474
+  },
+  {
+   "year": 1968,
+   "stocks": 0.106298,
+   "bonds": 0.017886,
+   "cash": 0.053376,
+   "inflation": 0.043988
+  },
+  {
+   "year": 1969,
+   "stocks": -0.085467,
+   "bonds": -0.057115,
+   "cash": 0.066685,
+   "inflation": 0.061798
+  },
+  {
+   "year": 1970,
+   "stocks": 0.075405,
+   "bonds": 0.199506,
+   "cash": 0.06391,
+   "inflation": 0.05291
+  },
+  {
+   "year": 1971,
+   "stocks": 0.139945,
+   "bonds": 0.085366,
+   "cash": 0.043343,
+   "inflation": 0.032663
+  },
+  {
+   "year": 1972,
+   "stocks": 0.178716,
+   "bonds": 0.024488,
+   "cash": 0.040618,
+   "inflation": 0.036496
+  },
+  {
+   "year": 1973,
+   "stocks": -0.16272,
+   "bonds": 0.030163,
+   "cash": 0.070354,
+   "inflation": 0.093897
+  },
+  {
+   "year": 1974,
+   "stocks": -0.21057,
+   "bonds": 0.039941,
+   "cash": 0.078458,
+   "inflation": 0.118026
+  },
+  {
+   "year": 1975,
+   "stocks": 0.39199,
+   "bonds": 0.064369,
+   "cash": 0.057864,
+   "inflation": 0.067179
+  },
+  {
+   "year": 1976,
+   "stocks": 0.112464,
+   "bonds": 0.118726,
+   "cash": 0.049766,
+   "inflation": 0.052158
+  },
+  {
+   "year": 1977,
+   "stocks": -0.089927,
+   "bonds": 0.022166,
+   "cash": 0.05261,
+   "inflation": 0.068376
+  },
+  {
+   "year": 1978,
+   "stocks": 0.162753,
+   "bonds": 0.008022,
+   "cash": 0.071783,
+   "inflation": 0.0928
+  },
+  {
+   "year": 1979,
+   "stocks": 0.171702,
+   "bonds": -0.012962,
+   "cash": 0.100543,
+   "inflation": 0.139092
+  },
+  {
+   "year": 1980,
+   "stocks": 0.260645,
+   "bonds": 0.006756,
+   "cash": 0.113919,
+   "inflation": 0.118252
+  },
+  {
+   "year": 1981,
+   "stocks": -0.071929,
+   "bonds": 0.02753,
+   "cash": 0.140362,
+   "inflation": 0.083908
+  },
+  {
+   "year": 1982,
+   "stocks": 0.301344,
+   "bonds": 0.431972,
+   "cash": 0.1109,
+   "inflation": 0.037116
+  },
+  {
+   "year": 1983,
+   "stocks": 0.203866,
+   "bonds": 0.038687,
+   "cash": 0.0895,
+   "inflation": 0.041922
+  },
+  {
+   "year": 1984,
+   "stocks": 0.079408,
+   "bonds": 0.14996,
+   "cash": 0.0992,
+   "inflation": 0.035329
+  },
+  {
+   "year": 1985,
+   "stocks": 0.264065,
+   "bonds": 0.270573,
+   "cash": 0.0772,
+   "inflation": 0.038863
+  },
+  {
+   "year": 1986,
+   "stocks": 0.31413,
+   "bonds": 0.2428,
+   "cash": 0.0615,
+   "inflation": 0.014599
+  },
+  {
+   "year": 1987,
+   "stocks": -0.023768,
+   "bonds": -0.026351,
+   "cash": 0.0596,
+   "inflation": 0.040468
+  },
+  {
+   "year": 1988,
+   "stocks": 0.179599,
+   "bonds": 0.061969,
+   "cash": 0.0689,
+   "inflation": 0.046672
+  },
+  {
+   "year": 1989,
+   "stocks": 0.230107,
+   "bonds": 0.152685,
+   "cash": 0.0839,
+   "inflation": 0.052023
+  },
+  {
+   "year": 1990,
+   "stocks": -0.008277,
+   "bonds": 0.097304,
+   "cash": 0.0775,
+   "inflation": 0.056515
+  },
+  {
+   "year": 1991,
+   "stocks": 0.31956,
+   "bonds": 0.16326,
+   "cash": 0.0554,
+   "inflation": 0.026003
+  },
+  {
+   "year": 1992,
+   "stocks": 0.077425,
+   "bonds": 0.105266,
+   "cash": 0.0351,
+   "inflation": 0.032585
+  },
+  {
+   "year": 1993,
+   "stocks": 0.117099,
+   "bonds": 0.128193,
+   "cash": 0.0307,
+   "inflation": 0.025245
+  },
+  {
+   "year": 1994,
+   "stocks": 0.011625,
+   "bonds": -0.073082,
+   "cash": 0.0437,
+   "inflation": 0.028044
+  },
+  {
+   "year": 1995,
+   "stocks": 0.353293,
+   "bonds": 0.243504,
+   "cash": 0.0566,
+   "inflation": 0.027279
+  },
+  {
+   "year": 1996,
+   "stocks": 0.273799,
+   "bonds": -0.005264,
+   "cash": 0.0515,
+   "inflation": 0.03044
+  },
+  {
+   "year": 1997,
+   "stocks": 0.279168,
+   "bonds": 0.150144,
+   "cash": 0.052,
+   "inflation": 0.015713
+  },
+  {
+   "year": 1998,
+   "stocks": 0.315153,
+   "bonds": 0.122114,
+   "cash": 0.0491,
+   "inflation": 0.016708
+  },
+  {
+   "year": 1999,
+   "stocks": 0.155788,
+   "bonds": -0.086709,
+   "cash": 0.0478,
+   "inflation": 0.027389
+  },
+  {
+   "year": 2000,
+   "stocks": -0.052137,
+   "bonds": 0.18663,
+   "cash": 0.06,
+   "inflation": 0.037322
+  },
+  {
+   "year": 2001,
+   "stocks": -0.134734,
+   "bonds": 0.060409,
+   "cash": 0.0348,
+   "inflation": 0.011422
+  },
+  {
+   "year": 2002,
+   "stocks": -0.201255,
+   "bonds": 0.131814,
+   "cash": 0.0164,
+   "inflation": 0.025974
+  },
+  {
+   "year": 2003,
+   "stocks": 0.285842,
+   "bonds": 0.031009,
+   "cash": 0.0103,
+   "inflation": 0.019263
+  },
+  {
+   "year": 2004,
+   "stocks": 0.060602,
+   "bonds": 0.036807,
+   "cash": 0.014,
+   "inflation": 0.029698
+  },
+  {
+   "year": 2005,
+   "stocks": 0.101416,
+   "bonds": 0.026671,
+   "cash": 0.0322,
+   "inflation": 0.039853
+  },
+  {
+   "year": 2006,
+   "stocks": 0.133949,
+   "bonds": 0.020747,
+   "cash": 0.0485,
+   "inflation": 0.020756
+  },
+  {
+   "year": 2007,
+   "stocks": -0.014236,
+   "bonds": 0.136037,
+   "cash": 0.0448,
+   "inflation": 0.042803
+  },
+  {
+   "year": 2008,
+   "stocks": -0.356304,
+   "bonds": 0.147711,
+   "cash": 0.014,
+   "inflation": 0.000298
+  },
+  {
+   "year": 2009,
+   "stocks": 0.332576,
+   "bonds": -0.068747,
+   "cash": 0.0015,
+   "inflation": 0.026257
+  },
+  {
+   "year": 2010,
+   "stocks": 0.163875,
+   "bonds": 0.060972,
+   "cash": 0.0014,
+   "inflation": 0.016318
+  },
+  {
+   "year": 2011,
+   "stocks": 0.03408,
+   "bonds": 0.16151,
+   "cash": 0.0005,
+   "inflation": 0.029252
+  },
+  {
+   "year": 2012,
+   "stocks": 0.16226,
+   "bonds": 0.023226,
+   "cash": 0.0009,
+   "inflation": 0.015949
+  },
+  {
+   "year": 2013,
+   "stocks": 0.256086,
+   "bonds": -0.059099,
+   "cash": 0.0006,
+   "inflation": 0.015789
+  },
+  {
+   "year": 2014,
+   "stocks": 0.13479,
+   "bonds": 0.117725,
+   "cash": 0.0003,
+   "inflation": -0.000893
+  },
+  {
+   "year": 2015,
+   "stocks": -0.034418,
+   "bonds": 0.00209,
+   "cash": 0.0005,
+   "inflation": 0.013731
+  },
+  {
+   "year": 2016,
+   "stocks": 0.211129,
+   "bonds": -0.012519,
+   "cash": 0.0032,
+   "inflation": 0.025
+  },
+  {
+   "year": 2017,
+   "stocks": 0.249941,
+   "bonds": 0.009945,
+   "cash": 0.0095,
+   "inflation": 0.020705
+  },
+  {
+   "year": 2018,
+   "stocks": -0.047478,
+   "bonds": 0.017521,
+   "cash": 0.0197,
+   "inflation": 0.015512
+  },
+  {
+   "year": 2019,
+   "stocks": 0.281501,
+   "bonds": 0.11034,
+   "cash": 0.0211,
+   "inflation": 0.024866
+  },
+  {
+   "year": 2020,
+   "stocks": 0.178649,
+   "bonds": 0.073093,
+   "cash": 0.0036,
+   "inflation": 0.013998
+  },
+  {
+   "year": 2021,
+   "stocks": 0.222143,
+   "bonds": -0.047918,
+   "cash": 0.0004,
+   "inflation": 0.074799
+  },
+  {
+   "year": 2022,
+   "stocks": -0.120094,
+   "bonds": -0.118956,
+   "cash": 0.0209,
+   "inflation": 0.064101
+  },
+  {
+   "year": 2023,
+   "stocks": 0.235345,
+   "bonds": -0.005185,
+   "cash": 0.0528,
+   "inflation": 0.030909
+  },
+  {
+   "year": 2024,
+   "stocks": 0.258191,
+   "bonds": -0.004539,
+   "cash": 0.0518,
+   "inflation": 0.030005
+  },
+  {
+   "year": 2025,
+   "stocks": 0.173308,
+   "bonds": 0.079187,
+   "cash": 0.0421,
+   "inflation": 0.023864
+  }
+ ]
+}

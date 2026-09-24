@@ -1,0 +1,192 @@
+// Precomputes everything about a plan + scenario that does not depend on market returns, so the
+// per-path loop in simulate.ts stays fast.
+
+import { LIMITS, UNIFORM_LIFETIME, rmdStartAge } from '../data/rules';
+import { annualBenefits, computePia, payableShare } from './socialSecurity';
+import { bracketTop } from './tax';
+import type { DatedItem, DatedTiming, Person, Plan, Scenario } from './types';
+
+export interface Context {
+  plan: Plan;
+  scenario: Scenario;
+  startYear: number;
+  endYear: number;
+  len: number;
+  /** Year index (t = calendar year - startYear) of the household retirement year. */
+  retireIdx: number;
+  years: number[];
+  ages: [Int32Array, Int32Array];
+  /** 1 while the household still works. Contributions are gated separately: they are zero after the stop year. */
+  working: Uint8Array;
+  /** Wages taxed while working (salaries minus pre-tax contributions), for taxing SS/RMDs received then. */
+  wages: Float64Array;
+  /** Per person per year contributions (today's dollars), zero once contributions stop; capped at IRS limits. */
+  contrib: {
+    pretax: [Float64Array, Float64Array];
+    roth: [Float64Array, Float64Array];
+    hsa: Float64Array;
+    taxable: Float64Array;
+    cash: Float64Array;
+  };
+  baseSpending: Float64Array;
+  /** Dated items, retirement years only (D17). "real" amounts are today's dollars; "nominal" are fixed-dollar
+   *  amounts the simulation divides by the path's price level (D19). Out = expenses, In = income. */
+  realOut: Float64Array;
+  nominalOut: Float64Array;
+  realIn: Float64Array;
+  nominalIn: Float64Array;
+  healthcare: Float64Array;
+  /** Household Social Security after the trust-fund cut, today's dollars. */
+  socialSecurity: Float64Array;
+  /** Number of spouses aged 65+ (0, 1 or 2) — sets the extra standard deduction. */
+  over65Count: Uint8Array;
+  /** 1 when the person can withdraw from retirement accounts without penalty (D14). */
+  access: [Uint8Array, Uint8Array];
+  /** RMD divisor, 0 when no RMD is due. */
+  rmdDivisor: [Float64Array, Float64Array];
+  /** 1 when the younger spouse is under 65 (HSA non-medical penalty, D22). */
+  hsaPenalty: Uint8Array;
+  fillTop: number; // 0 = no bracket fill
+  pia: [number, number];
+}
+
+export function planYears(plan: Plan): { startYear: number; endYear: number; len: number } {
+  const youngerBirth = Math.max(plan.you.birthYear, plan.spouse.birthYear);
+  const endYear = youngerBirth + plan.assumptions.endAge;
+  const len = endYear - plan.startYear + 1;
+  if (len < 2) throw new Error(`"Plan to age" (${plan.assumptions.endAge}) must be above the younger spouse's current age.`);
+  return { startYear: plan.startYear, endYear, len };
+}
+
+export function timingYear(plan: Plan, t: DatedTiming): number {
+  return t.kind === 'year' ? t.year : plan[t.person].birthYear + t.age;
+}
+
+function itemYears(plan: Plan, item: DatedItem, endYear: number): number[] {
+  const start = timingYear(plan, item.start);
+  const end = item.end ? timingYear(plan, item.end) : endYear;
+  if (item.frequency === 'oneTime') return [start];
+  const step = item.frequency === 'recurring' ? Math.max(1, item.everyYears ?? 1) : 1;
+  const out: number[] = [];
+  for (let y = start; y <= Math.min(end, endYear); y += step) out.push(y);
+  return out;
+}
+
+function pia(person: Person, startYear: number, stopWorkYear: number, wageGrowth: number): number {
+  if (person.socialSecurity.mode === 'manual') return person.socialSecurity.manualPia;
+  const future = new Map<number, number>();
+  for (let y = startYear; y < stopWorkYear; y++) future.set(y, person.salary * Math.pow(1 + wageGrowth, y - startYear));
+  return computePia(person.socialSecurity.earnings, future);
+}
+
+export function buildContext(plan: Plan, scenario: Scenario): Context {
+  const a = plan.assumptions;
+  const { startYear, endYear, len } = planYears(plan);
+  const people = [plan.you, plan.spouse] as const;
+  const f64 = () => new Float64Array(len);
+  const retireIdx = clampIdx(scenario.retireYear - startYear, len);
+  const stopContribIdx = Math.min(clampIdx(scenario.stopContributingYear - startYear, len), retireIdx);
+
+  const ctx: Context = {
+    plan,
+    scenario,
+    startYear,
+    endYear,
+    len,
+    retireIdx,
+    years: Array.from({ length: len }, (_, t) => startYear + t),
+    ages: [new Int32Array(len), new Int32Array(len)],
+    working: new Uint8Array(len),
+    wages: f64(),
+    contrib: { pretax: [f64(), f64()], roth: [f64(), f64()], hsa: f64(), taxable: f64(), cash: f64() },
+    baseSpending: f64(),
+    realOut: f64(),
+    nominalOut: f64(),
+    realIn: f64(),
+    nominalIn: f64(),
+    healthcare: f64(),
+    socialSecurity: f64(),
+    over65Count: new Uint8Array(len),
+    access: [new Uint8Array(len), new Uint8Array(len)],
+    rmdDivisor: [f64(), f64()],
+    hsaPenalty: new Uint8Array(len),
+    fillTop: a.bracketFill === 'none' ? 0 : bracketTop(a.bracketFill),
+    pia: [0, 0],
+  };
+
+  ctx.pia = [
+    pia(plan.you, startYear, scenario.retireYear, a.wageGrowth),
+    pia(plan.spouse, startYear, scenario.retireYear, a.wageGrowth),
+  ];
+  const claimants = people.map((p, i) => ({
+    birthYear: p.birthYear,
+    birthMonth: p.birthMonth,
+    claimAge: p.socialSecurity.claimAge,
+    pia: ctx.pia[i],
+  }));
+
+  for (let t = 0; t < len; t++) {
+    const year = startYear + t;
+    const growth = Math.pow(1 + a.wageGrowth, t);
+    const hcGrowth = Math.pow(1 + a.healthcareInflation, t);
+    const working = t < retireIdx;
+    const contributing = t < stopContribIdx;
+    ctx.working[t] = working ? 1 : 0;
+    let hc = 0;
+    let over65 = 0;
+    let hsaLimit = LIMITS.hsaFamily;
+    people.forEach((p, i) => {
+      const age = year - p.birthYear;
+      ctx.ages[i][t] = age;
+      ctx.access[i][t] = age >= 60 ? 1 : 0;
+      if (age >= 65) over65++;
+      const rmdAge = rmdStartAge(p.birthYear);
+      ctx.rmdDivisor[i][t] = age >= rmdAge ? (UNIFORM_LIFETIME[Math.min(age, 120)] ?? 2) : 0;
+      if (age >= 55) hsaLimit += LIMITS.hsaCatchUp;
+      const employee = (p.contributions.pretax + p.contributions.roth) * growth;
+      const limit = LIMITS.employee401k + LIMITS.ira + (age >= 50 ? LIMITS.catchUp401k + LIMITS.iraCatchUp : 0);
+      const k = employee > limit ? limit / employee : 1;
+      if (contributing) {
+        // Contributions grow with wages, but IRS limits only keep pace with inflation (flat in real terms), D15.
+        ctx.contrib.pretax[i][t] = p.contributions.pretax * growth * k + p.contributions.employerMatch * growth;
+        ctx.contrib.roth[i][t] = p.contributions.roth * growth * k;
+        ctx.contrib.hsa[t] += p.contributions.hsa * growth;
+      }
+      if (working) {
+        const pretaxFromPay = contributing ? p.contributions.pretax * growth * k + p.contributions.hsa * growth : 0;
+        ctx.wages[t] += Math.max(0, p.salary * growth - pretaxFromPay);
+      }
+      if (age >= 65) hc += p.healthcare.medicare * hcGrowth;
+      else if (!working) hc += p.healthcare.preMedicare * hcGrowth;
+    });
+    ctx.over65Count[t] = over65;
+    ctx.contrib.hsa[t] = Math.min(ctx.contrib.hsa[t], hsaLimit);
+    ctx.hsaPenalty[t] = Math.min(ctx.ages[0][t], ctx.ages[1][t]) < 65 ? 1 : 0;
+    if (contributing) {
+      ctx.contrib.taxable[t] = plan.household.taxableContribution * growth;
+      ctx.contrib.cash[t] = plan.household.cashContribution * growth;
+    }
+    ctx.healthcare[t] = hc;
+    if (!working) ctx.baseSpending[t] = scenario.baseSpending;
+    const [s1, s2] = annualBenefits(claimants[0], claimants[1], year);
+    ctx.socialSecurity[t] = (s1 + s2) * payableShare(year, a.ssTrustFund);
+  }
+
+  // Dated items apply only from the retirement date on (D17).
+  for (const item of plan.datedItems) {
+    for (const y of itemYears(plan, item, endYear)) {
+      const t = y - startYear;
+      if (t < retireIdx || t >= len) continue;
+      const target =
+        item.direction === 'expense'
+          ? item.fixedDollars ? ctx.nominalOut : ctx.realOut
+          : item.fixedDollars ? ctx.nominalIn : ctx.realIn;
+      target[t] += item.amount;
+    }
+  }
+  return ctx;
+}
+
+function clampIdx(i: number, len: number): number {
+  return Math.max(0, Math.min(len, i));
+}

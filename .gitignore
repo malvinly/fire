@@ -1,0 +1,56 @@
+# ---- Your financial data: never commit ----
+# Session files (the app names them "YYYY-MM-DD <name>.json"), wherever they are saved or downloaded.
+[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9] *.json
+# Folders you might choose for sessions inside this repo.
+sessions/
+fire-sessions/
+# SSA statements / earnings records and personal spreadsheets dropped into the project.
+*.xml
+*.pdf
+*.xls
+*.xlsx
+*.csv
+# Anything explicitly marked private.
+private/
+*.private.*
+
+# ---- Secrets ----
+.env
+.env.*
+!.env.example
+
+# ---- Local Claude Code / editor settings ----
+.claude/settings.local.json
+.claude/*.local.*
+CLAUDE.local.md
+.vscode/*
+!.vscode/extensions.json
+.idea
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# ---- Build output, caches, logs ----
+node_modules
+dist
+dist-ssr
+coverage
+*.tsbuildinfo
+*.local
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Raw downloads for scripts/build-market-data.ts (re-fetchable with `npm run data:build`)
+data/raw/
+
+# ---- OS files ----
+.DS_Store
+Thumbs.db
+desktop.ini

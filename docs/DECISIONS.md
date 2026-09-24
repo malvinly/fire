@@ -1,0 +1,117 @@
+# Decisions log
+
+Every modeling assumption and judgement call in the calculator: what it is, why, and where to change it.
+**D-numbers** are referenced from code comments and from the in-app "How this works" page.
+Items marked *(core)* are the central design choices described in [DESIGN.md](DESIGN.md); the rest are
+implementation details. Dollar figures below describe the data as of the last entry in
+"Data update history" at the end; the live values are in `src/data/rules.ts`.
+
+## Model
+
+| # | Decision | Why | Where to change |
+|---|---|---|---|
+| D1 | *(core)* Year-by-year cash-flow simulation; FIRE numbers are **solved**, not formulas. The 25× figure is shown only as a sanity check. | Social Security timing, two spouses, taxes, and backtesting all need a year-by-year engine. | `src/engine/simulate.ts` |
+| D2 | *(core)* Success = never short of money before the **younger** spouse reaches the end age (default 96, Fidelity). Target success rate 90% (Fidelity "significantly below average"). | Conservative and matches Fidelity. | Assumptions panel |
+| D3 | *(core)* Main method: **block bootstrap** of real history (10,000 paths). Cross-check: every complete **historical window**. Every success rate shown, and every FIRE result, uses the **stricter** (lower) of the two. | Bootstrap makes new but realistic paths; history is real but a small sample. | `src/engine/solve.ts` `combine` |
+| D4 | Bootstrap block length **5 years**, circular (wraps from the last data year back to 1871), seeded RNG so identical inputs give identical answers. | Long enough to keep multi-year crashes and inflation spells together, short enough for variety. | Assumptions → chunk size |
+| D5 | The solver's search steps use **2,000** of the paths; every answer is then re-checked on all 10,000 and moved later/higher until it passes there. | Keeps a full recalculation to seconds. | `src/engine/solve.ts` |
+| D6 | Everything is in **today's (real) dollars**. Returns are converted using each historical year's actual inflation. | No inflation forecast needed; matches FI Calc/ProjectionLab "real" mode. | — |
+| D7 | Money moves at the **start of each year** (contributions, withdrawals), then the year's return applies. | Same as FI Calc. Withdrawals-first is slightly conservative. | `src/engine/simulate.ts` |
+| D8 | *(core)* One asset mix for all invested accounts, rebalanced yearly; default **70% stocks / 25% bonds / 5% cash** (Fidelity). Fund fees **0.10%/yr** subtracted from returns. | Fidelity's FI Planner mix. | Assumptions panel |
+| D9 | The **cash account** (emergency fund) earns the T-bill return, not the portfolio mix. | It is cash. | `src/engine/simulate.ts` |
+
+## Data
+
+| # | Decision | Why |
+|---|---|---|
+| D10 | Stocks, 10-year Treasury bonds and CPI: Shiller `ie_data.xls`, **January-to-January** years from 1871. | Same source as FI Calc/cFIREsim. |
+| D11 | *(core)* Cash 1928+: Damodaran 3-month T-bill (average rate over the calendar year). Before 1928: the January 10-year yield as income only (no price change). | No free T-bill series before 1928; yield curves were fairly flat then. |
+| D12 | Raw spreadsheets are **not committed**; `npm run data:build` re-downloads them. The generated `src/data/market.json` **is** committed. | Small repo, still reproducible. Shiller's download URL changes on each update — see the script header. |
+
+## People, work and spending
+
+| # | Decision | Why |
+|---|---|---|
+| D13 | *(core)* Two-person household. Both spouses stop working in the same calendar year (the "household retirement date"); both are assumed alive through the whole plan. | Keeps the model and results simple; separate retirement dates and survivor modeling are possible v2 features. |
+| D14 | Ages are computed by calendar year (`year − birth year`). 59½ access starts the **calendar year a person turns 60**; Medicare (65) starts the calendar year they turn 65. | Annual model; 59½ rounded the conservative way. |
+| D15 | Salaries and contributions grow **1.5%/yr above inflation** (Fidelity) until work stops, but 401(k)+IRA and HSA contributions are **capped every year at the IRS limits**, which stay flat in today's dollars (catch-ups from 50 / 55). Money above a limit is not saved anywhere else. Employer match is not capped. | Limits only keep pace with inflation; letting contributions outgrow them would be optimistic. |
+| D16 | While working, the paycheck covers all spending; the portfolio only receives contributions (plus D49). | Simplest faithful model of "still working". |
+| D17 | **Dated items apply only from the retirement date on.** Anything dated earlier — including inflows such as a home sale — is ignored; the UI says so. | Avoids double-counting expenses (e.g. a mortgage) already paid from salary. Add a pre-retirement home sale to the brokerage balance instead. |
+| D18 | Traditional spending must **exclude** healthcare and dated items (added separately). The Fidelity default is **0.85 × (current spending − ongoing dated expenses already being paid today)**. Healthcare paid out of pocket today must be subtracted by hand (the hint says so). | Otherwise a mortgage listed as a dated item would be counted twice. |
+| D19 | "Fixed dollars" dated items (e.g. mortgage P&I) shrink by **each path's own inflation** since the plan start. | Exact treatment of nominal payments. |
+| D20 | Money coming in (dated income items, surplus Social Security) first covers that year's spending; any surplus goes into the taxable account with full cost basis. | Home-sale proceeds etc. |
+
+## Healthcare
+
+| # | Decision | Why |
+|---|---|---|
+| D21 | *(core)* Per person: pre-65 cost applies only in years the household is **not working**; Medicare-phase cost from 65 on. Healthcare grows **1.5%/yr above inflation from today**. No ACA subsidies (full price). | Conservative; subsidies need yearly-income (MAGI) modeling (v2). |
+| D22 | HSA balances pay healthcare first (tax-free). HSA is also the very last resort for other spending (ordinary tax, +20% penalty — see D41). | Standard HSA rules. |
+
+## Social Security
+
+| # | Decision | Why |
+|---|---|---|
+| D23 | *(core)* Benefit computed from a pasted SSA earnings record (taxed Social Security earnings), with the statement's full-retirement-age benefit as a fallback. | SSA statements assume you keep working until you claim, which overstates benefits for early retirees. |
+| D24 | Past earnings indexed to the latest **average wage index** year; later earnings (past and projected) at face value in today's dollars; the matching **bend points** (first eligibility = AWI year + 2); future earnings capped at the **taxable maximum**. Result is in today's dollars. | SSA's own "today's dollars" method. Ignores real wage growth between now and age 60, which slightly *understates* benefits (conservative). |
+| D25 | Claim ages are whole years 62–70. First benefit year prorated by birth month. Early/late adjustments and spousal benefit (50% of the other's PIA, reduced if started early, no delayed credits) follow SSA rules; spousal benefit starts only once the other spouse has claimed. No earnings test. | SSA rules; the earnings test mostly defers rather than loses benefits. |
+| D26 | *(core)* Trust-fund cut: 100% before **2032**, then a straight line from **78% (2032)** to **62% (2100)**, flat after (2026 Trustees Report, OASI). Editable, including 100% (no cut) or 0% (no Social Security). | Plans conservatively for the officially projected shortfall. |
+
+## Accounts, withdrawals and taxes
+
+| # | Decision | Why |
+|---|---|---|
+| D27 | *(core)* Before 59½: cash → taxable → Roth contributions and conversions ≥5 years old → pre-tax with 10% penalty (flagged, not failure) → unseasoned conversions (10% penalty) → Roth earnings (tax + penalty) → HSA. | Keeps penalties as a last resort. |
+| D28 | After 59½: RMDs and the bracket fill first, then cash → taxable → more pre-tax → Roth → HSA. In mixed-age households each person follows their own access rules, pre-tax before Roth across the household. | Tax-efficient default: Roth keeps growing tax-free and pre-tax shrinks before RMDs. |
+| D29 | *(core)* **Bracket fill** (Roth ladder): every retired year, pre-tax money is withdrawn up to the top of the chosen bracket (default 12%). What spending doesn't need is converted to Roth. Not done in years the household still works. | Builds early access to pre-tax money; after 59½ the same rule shrinks future RMDs. |
+| D30 | Among spouses, pre-tax withdrawals and fill come from the **older** spouse first. | Their account reaches 59½ and RMD age first. |
+| D31 | RMDs from age **75** (born 1960+) or **73** (born 1951–59) using the IRS Uniform Lifetime Table — also in years still working (D49). | SECURE 2.0. |
+| D32 | Federal tax: current-year MFJ brackets, standard deduction + extra per spouse 65+, LTCG 0/15/20% stacked on ordinary income, Social Security taxation (provisional income), 3.8% NIIT. Indexed amounts stay constant in real terms; **non-indexed** thresholds ($32k/$44k Social Security, $250k NIIT) shrink with the price level. The temporary 2025–2028 senior bonus deduction is ignored. | Conservative, current law. |
+| D33 | State tax: one flat rate (default **5%**) on taxable income excluding Social Security. | State rules vary widely; a single editable rate covers any state, including 0% for no-income-tax states. |
+| D34 | Taxable account dividends are **not taxed yearly**; tax is paid on the gain share when sold. | Small effect; most FIRE-year dividends fall in the 0% LTCG band. |
+
+## App
+
+| # | Decision | Why |
+|---|---|---|
+| D35 | *(core)* Local-only React + TypeScript + Vite app; the engine is UI-free and runs in a pool of three Web Workers. | Private by design; the page stays responsive during long calculations. |
+| D36 | *(core)* Sessions are JSON files in a folder the user picks (File System Access API — Chrome/Edge). Firefox/Safari fall back to download/upload of the same JSON. | Survives browser resets; easy to back up. |
+| D37 | Layout uses **all available width**: inputs in a scrollable left panel, results fill the rest, charts resize with the window; long text is capped at a readable width. Stacks into one column below 1000px. | Charts need room. |
+| D38 | The working plan is also auto-saved in the browser (localStorage) so a reload never loses typing. Sessions remain the real store. | Convenience; silently does nothing in private windows. |
+
+## Implementation details
+
+| # | Decision | Why | Where to change |
+|---|---|---|---|
+| D39 | Bracket-fill room ignores the year's capital gains, so filling the 12% bracket can push gains from taxable sales out of the 0% LTCG band (visible in the tax table). | Real tradeoff between conversions and 0% gain harvesting; simple and visible. Try fill 10% or off to compare. | `src/engine/simulate.ts` |
+| D40 | Capital losses are ignored (a sale never realizes a negative gain). | Rare for buy-and-hold; small effect. | `src/engine/simulate.ts` |
+| D41 | HSA is one household pool. Non-medical HSA withdrawals (very last resort) pay the 20% penalty while the younger spouse is under 65. | Simpler; conservative. | `src/engine/context.ts` |
+| D42 | The FIRE number at a future date uses the account mix from a projection at long-run average real returns (geometric means of the whole data set), scaled to the target total. | The target must be one number, but taxes depend on which accounts hold the money. | `src/engine/solve.ts` `projectState` |
+| D43 | Earliest Traditional/Chubby date is searched up to the first person's age 75 (or the current year, if already older); beyond that the card says "Not reachable". | Past 75, early retirement is moot. | `src/engine/solve.ts` |
+| D44 | The 25× sanity check uses spending + the first retired year's healthcare. | Healthcare is a separate line (D18). | `src/engine/solve.ts` |
+| D45 | Portfolio bands chart shows the full scale by default, with a "zoom in on the weaker markets" toggle. | Honest default; the typical path can dwarf the bad-market lines. | `src/ui/Results.tsx` |
+| D46 | Earnings import accepts pasted "year amount" rows or SSA's XML statement download (`FicaEarnings`). Multi-year range rows ("1981-1990") are skipped. The XML format follows the published my Social Security statement schema; if a download differs, paste the table rows instead. | Not verified against a real statement download. | `src/engine/earnings.ts` |
+| D47 | **Two kinds of historical check.** Whole-plan results (earliest date, success today, the detail view, worst-years table) replay the plan from the plan start: "start year 1966" means the plan's first year behaves like 1966. The FIRE *number* is a retirement-only test, so its history leg uses windows that start at the retirement year. Worst-years table: failures first, earliest failure first, then lowest ending balance. | Each check matches the question it answers (D54). | `src/engine/solve.ts` `histFor` |
+| D48 | Example numbers on first launch are placeholders (two people aged 42/40, $100k salaries). Chubby FIRE spending starts empty. | Chubby FIRE is a personal number with no sensible default. | `src/engine/defaults.ts` |
+| D49 | Social Security received and RMDs due **while the household still works** are saved to the taxable account after the extra federal + state tax they cause on top of wages (salaries minus pre-tax contributions). | An older spouse may claim or reach RMD age before the household retires; ignoring that income would understate savings. | `src/engine/simulate.ts` |
+| D50 | A household with no savings yet: the Coast/FIRE-number search places the candidate total in the taxable account at full basis. | There is no account mix to scale. | `src/engine/simulate.ts` `scaleState` |
+| D51 | Retirement-only runs (the FIRE number) start both bootstrap and history at the same price level: average historical inflation compounded to the retirement year, matching the average-return projection of balances (D42). Whole-plan runs use each path's own inflation. | Both legs of "stricter of two" must describe the same scenario. | `src/engine/solve.ts` `successRate` |
+| D52 | Before 59½, if the year's spending needs pre-tax money, the planned bracket-fill conversion is given up first (spending beats converting). | Otherwise the ladder could convert money the year needed and fail a path. | `src/engine/simulate.ts` `planDraws` |
+| D53 | Unseasoned conversion principal withdrawn before 59½ pays only the 10% penalty (it was taxed on conversion); only Roth *earnings* are taxed again. Withdrawn conversions leave the 5-year history oldest-first. | IRS ordering rules. | `src/engine/simulate.ts` |
+| D54 | **What the Traditional/Chubby card means.** *Earliest year*: first year the whole plan, simulated from today, reaches the target — it already allows for bad markets while saving. *Savings needed when you retire*: the portfolio the retirement-only simulation needs on the day work stops. *Expected by then*: the typical and bad-market (10th percentile) balance the whole-plan simulation expects at that date. The three together explain each other. | Two numbers from different tests would otherwise look contradictory. | `src/engine/solve.ts`, `src/ui/Results.tsx` |
+| D55 | Opening a plan whose start year is earlier than the current year shows a banner with a one-click "start plan in <this year>". | The yearly checkup must move the plan start, or ages and 59½/RMD timing are a year off. | `src/App.tsx` |
+| D56 | **Plain-language UI.** On screen: "simulated markets" = block bootstrap paths; "real past markets" = historical windows; "the lower one counts" = stricter-of-two; "typical / below average / bad market (1 in 10)" = 50th / 25th / 10th percentile (Fidelity's average / below / significantly below average); "chance your money lasts" = success rate. Every input has "?" help (`src/ui/helpText.ts`) written for a non-expert. | Finance jargon made the results hard to read. | `src/ui/helpText.ts`, `src/ui/Results.tsx` |
+
+## Which way the assumptions lean
+
+Which assumptions make results more conservative and which more optimistic, so their combined effect is visible.
+
+| Leans conservative (later date / bigger number) | Leans optimistic | Neutral / depends |
+|---|---|---|
+| *(core)* 90% target, age 96 of the younger spouse, stricter-of-two, no ACA subsidies, healthcare +1.5%/yr, trust-fund cut; D5 re-check only moves answers later; D7 withdraw first; D14 59½ as age 60; D15 over-limit savings dropped; D24 no real wage growth in SS; D32 no senior bonus deduction; D39 fill can cost 15% on gains; D40 no losses; D41 HSA penalty to 65 of the younger | D34 no yearly dividend tax; D25 no earnings test; D13 both spouses alive (spending never drops) | D42/D51 average-return projection for the FIRE number's account mix; US-only data (history's big winner — optimistic in a global sense) |
+
+## Data update history
+
+| Date | What changed |
+|---|---|
+| 2026-09-24 | Initial data: market 1871–2025 (Shiller Sep-2026 file, Damodaran through 2025); 2026 IRS brackets/limits; SSA AWI through 2024, 2026 bend points ($1,286/$7,749) and taxable max ($184,500); 2026 Trustees Report. |
