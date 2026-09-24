@@ -9,7 +9,7 @@ import {
   averageInflation, contributionMix, detailFor, evaluate, makeEngine, projectState, scenarioFor, solveTier,
 } from '../src/engine/solve';
 import type { Plan } from '../src/engine/types';
-import { noYields } from './helpers';
+import { noYields, simplePlan, START } from './helpers';
 
 function smallPlan(): Plan {
   const plan = examplePlan(2026);
@@ -190,6 +190,64 @@ describe('detail view', () => {
     expect(Math.abs(at(d.p10Path) / d.bands.p10[t] - 1)).toBeLessThan(0.05);
   });
 
+  // Sum of squared log differences from a band over `years` years from index `from` (D73), computed independently.
+  const score = (totals: ArrayLike<number>, band: number[], from: number, years: number) => {
+    let s = 0;
+    for (let t = from; t < Math.min(band.length, from + years); t++) s += (Math.log1p(totals[t]) - Math.log1p(band[t])) ** 2;
+    return s;
+  };
+  const recordedTotals = (recs: typeof d.medianPath) => recs.map((r) => r.balances.total);
+
+  test('the representative markets are the ones closest to their line over the first 10 retired years (D73)', () => {
+    const ctx = buildContext(plan, d.scenario);
+    const all = Array.from({ length: engine.boot.n }, (_, p) => {
+      const totals = new Float64Array(ctx.len);
+      simulatePath(ctx, engine.boot, p, { totals });
+      return totals;
+    });
+    const from = ctx.retireIdx;
+    expect(from).toBeGreaterThan(0); // so a window counted from the plan start would show
+    for (const [recs, band] of [[d.medianPath, d.bands.p50], [d.p10Path, d.bands.p10]] as const) {
+      // Identify the market shown by its totals up to the end of the window (it doesn't run out by then).
+      const shown = recordedTotals(recs).slice(0, from + 10);
+      const picked = all.findIndex((totals) => shown.every((v, t) => v === totals[t]));
+      expect(picked).toBeGreaterThanOrEqual(0);
+      const scores = all.map((totals) => score(totals, band, from, 10));
+      expect(scores[picked]).toBe(Math.min(...scores));
+    }
+  });
+
+  test('only a 10-year window picks the market that is closest over the first 10 retired years (D73)', () => {
+    // Four hand-made markets, no taxes or spending (all Roth), retiring in year 3 of the plan. H and L always stay
+    // far above and below, so the typical line is the average of A and B. B stays at $1M; A is $1M times e^ℓ:
+    // ℓ = +1 in the first retired year, −1.5 in the 10th, +2 in the 11th, 0 otherwise. The higher of A and B is
+    // closer to their average, so A leads over windows of 1–9 years, B over exactly 10, and A again from 11 on.
+    const p = simplePlan({ years: 20, spending: 0 });
+    p.assumptions.paths = p.assumptions.searchPaths = 4;
+    const e = makeEngine(p);
+    const R = 3;
+    const ell = (t: number) => (t === R ? 1 : t === R + 9 ? -1.5 : t === R + 10 ? 2 : 0);
+    const level = [() => 20 * 1e6, (t: number) => 1e6 * Math.exp(ell(t)), () => 1e6, () => 0.1 * 1e6]; // H, A, B, L
+    e.boot.cash.fill(0);
+    e.boot.inflation.fill(0);
+    level.forEach((f, q) => {
+      for (let t = 0; t < e.len; t++) e.boot.portfolio[q * e.len + t] = f(t) / (t === 0 ? 1e6 : f(t - 1)) - 1;
+    });
+    const [A, B] = [1, 2];
+    const d = detailFor(e, 'traditional', START + R);
+    const shown = recordedTotals(d.medianPath);
+    expect(d.bands.p50[R]).toBeCloseTo(1e6 * (1 + Math.E) / 2, 0); // the markets behave as designed
+    expect(d.bands.p50[R + 9]).toBeCloseTo(1e6 * (1 + Math.exp(-1.5)) / 2, 0);
+    // The design: B is closest only over a 10-year window from retirement; from the plan start, A would be.
+    const closest = (from: number, years: number) => {
+      const s = level.map((f) => score(Array.from({ length: e.len }, (_, t) => f(t)), d.bands.p50, from, years));
+      return s.indexOf(Math.min(...s));
+    };
+    for (let years = 1; years <= e.len - R; years++) expect(closest(R, years)).toBe(years === 10 ? B : A);
+    expect(closest(0, 10)).toBe(A);
+    expect(shown.every((v, t) => v === level[B](t))).toBe(true);
+  });
+
   test('the markets that fail: their share, the median year money runs out, and Social Security then (fix 12)', () => {
     const f = d.failures!;
     expect(f.share).toBeCloseTo(1 - d.success.bootstrap, 12);
@@ -199,6 +257,21 @@ describe('detail view', () => {
     expect(f.medianYear).toBe(fails[Math.floor((fails.length - 1) / 2)]);
     expect(f.socialSecurity).toBeCloseTo(ctx.socialSecurity[f.medianYear - plan.startYear], 6);
     expect(f.spending).toBeGreaterThan(plan.household.traditionalSpending);
+  });
+
+  test('failure-year spending counts a fixed-dollar item at average inflation (D74)', () => {
+    // A fixed-dollar payment running from today to the end of the plan, so it is due in every year a market runs out.
+    const p = smallPlan();
+    p.datedItems = [{ id: 'm', label: 'lease', direction: 'expense', amount: 30_000, frequency: 'ongoing',
+      start: { kind: 'year', year: 2026 }, fixedDollars: true }];
+    const f = detailFor(makeEngine(p), 'traditional', trad.earliest!.year).failures!;
+    expect(f).toBeTruthy();
+    const t = f.medianYear - p.startYear;
+    const ctx = buildContext(p, scenarioFor(p, 'traditional', trad.earliest!.year));
+    expect(ctx.nominalOut[t]).toBe(30_000); // due that year
+    const level = (1 + averageInflation()) ** t; // today's dollars at average inflation, not the path's own
+    expect(level).toBeGreaterThan(1.2); // far enough out for the deflation to matter
+    expect(f.spending).toBeCloseTo(p.household.traditionalSpending + ctx.healthcare[t] + 30_000 / level, 6);
   });
 
   test('worst historical windows: failures first, earliest failure first', () => {

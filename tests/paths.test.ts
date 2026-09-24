@@ -451,6 +451,42 @@ describe('taxed dated income (D66)', () => {
     expect(rec.stateTax).toBeCloseTo(0.05 * 30_000, 0);
     expect(rec.balances.taxable).toBeCloseTo(30_000 * (1 - 0.22 - 0.05), 0);
   });
+
+  test('while working, taxed income is stacked on wages plus Social Security and RMDs (D49, D66)', () => {
+    // The household of the D49 test above (you 76 with Social Security and RMDs, still working), plus a taxed
+    // one-time $30k payment the same year.
+    const plan = simplePlan({ roth: 0 });
+    plan.you.birthYear = START - 76;
+    plan.spouse.birthYear = START - 55;
+    plan.you.salary = 80_000;
+    plan.you.balances.pretax = 500_000;
+    plan.you.socialSecurity = { mode: 'manual', earnings: [], manualPia: 2_000, claimAge: 70 };
+    plan.assumptions.endAge = 96;
+    plan.assumptions.stateTaxRate = 0.05;
+    plan.datedItems = [{ ...pension(true), frequency: 'oneTime', amount: 30_000 }];
+    const ctx = noYields(buildContext(plan, { stopContributingYear: START + 3, retireYear: START + 3, baseSpending: 40_000 }));
+    const rec = simulatePath(ctx, constantPath(ctx.len, 0), 0, { record: true }).records![0];
+    expect(rec.working).toBe(true);
+    // Taxable income, 2026 (Social Security is already at the 85% cap, so the payment adds none of it):
+    //   wages alone 80,000 − 33,850 = 46,150; with Social Security and the RMD 94,175.05 (D49 test);
+    //   with the payment too 124,175.05, past the top of the 12% bracket (100,800).
+    //   Extra federal for the payment = 12% × (100,800 − 94,175.05) + 22% × (124,175.05 − 100,800)
+    //     = 794.99 + 5,142.51 = 5,937.50 (stacked on wages alone it would be 12% × 30,000 = 3,600)
+    //   Extra state = 5% × 30,000 = 1,500
+    //   Saved = 31,680 + 21,097.05 + 30,000 − (5,763.01 + 5,937.50) − (1,054.85 + 1,500) = 68,521.69
+    const ss = 2_000 * 1.32 * 12;
+    const rmd = 500_000 / 23.7;
+    const withD49 = 80_000 + rmd + 0.85 * ss - 33_850;
+    const top12 = FEDERAL.ordinaryBrackets[1][0];
+    const ssFederal = 0.12 * (withD49 - (80_000 - 33_850));
+    const datedFederal = 0.12 * (top12 - withD49) + 0.22 * (withD49 + 30_000 - top12);
+    expect(datedFederal).toBeCloseTo(5_937.50, 2);
+    expect(rec.otherIncome).toBeCloseTo(30_000, 6);
+    expect(rec.federalTax).toBeCloseTo(ssFederal + datedFederal, 2);
+    expect(rec.stateTax).toBeCloseTo(0.05 * (rmd + 30_000), 2);
+    expect(rec.balances.taxable).toBeCloseTo(68_521.69, 1);
+    expect(rec.balances.taxable).toBeCloseTo(ss + rmd + 30_000 - rec.federalTax - rec.stateTax, 6);
+  });
 });
 
 describe('yearly tax on brokerage and cash income (D70)', () => {

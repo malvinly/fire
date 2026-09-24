@@ -119,13 +119,7 @@ None pending.
 
 ## P3: polish and rare edges
 
-### 29. Stronger detail-view and income-stacking tests (tests)
-
-- **Problem:** the D73 test checks only the first retired year, so the 10-year window could shrink unnoticed; the
-  D74 failure-year spending isn't tested with a fixed-dollar item; no test combines Social Security received while
-  working with taxed dated income (the D66 layer on top of D49).
-- **Where:** `tests/solve.test.ts`, `tests/paths.test.ts`.
-- **Source:** adversarial review of the fixes (test skeptic).
+None pending.
 
 ---
 
