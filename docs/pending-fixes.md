@@ -36,7 +36,7 @@ cited below) first. [DEVELOPMENT.md](DEVELOPMENT.md) has the layout and scripts.
 6. **Docs rules:** keep docs in neutral voice with no personal financial details. Commit messages carry no
    AI attribution.
 
-Line numbers are as of commit `6394336`. If they have moved, search for the function name given.
+Line numbers were written against commit `6394336` and have moved since; search for the function name given.
 
 ## Priority
 
@@ -74,42 +74,6 @@ Example for the example plan:
 ---
 
 ## P0: wrong or dangerously misleading
-
-### 5. Roth ladder default and help text (accuracy / clarity)
-
-- **Problem:**
-  - The help says conversions "build early-retirement access". They only do if they season (5 years)
-    before the owner's 59½, which the model treats as the calendar year they turn 60 (D14).
-  - Pre-tax money is drawn from the older spouse first (D30).
-  - On the example plan the conversions season the year "You" turns 60, so their only effect is conversion
-    tax moved into the bridge years.
-- **Where:**
-  - `src/ui/helpText.ts:95–96` (`bracketFill`).
-  - The year-by-year table is `COLUMNS` in `src/ui/Results.tsx:154`; the rows come from `YearRecord` in
-    `src/engine/types.ts:117`.
-  - Seasoning logic is `unseasoned` in `src/engine/simulate.ts:134`.
-- **Evidence:** at the 2039 retirement year:
-
-  | Fill | Needed | Penalty rate | Left in a bad market |
-  |---|---|---|---|
-  | Off | $2.631M | 15.7% | $291k |
-  | 10% | $2.622M | 19.0% | $365k |
-  | 12% (default) | $2.695M | 37.5% | $74k |
-
-- **Change:**
-  - **Change the default fill from the 12% to the 10% bracket**
-    ([decision 3](pending-decisions.md#3-roth-conversion-default)): `bracketFill` in `DEFAULT_ASSUMPTIONS`
-    (`src/engine/defaults.ts:15`).
-    - Update D28/D29, which call 12% the "tax-efficient default".
-    - Bump `DATA_VERSIONS.engine`.
-    - Update any test that assumes 12%.
-    - This changes the example plan's results, so refresh the baseline in
-      [Reproducing the numbers](#reproducing-the-numbers).
-  - Fix the help text.
-  - Add a "Seasoned Roth available" value to `YearRecord`, filled when recording, and show it as a column.
-  - Revisit the default once the survivor test ([feature 2](pending-features.md#2-what-if-one-of-you-dies-first))
-    exists.
-- **Related:** D14, D28, D29, D30.
 
 ---
 
@@ -477,13 +441,15 @@ Example for the example plan:
 ## Reproducing the numbers
 
 "Example plan" means `examplePlan(2026)` from `src/engine/defaults.ts`: plan start 2026, 10,000 simulated
-markets, seed 20260924. Baseline results with the v1 defaults (12% bracket fill; fix 5 changes it to 10%,
-after which these numbers change):
+markets, seed 20260924. Baseline results with the 10% bracket-fill default (fix 5), after fixes 1–5:
 
-| Tier | Earliest year | FIRE number |
-|---|---|---|
-| Traditional | 2039 | $2,695,200 |
-| Chubby | 2043 | $3,297,400 |
+| Tier | Earliest year | FIRE number | Penalty rate at that year |
+|---|---|---|---|
+| Traditional | 2039 | $2,627,800 | 22.5% |
+| Chubby | 2043 | $3,270,900 | 0% |
+| Coast | stop saving now | $774,400 needed today | — |
+
+v1 (12% fill) gave Traditional 2039 / $2,695,200 (37.5% penalty rate), Chubby 2043 / $3,297,400 and Coast $783,000.
 
 Probes are easiest as a throwaway Vitest file **outside the repo**, run with the repo's dependencies:
 

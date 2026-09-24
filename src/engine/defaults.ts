@@ -14,7 +14,7 @@ export const DEFAULT_ASSUMPTIONS: Assumptions = {
   blockLength: 5,
   seed: 20260924,
   stateTaxRate: 0.05,
-  bracketFill: '12',
+  bracketFill: '10', // decision 3 of the pending work (D29)
   ssTrustFund: { ...TRUST_FUND_DEFAULT },
 };
 

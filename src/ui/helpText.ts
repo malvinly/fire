@@ -95,7 +95,7 @@ export const HELP = {
   healthcareInflation: 'How much faster than general prices healthcare costs rise each year. Default 1.5%.',
   stateTax: 'A flat rate on your taxable retirement income, not counting Social Security. Use the rate of the state you expect to retire in (0 for no-income-tax states). Default 5%.',
   bracketFill:
-    'Each retired year, the model takes 401(k)/IRA money up to the top of this federal tax bracket. What you don’t spend moves to Roth (a “Roth conversion”), usable tax- and penalty-free after 5 years. This builds early-retirement access and lowers later required withdrawals. Off = no conversions. Default 12%.',
+    'Each retired year, the model takes 401(k)/IRA money up to the top of this federal tax bracket. What you don’t spend moves to Roth (a “Roth conversion”) and can be spent tax- and penalty-free 5 years later. That only helps you retire early if the 5 years end before the calendar year its owner turns 60 (59½); 401(k)/IRA money is taken from the older of you first. After 60, conversions mainly lower later required withdrawals and taxes, but they cost tax now. The “Roth available” column in the year-by-year table shows when converted money becomes usable. Off = no conversions. Default 10%, which did better than 12% or Off on the example plan.',
   paths: 'How many simulated markets to test. More gives steadier results but takes longer. Default 10,000 (500 to 50,000).',
   blockLength:
     'Each simulated market is stitched together from random stretches of real history this many years long, so crashes and recoveries stay together. Default 5.',

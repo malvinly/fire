@@ -146,6 +146,16 @@ describe('Roth ladder and early access', () => {
     expect(recs[3].penaltyWithdrawals).toBeGreaterThan(0); // year-0 conversion not yet seasoned
     expect(recs[5].penaltyWithdrawals).toBe(0); // year-0 conversion now spendable
     expect(recs[5].withdrawals.roth).toBeGreaterThan(0);
+    // The year-by-year table's "Roth available" column: nothing until the first conversion seasons.
+    expect(recs[4].seasonedRoth).toBe(0);
+    expect(recs[5].seasonedRoth).toBeCloseTo(recs[0].conversions, 0);
+  });
+
+  test('past 59½ the whole Roth balance counts as available', () => {
+    const plan = retiree(62);
+    plan.you.balances.roth = 100_000; // no contributions recorded: all earnings
+    const ctx = ctxFor(plan);
+    expect(simulatePath(ctx, constantPath(ctx.len, 0), 0, { record: true, stopIdx: 1 }).records![0].seasonedRoth).toBe(100_000);
   });
 
   test('ladder-year taxes match hand arithmetic: a 12% fill year, then a penalized year', () => {

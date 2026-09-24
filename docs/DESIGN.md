@@ -39,7 +39,7 @@ Key research points:
    and cash. Pre-59½ order: cash → taxable → Roth contributions → seasoned conversions → penalized pre-tax
    (flagged, not failure). RMDs.
 9. **Taxes** — real federal MFJ rules + one editable flat state rate (default 5%).
-   Roth ladder fills to a chosen bracket (default 12%).
+   Roth ladder fills to a chosen bracket (default 10%).
 10. **Spending changes** — user-defined dated items (year or age; one-time / yearly / every N years;
     inflows allowed, taxed as income unless marked otherwise; fixed-dollar flag for mortgages). Before retirement, items already paid today are left
     to the paycheck; others are paid from (or saved to) cash and brokerage savings (D17).

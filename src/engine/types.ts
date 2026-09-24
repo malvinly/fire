@@ -130,6 +130,9 @@ export interface YearRecord {
   otherIncome: number;
   withdrawals: { cash: number; taxable: number; roth: number; pretax: number; hsa: number };
   conversions: number;
+  /** Roth money withdrawable without tax or penalty at the start of the year: contributions and conversions 5+
+   *  years old, or the whole balance once that person is past 59½ (D14). */
+  seasonedRoth: number;
   rmd: number;
   penaltyWithdrawals: number;
   /** Ordinary income incl. taxable Social Security, before deductions. */

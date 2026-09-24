@@ -109,7 +109,7 @@ export function describeAssumptions(plan: Plan): AssumptionRow[] {
     { group: 'Taxes & accounts', label: 'State tax', value: pct(a.stateTaxRate), status: st(a.stateTaxRate === d.stateTaxRate),
       why: 'Flat rate on taxable income excluding Social Security. Use the rate of the state you expect to retire in (0% for no-income-tax states).', decision: 'D33' },
     { group: 'Taxes & accounts', label: 'Yearly Roth conversions', value: a.bracketFill === 'none' ? 'Off' : `Fill the ${a.bracketFill}% bracket every retired year`, status: st(a.bracketFill === d.bracketFill),
-      why: 'Pre-tax money up to the top of this bracket is withdrawn; what you don\'t spend is converted to Roth and usable after 5 years.', decision: 'D29' },
+      why: 'Pre-tax money up to the top of this bracket is withdrawn; what you don\'t spend is converted to Roth and usable after 5 years. It helps an early retirement only if it becomes usable before its owner turns 60 (the older spouse\'s money goes first). The 10% default did better than 12% or Off on the example plan.', decision: 'D29' },
     { group: 'Taxes & accounts', label: 'Before 59½', value: 'cash → brokerage → Roth contributions → Roth conversions 5+ years old → 401(k)/IRA with 10% penalty', status: 'fixed',
       why: 'Penalized withdrawals are allowed as a last resort and flagged, not treated as failure.', decision: 'D27' },
     { group: 'Taxes & accounts', label: 'Required minimum distributions (RMDs)', value: `${plan.you.name} from ${rmdStartAge(plan.you.birthYear)}, ${plan.spouse.name} from ${rmdStartAge(plan.spouse.birthYear)} (IRS Uniform Lifetime Table)`, status: 'fixed',

@@ -174,6 +174,7 @@ const COLUMNS: { label: string; help?: string }[] = [
   { label: 'From Roth' },
   { label: 'From HSA' },
   { label: 'Moved to Roth', help: '401(k)/IRA money converted to Roth this year (you pay tax now). It can be withdrawn tax- and penalty-free 5 years later.' },
+  { label: 'Roth available', help: 'Roth money you could take out at the start of the year without tax or penalty: what you put in, conversions at least 5 years old, and all of it once that person is 59½. Conversions only help an early retirement if they show up here before the calendar year their owner turns 60.' },
   { label: 'Required withdrawal', help: 'IRS-required minimum withdrawal from 401(k)/IRA (RMD), from age 75 (73 if born 1951–59). Anything not spent is reinvested.' },
   { label: 'Income taxed', help: 'Federal taxable income after the standard deduction.' },
   { label: 'Federal tax' },
@@ -285,7 +286,7 @@ export function DetailView({ plan, detail, loading }: { plan: Plan; detail: Deta
                   <td>{moneyShort(r.socialSecurity)}</td><td>{moneyShort(r.otherIncome)}</td>
                   <td>{moneyShort(r.withdrawals.cash)}</td><td>{moneyShort(r.withdrawals.taxable)}</td>
                   <td>{moneyShort(r.withdrawals.pretax)}</td><td>{moneyShort(r.withdrawals.roth)}</td><td>{moneyShort(r.withdrawals.hsa)}</td>
-                  <td>{moneyShort(r.conversions)}</td><td>{moneyShort(r.rmd)}</td><td>{moneyShort(r.taxableIncome)}</td>
+                  <td>{moneyShort(r.conversions)}</td><td>{moneyShort(r.seasonedRoth)}</td><td>{moneyShort(r.rmd)}</td><td>{moneyShort(r.taxableIncome)}</td>
                   <td>{moneyShort(r.federalTax)}</td><td>{moneyShort(r.stateTax)}</td><td>{moneyShort(r.penaltyTax)}</td>
                   <td>{moneyShort(r.balances.total)}</td>
                 </tr>

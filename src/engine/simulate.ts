@@ -137,6 +137,11 @@ function unseasoned(s: State, i: 0 | 1, t: number): number {
   return sum;
 }
 
+/** Roth money person `i` can withdraw without tax or penalty in year `t` (D27). */
+function rothAvailable(ctx: Context, s: State, i: 0 | 1, t: number): number {
+  return ctx.access[i][t] ? s.roth[i] : Math.min(s.roth[i], Math.max(0, s.rothPrincipal[i] - unseasoned(s, i, t)));
+}
+
 /** Withdrawn unseasoned principal leaves the conversion history oldest-first (IRS ordering). */
 function consumeConversions(s: State, i: 0 | 1, t: number, amount: number) {
   for (let k = Math.max(0, t - 4); k <= t && amount > 0; k++) {
@@ -181,8 +186,7 @@ function planDraws(ctx: Context, s: State, t: number, need: number, hsaMedical: 
   }
   // 5. Roth: everything past 59½, otherwise principal that is not an unseasoned conversion.
   for (const i of order) {
-    const avail = access[i] ? s.roth[i] : Math.min(s.roth[i], Math.max(0, s.rothPrincipal[i] - unseasoned(s, i, t)));
-    d.rothAccessible[i] = Math.min(remaining, avail);
+    d.rothAccessible[i] = Math.min(remaining, rothAvailable(ctx, s, i, t));
     remaining -= d.rothAccessible[i];
   }
   // 6. Pre-tax with the 10% penalty for people under 59½. This year's planned conversion is given up first:
@@ -266,6 +270,7 @@ export function simulatePath(ctx: Context, paths: ReturnPaths, p: number, opts: 
     // Dated income taxed as ordinary income (D66).
     const taxedIn = ctx.realInTaxed[t] + ctx.nominalInTaxed[t] / priceLevel;
     let rec: YearRecord | undefined;
+    const seasonedRoth = records ? rothAvailable(ctx, s, 0, t) + rothAvailable(ctx, s, 1, t) : 0;
 
     if (ctx.working[t]) {
       // Contributions (zero once contributions stop, e.g. Coast FIRE).
@@ -353,6 +358,7 @@ export function simulatePath(ctx: Context, paths: ReturnPaths, p: number, opts: 
       }
       if (records) {
         rec = blankRecord(ctx, t, true);
+        rec.seasonedRoth = seasonedRoth;
         rec.spending = datedOut;
         rec.otherIncome = datedIn + datedFederal + datedState;
         rec.socialSecurity = ss;
@@ -422,6 +428,7 @@ export function simulatePath(ctx: Context, paths: ReturnPaths, p: number, opts: 
 
       if (records) {
         rec = blankRecord(ctx, t, false);
+        rec.seasonedRoth = seasonedRoth;
         rec.spending = outflow + hc;
         rec.healthcare = hc;
         rec.socialSecurity = ss;
@@ -500,6 +507,7 @@ function blankRecord(ctx: Context, t: number, working: boolean): YearRecord {
     otherIncome: 0,
     withdrawals: { cash: 0, taxable: 0, roth: 0, pretax: 0, hsa: 0 },
     conversions: 0,
+    seasonedRoth: 0,
     rmd: 0,
     penaltyWithdrawals: 0,
     ordinaryIncome: 0,
