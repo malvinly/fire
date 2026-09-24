@@ -8,7 +8,7 @@ export function HowItWorks({ plan }: { plan: Plan }) {
   const groups = [...new Set(rows.map((r) => r.group))];
   return (
     <div className="page">
-      <div className="prose" style={{ display: 'grid', gap: 12, marginBottom: 20 }}>
+      <div style={{ display: 'grid', gap: 12, marginBottom: 20 }}>
         <h2>How this works</h2>
         <p>
           The calculator simulates your household year by year: contributions while you work, then spending, healthcare,

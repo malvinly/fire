@@ -78,7 +78,7 @@ implementation details. Dollar figures below describe the data as of the last en
 |---|---|---|
 | D35 | *(core)* Local-only React + TypeScript + Vite app; the engine is UI-free and runs in a pool of three Web Workers. | Private by design; the page stays responsive during long calculations. |
 | D36 | *(core)* Sessions are JSON files in a folder the user picks (File System Access API — Chrome/Edge). Firefox/Safari fall back to download/upload of the same JSON. | Survives browser resets; easy to back up. |
-| D37 | Layout uses **all available width**: inputs in a scrollable left panel, results fill the rest, charts resize with the window; long text is capped at a readable width. Stacks into one column below 1000px. | Charts need room. |
+| D37 | Layout uses **all available width**: inputs in a scrollable left panel, results fill the rest, charts resize with the window. The "How this works" page is one column capped at 1100px so its intro and table line up. Stacks into one column below 1000px. | Charts need room. |
 | D38 | The working plan is also auto-saved in the browser (localStorage) so a reload never loses typing. Sessions remain the real store. | Convenience; silently does nothing in private windows. |
 
 ## Implementation details
