@@ -31,7 +31,7 @@ export const DATA_VERSIONS = {
   rulesYear: RULES_YEAR,
   wageIndexYear: SOCIAL_SECURITY.awiLatestYear,
   trusteesReport: 2026,
-  engine: 6,
+  engine: 7,
 };
 
 export function describeAssumptions(plan: Plan): AssumptionRow[] {

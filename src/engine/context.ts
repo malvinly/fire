@@ -187,7 +187,12 @@ export function buildContext(plan: Plan, scenario: Scenario): Context {
     ctx.working[t] = working ? 1 : 0;
     let hc = 0;
     let over65 = 0;
+    // The HSA limit is household-wide, so an over-limit entry is scaled back in proportion for each spouse, and
+    // only the money actually deposited comes off that spouse's wages (D15, D88).
     let hsaLimit = LIMITS.hsaFamily;
+    for (const p of people) if (year - p.birthYear >= 55) hsaLimit += LIMITS.hsaCatchUp;
+    const hsaEntered = (plan.you.contributions.hsa + plan.spouse.contributions.hsa) * growth;
+    const kHsa = hsaEntered > hsaLimit ? hsaLimit / hsaEntered : 1;
     people.forEach((p, i) => {
       const age = year - p.birthYear;
       ctx.ages[i][t] = age;
@@ -195,7 +200,6 @@ export function buildContext(plan: Plan, scenario: Scenario): Context {
       if (age >= 65) over65++;
       const rmdAge = rmdStartAge(p.birthYear);
       ctx.rmdDivisor[i][t] = age >= rmdAge ? (UNIFORM_LIFETIME[Math.min(age, 120)] ?? 2) : 0;
-      if (age >= 55) hsaLimit += LIMITS.hsaCatchUp;
       const employee = (p.contributions.pretax + p.contributions.roth) * growth;
       const limit = LIMITS.employee401k + LIMITS.ira + (age >= 50 ? LIMITS.catchUp401k + LIMITS.iraCatchUp : 0);
       const k = employee > limit ? limit / employee : 1;
@@ -203,17 +207,16 @@ export function buildContext(plan: Plan, scenario: Scenario): Context {
         // Contributions grow with wages, but IRS limits only keep pace with inflation (flat in real terms), D15.
         ctx.contrib.pretax[i][t] = p.contributions.pretax * growth * k + p.contributions.employerMatch * growth;
         ctx.contrib.roth[i][t] = p.contributions.roth * growth * k;
-        ctx.contrib.hsa[t] += p.contributions.hsa * growth;
+        ctx.contrib.hsa[t] += p.contributions.hsa * growth * kHsa;
       }
       if (working) {
-        const pretaxFromPay = contributing ? p.contributions.pretax * growth * k + p.contributions.hsa * growth : 0;
+        const pretaxFromPay = contributing ? p.contributions.pretax * growth * k + p.contributions.hsa * growth * kHsa : 0;
         ctx.wages[t] += Math.max(0, p.salary * growth - pretaxFromPay);
       }
       if (age >= 65) hc += p.healthcare.medicare * hcGrowth;
       else if (!working) hc += p.healthcare.preMedicare * hcGrowth;
     });
     ctx.over65Count[t] = over65;
-    ctx.contrib.hsa[t] = Math.min(ctx.contrib.hsa[t], hsaLimit);
     ctx.hsaPenalty[t] = Math.min(ctx.ages[0][t], ctx.ages[1][t]) < 65 ? 1 : 0;
     if (contributing) {
       ctx.contrib.taxable[t] = plan.household.taxableContribution * growth;

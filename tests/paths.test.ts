@@ -389,6 +389,39 @@ describe('Social Security in the simulation', () => {
     expect(rec.balances.taxable).toBeCloseTo(ss + rmd - extraFederal - extraState, 2);
     expect(rec.balances.pretax).toBeCloseTo(500_000 - rmd, 6);
   });
+
+  test('an HSA entry above the limit lowers wages only by the amount deposited, so D49 income is taxed the same (D15, D88)', () => {
+    function firstYear(hsa: number) {
+      const plan = simplePlan({ roth: 0 });
+      plan.you.birthYear = START - 76; // RMDs and SS already running
+      plan.spouse.birthYear = START - 55;
+      plan.you.salary = 80_000;
+      plan.you.contributions.hsa = hsa;
+      plan.you.balances.pretax = 500_000;
+      plan.you.socialSecurity = { mode: 'manual', earnings: [], manualPia: 2_000, claimAge: 70 };
+      plan.assumptions.endAge = 96;
+      const ctx = noYields(buildContext(plan, { stopContributingYear: START + 3, retireYear: START + 3, baseSpending: 40_000 }));
+      return { ctx, rec: simulatePath(ctx, constantPath(ctx.len, 0), 0, { record: true }).records![0] };
+    }
+    // HSA limit = 8,750 family + 1,000 + 1,000 (both 55+) = 10,750; a 30,000 entry deposits only 10,750 (D15).
+    //   Wages = 80,000 − 10,750 = 69,250 either way (an uncapped entry would give 80,000 − 30,000 = 50,000).
+    //   SS = 31,680 and RMD = 21,097.05 as above; 85% cap = 26,928 of SS taxable; deduction 33,850.
+    //   Without them: 69,250 − 33,850 = 35,400 (12% bracket)
+    //   With them: 69,250 + 21,097.05 + 26,928 − 33,850 = 83,425.05 (12% bracket)
+    //   Extra federal = 12% × (21,097.05 + 26,928) = 5,763.01
+    //   (Uncapped wages of 50,000 would put 8,650 of it in the 10% bracket: 865 + 4,725.01 = 5,590.01, too low.)
+    const atLimit = firstYear(LIMITS.hsaFamily + 2 * LIMITS.hsaCatchUp);
+    const over = firstYear(30_000);
+    const ss = 2_000 * 1.32 * 12;
+    const rmd = 500_000 / 23.7;
+    const extraFederal = 0.12 * (rmd + 0.85 * ss);
+    expect(extraFederal).toBeCloseTo(5_763.01, 2);
+    expect(atLimit.ctx.wages[0]).toBeCloseTo(69_250, 6);
+    expect(over.ctx.wages[0]).toBeCloseTo(69_250, 6);
+    expect(over.ctx.contrib.hsa[0]).toBeCloseTo(10_750, 6);
+    expect(atLimit.rec.federalTax).toBeCloseTo(extraFederal, 2);
+    expect(over.rec.federalTax).toBeCloseTo(extraFederal, 2);
+  });
 });
 
 describe('healthcare', () => {
