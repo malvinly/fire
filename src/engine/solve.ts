@@ -320,12 +320,28 @@ export function detailFor(e: Engine, tier: Tier, year: number): Detail {
     bands.p10.push(percentile(col, 0.1));
   }
 
-  // Representative paths by ending balance (failed paths rank lowest by year of failure).
-  const score = boot.outcomes.map((o, p) => ({ p, v: o.success ? o.endBalance : (o.failYear ?? 0) - 1e12 }));
-  score.sort((a, b) => a.v - b.v);
-  const pick = (q: number) => score[Math.min(score.length - 1, Math.floor(q * score.length))].p;
-  const medianPath = simulatePath(ctx, e.boot, pick(0.5), { record: true }).records!;
-  const p10Path = simulatePath(ctx, e.boot, pick(0.1), { record: true }).records!;
+  // Representative paths: the market whose savings stay closest (sum of squared log differences) to the typical or
+  // bad-market line over the first 10 retired years, where the order of returns matters most (D73).
+  const from = Math.min(ctx.retireIdx, ctx.len - 1);
+  const to = Math.min(ctx.len, from + 10);
+  const closest = (band: number[]) => {
+    let best = 0;
+    let bestScore = Infinity;
+    for (let p = 0; p < e.boot.n; p++) {
+      let score = 0;
+      for (let t = from; t < to; t++) {
+        const diff = Math.log1p(Math.max(0, totals[p * ctx.len + t])) - Math.log1p(Math.max(0, band[t]));
+        score += diff * diff;
+      }
+      if (score < bestScore) {
+        bestScore = score;
+        best = p;
+      }
+    }
+    return best;
+  };
+  const medianPath = simulatePath(ctx, e.boot, closest(bands.p50), { record: true }).records!;
+  const p10Path = simulatePath(ctx, e.boot, closest(bands.p10), { record: true }).records!;
 
   const worstHistorical: WorstWindow[] = histRun
     ? histRun.outcomes

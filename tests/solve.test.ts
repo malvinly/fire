@@ -156,6 +156,13 @@ describe('detail view', () => {
     expect(d.bands.p50[0]).toBeCloseTo(mid, 6);
   });
 
+  test('the year-by-year and account charts follow a market close to the typical and bad-market lines (D73)', () => {
+    const t = d.scenario.retireYear - d.years[0]; // first retired year
+    const at = (recs: typeof d.medianPath) => recs.find((r) => r.year === d.years[t])!.balances.total;
+    expect(Math.abs(at(d.medianPath) / d.bands.p50[t] - 1)).toBeLessThan(0.05);
+    expect(Math.abs(at(d.p10Path) / d.bands.p10[t] - 1)).toBeLessThan(0.05);
+  });
+
   test('worst historical windows: failures first, earliest failure first', () => {
     const w = d.worstHistorical;
     for (let i = 1; i < w.length; i++) {

@@ -79,23 +79,6 @@ Example for the example plan:
 
 ## P1: materially changes answers or breaks on plausible input
 
-### 11. Representative paths (accuracy)
-
-- **Problem:**
-  - The "typical market" year-by-year table (`medianPath`) and the "bad market" account chart (`p10Path`)
-    are picked by ranking paths by *ending* balance.
-  - A path that ends typical can be far from typical in the early years, which carry the most sequence
-    risk.
-- **Where:** `detailFor` in `src/engine/solve.ts:307–311`; used at `src/ui/Results.tsx:178` and `:229`.
-- **Evidence:** example Traditional plan, 2039. At the end of 2039:
-  - the table's first row shows $4.12M;
-  - the chart's typical line (`bands.p50`) shows $3.31M, 24% lower;
-  - the card's typical figure is $3.29M.
-- **Change:** pick the path closest to `bands.p50`/`bands.p10`, for example by the smallest sum of squared log
-  differences over the first 10 retired years. Or keep the method and relabel it "a sample market ending near
-  the typical final balance".
-- **Test:** the chosen path's first-retired-year balance is within a few percent of `bands.p50` at that index.
-
 ---
 
 ## P2: narrower wrong answers, clarity gaps

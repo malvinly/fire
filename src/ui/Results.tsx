@@ -241,7 +241,8 @@ export function DetailView({ plan, detail, loading, simpleNumber }: { plan: Plan
         <div className="panel">
           <h2>What’s in each account — bad market (1 in 10)</h2>
           <p className="text-2" style={{ marginTop: 4, marginBottom: 10 }}>
-            Usually the brokerage account shrinks first, then Roth, then 401(k)/IRA after 59½.
+            One simulated market that stays close to the bad-market line in the first 10 years of retirement. Usually the
+            brokerage account shrinks first, then Roth, then 401(k)/IRA after 59½.
           </p>
           <AccountsChart records={detail.p10Path} theme={theme} />
           <div className="legend">
@@ -276,7 +277,8 @@ export function DetailView({ plan, detail, loading, simpleNumber }: { plan: Plan
       <div className="panel">
         <h2>Year by year in a typical market</h2>
         <p className="text-2" style={{ marginTop: 4, marginBottom: 10 }}>
-          Where each year’s spending money comes from and the taxes paid, in today’s dollars. Money in (Social Security,
+          One simulated market that stays close to the typical line in the first 10 years of retirement: where each year’s
+          spending money comes from and the taxes paid, in today’s dollars. Money in (Social Security,
           other income, the “From …” columns) equals spending plus taxes and penalty.
         </p>
         <div className="table-scroll">
