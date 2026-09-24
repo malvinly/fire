@@ -8,8 +8,10 @@ const isObject = (v: unknown): v is Json => typeof v === 'object' && v !== null 
 
 /**
  * Returns a copy of `raw` with defaults filled in for fields that may be missing from older files: any
- * missing assumption takes its default, and dated income is taxed unless marked otherwise (D66). Everything
- * else is left for validation to accept or reject.
+ * missing top-level assumption takes today's default, and dated income is taxed unless marked otherwise (D66).
+ * Everything else is left for validation to accept or reject.
+ * A new field whose value for an old file should not be today's default (one that depends on another field,
+ * or a default changed later) needs its own line here: `schemaVersion` stays 1, so the file's age is unknown.
  */
 export function migratePlan(raw: unknown): unknown {
   if (!isObject(raw)) return raw;

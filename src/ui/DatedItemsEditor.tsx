@@ -1,5 +1,6 @@
 import { itemYearsInPlan, planYears } from '../engine/context';
 import type { DatedItem, DatedTiming, Plan } from '../engine/types';
+import { FIELD_LIMITS } from '../engine/validate';
 import { Help, NumberField, SelectField, TextField } from './fields';
 import { HELP } from './helpText';
 import { Icon } from './icons';
@@ -50,7 +51,7 @@ export function DatedItemsEditor({ plan, update }: { plan: Plan; update: Update 
             <SelectField<DatedItem['frequency']> label="How often" help={HELP.itemFrequency} value={it.frequency}
               options={[{ value: 'ongoing', label: 'Every year' }, { value: 'oneTime', label: 'One time' }, { value: 'recurring', label: 'Every N years' }]}
               onChange={(v) => edit(it.id, (x) => { x.frequency = v; if (v === 'recurring') x.everyYears ??= 10; })} />
-            <NumberField label="Amount (each time)" help={HELP.itemAmount} min={0} rangeMessage="Can’t be negative. Choose Expense or Income under Type instead." value={it.amount} onChange={(v) => edit(it.id, (x) => { x.amount = v ?? 0; })} />
+            <NumberField label="Amount (each time)" help={HELP.itemAmount} {...FIELD_LIMITS.money} rangeMessage="Can’t be negative. Choose Expense or Income under Type instead." value={it.amount} onChange={(v) => edit(it.id, (x) => { x.amount = v ?? 0; })} />
           </div>
           <div className="row">
             <TimingField label={it.frequency === 'oneTime' ? 'When' : 'Starts'} help={HELP.itemStart} plan={plan} value={it.start}
@@ -60,7 +61,7 @@ export function DatedItemsEditor({ plan, update }: { plan: Plan; update: Update 
                 onChange={(t) => edit(it.id, (x) => { x.end = t; })} />
             )}
             {it.frequency === 'recurring' && (
-              <NumberField label="Repeats every … years" help={HELP.itemEvery} kind="int" min={1} value={it.everyYears ?? 1}
+              <NumberField label="Repeats every … years" help={HELP.itemEvery} kind="int" {...FIELD_LIMITS.everyYears} value={it.everyYears ?? 1}
                 onChange={(v) => edit(it.id, (x) => { x.everyYears = Math.max(1, v ?? 1); })} />
             )}
           </div>
@@ -118,7 +119,7 @@ function TimingField({ label, help, plan, value, onChange, optional }: {
     <>
       <SelectField<Kind> label={label} help={help} value={kind} options={options} onChange={setKind} />
       {value && (
-        <NumberField label={value.kind === 'year' ? 'Year' : 'Age'} help={HELP.itemWhen} kind="int" min={value.kind === 'age' ? 0 : undefined}
+        <NumberField label={value.kind === 'year' ? 'Year' : 'Age'} help={HELP.itemWhen} kind="int" {...(value.kind === 'age' ? FIELD_LIMITS.age : FIELD_LIMITS.year)}
           value={value.kind === 'year' ? value.year : value.age}
           onChange={(v) => onChange(value.kind === 'year' ? { ...value, year: v ?? value.year } : { ...value, age: v ?? value.age })} />
       )}

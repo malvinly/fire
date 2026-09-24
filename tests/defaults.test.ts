@@ -40,7 +40,9 @@ describe('sections still holding example values (fix 2)', () => {
 
   test('a section clears only when no part of it still matches the example', () => {
     const plan = examplePlan(2026);
-    plan.you.birthYear = plan.spouse.birthYear = 1991; // People edited: both birth years changed
+    plan.you.birthYear = plan.spouse.birthYear = 1991; // People edited: birth years and salaries changed
+    plan.you.salary = 70_000;
+    plan.spouse.salary = 60_000;
     plan.you.balances.pretax = 60_000; // Balances: only your part edited, spouse's and household's untouched
     expect(untouchedSections(plan)).toEqual(ALL.filter((s) => s !== 'People'));
     plan.spouse.balances.pretax = 0;
@@ -48,10 +50,17 @@ describe('sections still holding example values (fix 2)', () => {
     expect(untouchedSections(plan)).not.toContain('Balances');
   });
 
+  test('moving the plan start on an untouched example still flags People (the salaries are still the example’s)', () => {
+    const plan = examplePlan(2026);
+    plan.startYear = 2027;
+    expect(untouchedSections(plan)).toContain('People');
+  });
+
   test('a plan with every section edited has none left', () => {
     const plan = examplePlan(2026);
     for (const p of [plan.you, plan.spouse]) {
       p.salary = 80_000;
+      p.birthYear -= 1;
       p.balances.roth = 10_000;
       p.contributions.pretax = 10_000;
       p.healthcare.preMedicare = 12_000;

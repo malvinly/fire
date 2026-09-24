@@ -135,6 +135,21 @@ describe('amounts fixed in nominal dollars are deflated each year (D63)', () => 
   });
 });
 
+describe('deflation reaches conversions still inside the 5-year window (D63)', () => {
+  test('two years after a conversion, only the other principal is spendable, all at today\u2019s value', () => {
+    const plan = simplePlan({ roth: 0, spending: 0 });
+    plan.you.birthYear = plan.spouse.birthYear = START - 50;
+    plan.assumptions.endAge = 80;
+    const ctx = ctxFor(plan);
+    const s = initialState(ctx);
+    s.roth[0] = s.rothPrincipal[0] = 50_000; // 30,000 contributed + a 20,000 conversion this year
+    s.conversions[0][0] = 20_000;
+    const recs = simulatePath(ctx, constantPath(ctx.len, 0, 0, 0.03), 0, { startState: s, record: true, stopIdx: 3 }).records!;
+    // (50,000 − 20,000) / 1.03² = 28,277.88. Without deflating the conversion it would be 50,000/1.03² − 20,000 = 27,129.
+    expect(recs[2].seasonedRoth).toBeCloseTo(30_000 / 1.03 ** 2, 6);
+  });
+});
+
 describe('dated items outside the plan (fix 22)', () => {
   const plan = simplePlan(); // plan 2026–2055
   const item = (start: DatedTiming, end?: DatedTiming): DatedItem => ({

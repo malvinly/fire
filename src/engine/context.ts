@@ -58,14 +58,22 @@ export interface Context {
   /** 1 when the younger spouse is under 65 (HSA non-medical penalty, D41). */
   hsaPenalty: Uint8Array;
   fillTop: number; // 0 = no bracket fill
-  /** Brokerage yields for the plan's asset mix (D70): shares of the brokerage balance per year. */
+  /**
+   * Brokerage income for the plan's asset mix (D70): `dividends` and `bondInterest` are yearly shares of the
+   * brokerage balance (yield × that asset's share of the mix); `cashShare` is the cash share of the mix, which
+   * earns the path's T-bill rate. The cash account's interest doesn't depend on these.
+   */
   yields: { dividends: number; bondInterest: number; cashShare: number };
   pia: [number, number];
 }
 
+/** The last plan year: the younger spouse reaches the plan-to age (D2). */
+export function planEndYear(plan: Plan): number {
+  return Math.max(plan.you.birthYear, plan.spouse.birthYear) + plan.assumptions.endAge;
+}
+
 export function planYears(plan: Plan): { startYear: number; endYear: number; len: number } {
-  const youngerBirth = Math.max(plan.you.birthYear, plan.spouse.birthYear);
-  const endYear = youngerBirth + plan.assumptions.endAge;
+  const endYear = planEndYear(plan);
   // A fractional year count would make every per-year array the wrong length.
   if (![plan.startYear, plan.you.birthYear, plan.spouse.birthYear, plan.assumptions.endAge].every(Number.isInteger)) {
     throw new Error('Plan start year, birth years and "Plan until … age" must be whole numbers.');

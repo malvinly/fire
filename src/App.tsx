@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { examplePlan, untouchedSections } from './engine/defaults';
-import { migratePlan } from './engine/migrate';
-import { fieldProblems, planProblems } from './engine/validate';
+import { planEndYear } from './engine/context';
+import { checkLoadedPlan, planProblems } from './engine/validate';
 import type { Detail, Tier, TierResult } from './engine/solve';
 import { MARKET } from './engine/returns';
 import type { Plan } from './engine/types';
@@ -11,7 +11,7 @@ import { Icon, TIER_ICONS } from './ui/icons';
 import { InputsPanel } from './ui/InputsPanel';
 import { BeforeYouAct, DetailView, TIER_NAMES, TierCard } from './ui/Results';
 import { SessionsDialog, type SessionMeta } from './ui/SessionsDialog';
-import { DRAFT_KEY, REJECTED_DRAFT_KEY, describeProblems, isStale, makeSession, type SessionFile } from './ui/sessions';
+import { DRAFT_KEY, REJECTED_DRAFT_KEY, describeProblems, downloadJson, isStale, makeSession, type SessionFile } from './ui/sessions';
 import { beforeYouAct } from './ui/warnings';
 import { CancelledError, detail as fetchDetail, solveAll } from './worker/client';
 
@@ -29,8 +29,9 @@ interface Results {
 interface Draft {
   plan?: Plan;
   meta?: SessionMeta | null;
-  /** Why a saved draft couldn't be used. */
+  /** Why a saved draft couldn't be used, and the draft itself so it can be downloaded. */
   rejected?: string;
+  rejectedText?: string;
 }
 
 function loadDraft(): Draft | null {
@@ -39,10 +40,9 @@ function loadDraft(): Draft | null {
     raw = localStorage.getItem(DRAFT_KEY);
     if (!raw) return null;
     const draft = JSON.parse(raw);
-    const plan = migratePlan(draft?.plan);
-    const problems = fieldProblems(plan);
-    if (problems.length) throw new Error(describeProblems(problems));
-    return { plan: plan as Plan, meta: draft.meta ?? null };
+    const loaded = checkLoadedPlan(draft?.plan);
+    if (!loaded.plan) throw new Error(describeProblems(loaded.problems));
+    return { plan: loaded.plan, meta: draft.meta ?? null };
   } catch (e) {
     if (raw === null) return null; // storage unavailable (private window etc.)
     try {
@@ -50,7 +50,7 @@ function loadDraft(): Draft | null {
     } catch {
       // Nowhere to keep it.
     }
-    return { rejected: e instanceof Error ? e.message : String(e) };
+    return { rejected: e instanceof Error ? e.message : String(e), rejectedText: raw };
   }
 }
 
@@ -197,7 +197,7 @@ export default function App() {
   const selResult = results?.tiers[selTier];
   const exampleSections = untouchedSections(plan);
   // The year picker stops the year before the plan ends (D76).
-  const lastYear = results ? Math.max(results.plan.you.birthYear, results.plan.spouse.birthYear) + results.plan.assumptions.endAge - 1 : 0;
+  const lastYear = results ? planEndYear(results.plan) - 1 : 0;
 
   return (
     <div className="app">
@@ -226,6 +226,12 @@ export default function App() {
           </aside>
           <section className="results" aria-label="Results">
             {error && <div className="banner warn"><Icon name="alert" /> {error}</div>}
+            {draft?.rejectedText && (
+              <div className="banner">
+                The draft that couldn't be loaded is kept in this browser until another one is set aside.
+                <button className="btn small" onClick={() => downloadJson('unsaved plan (could not be loaded).json', draft.rejectedText!)}>Download it</button>
+              </div>
+            )}
             {exampleSections.length > 0 && (
               <div className="banner warn">
                 <Icon name="alert" /> Still example numbers: {exampleSections.join(', ')}. Results use them until you replace

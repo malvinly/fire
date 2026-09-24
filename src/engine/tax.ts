@@ -1,7 +1,10 @@
 import { FEDERAL } from '../data/rules';
 
 export interface TaxInput {
-  /** Ordinary income excluding Social Security: pre-tax withdrawals, conversions, RMDs. */
+  /**
+   * Ordinary income excluding Social Security: pre-tax withdrawals, conversions, RMDs, taxed dated income and
+   * interest (interest also goes in `interest`).
+   */
   ordinary: number;
   /** Realized long-term capital gains and qualified dividends. */
   ltcg: number;

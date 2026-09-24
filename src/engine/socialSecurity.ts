@@ -72,17 +72,22 @@ export function annualBenefits(a: ClaimantInput, b: ClaimantInput, year: number)
 }
 
 /**
- * First month (1–12) a claimant is entitled to benefits in the claim year. At 62 it is the month after the
+ * First month a claimant is entitled to benefits in the claim year (13 = January of the next). At 62 it is the month after the
  * birthday month, because you must be 62 for the whole month (D25).
  */
 function firstMonth(c: ClaimantInput): number {
   return c.birthMonth + (c.claimAge === 62 ? 1 : 0);
 }
 
-/** Months of benefit received in `year`, cash basis: each month's benefit arrives the following month (D25). */
+/**
+ * Months of benefit received in `year`, cash basis: each month's benefit arrives the following month (D25).
+ * `fromMonth` 13 (a December birthday claiming at 62) means January of the next year.
+ */
 function monthsPaid(year: number, fromYear: number, fromMonth: number): number {
-  if (year < fromYear) return 0;
-  return year > fromYear ? 12 : Math.max(0, 12 - fromMonth);
+  const startYear = fromYear + Math.floor((fromMonth - 1) / 12);
+  const startMonth = ((fromMonth - 1) % 12) + 1;
+  if (year < startYear) return 0;
+  return year > startYear ? 12 : 12 - startMonth;
 }
 
 function personBenefit(self: ClaimantInput, other: ClaimantInput, year: number): number {

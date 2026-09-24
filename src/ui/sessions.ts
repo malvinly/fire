@@ -2,8 +2,7 @@
 // browser only asks for permission again, not for the folder.
 
 import { DATA_VERSIONS, describeAssumptions, type AssumptionRow } from '../engine/assumptions';
-import { migratePlan } from '../engine/migrate';
-import { fieldProblems } from '../engine/validate';
+import { checkLoadedPlan } from '../engine/validate';
 import type { Detail, TierResult } from '../engine/solve';
 import type { Plan } from '../engine/types';
 
@@ -46,12 +45,35 @@ export function parseSession(text: string): SessionFile {
   // Shape checks for what the session list and the results view read directly, so one damaged file can't
   // break them.
   const ok = typeof s.name === 'string' && typeof s.createdAt === 'string' && typeof s.savedAt === 'string' &&
-    (s.results === null || (typeof s.results === 'object' && typeof s.results.calculatedAt === 'string' && Array.isArray(s.results.tiers)));
+    (s.results === null || resultsReadable(s.results));
   if (!ok) throw new Error('This FIRE Planner session file is damaged.');
-  s.plan = migratePlan(s.plan);
-  const problems = fieldProblems(s.plan);
-  if (problems.length) throw new Error(`This session file's plan can't be used: ${describeProblems(problems)}`);
+  const loaded = checkLoadedPlan(s.plan);
+  if (!loaded.plan) throw new Error(`This session file's plan can't be used: ${describeProblems(loaded.problems)}`);
+  s.plan = loaded.plan;
   return s as SessionFile;
+}
+
+const isNum = (v: unknown): v is number => typeof v === 'number' && Number.isFinite(v);
+const isObj = (v: unknown): v is Record<string, unknown> => typeof v === 'object' && v !== null && !Array.isArray(v);
+const success = (v: unknown) => isObj(v) && isNum(v.combined) && isNum(v.bootstrap);
+const TIERS = ['traditional', 'chubby', 'coast'];
+
+/** The saved results have every field the cards and the detail view read without checking (D71). */
+function resultsReadable(r: unknown): boolean {
+  if (!isObj(r) || typeof r.calculatedAt !== 'string' || !Array.isArray(r.tiers)) return false;
+  const tierOk = (t: unknown) => isObj(t) && TIERS.includes(t.tier as string) && isNum(t.spending) && isNum(t.currentBalance) &&
+    isNum(t.simpleNumber) && success(t.successToday) && (t.fireNumber === null || isNum(t.fireNumber)) &&
+    (t.earliest === null || (isObj(t.earliest) && isNum(t.earliest.year))) &&
+    (t.successAtEarliest === null || success(t.successAtEarliest));
+  if (!r.tiers.every(tierOk)) return false;
+  const d = r.detail;
+  if (d === null || d === undefined) return true;
+  const bands = isObj(d) ? d.bands : null;
+  return isObj(d) && TIERS.includes(d.tier as string) && isObj(d.scenario) && isNum(d.scenario.retireYear) &&
+    isNum(d.scenario.stopContributingYear) && success(d.success) && isNum(d.penaltyRate) && Array.isArray(d.years) &&
+    isObj(bands) && Array.isArray(bands.p50) && Array.isArray(bands.p25) && Array.isArray(bands.p10) &&
+    Array.isArray(d.worstHistorical) && isNum(d.historicalCount) && Array.isArray(d.medianPath) && Array.isArray(d.p10Path) &&
+    Array.isArray(d.pia);
 }
 
 /** The first few problems, for a message (D71). */
@@ -170,7 +192,12 @@ export async function writeSession(dir: DirHandle, fileName: string, s: SessionF
 // ---- Fallback: download / upload ----
 
 export function downloadSession(fileName: string, s: SessionFile) {
-  const blob = new Blob([JSON.stringify(s, null, 2)], { type: 'application/json' });
+  downloadJson(fileName, JSON.stringify(s, null, 2));
+}
+
+/** Saves text as a .json download (also used to hand back an unsaved plan that couldn't be loaded, D71). */
+export function downloadJson(fileName: string, text: string) {
+  const blob = new Blob([text], { type: 'application/json' });
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
   a.download = fileName;

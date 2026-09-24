@@ -52,3 +52,30 @@ describe('damaged or out-of-range plans are rejected with a clear message (D71)'
     expect(planProblems(examplePlan(2026))).toEqual([]);
   });
 });
+
+describe('review fixes: what blocks loading and what only blocks Calculate', () => {
+  test('a plan whose start year is before a birth year still loads; Calculate is blocked with a reason', () => {
+    const s = parseSession(sessionText((p) => { p.startYear = 1980; }));
+    expect(s.plan.startYear).toBe(1980);
+    expect(planProblems(s.plan).join(' ')).toMatch(/born after the plan starts/);
+  });
+
+  test('a stale Coast age loads, and Calculate names both limits', () => {
+    const young = parseSession(sessionText((p: any) => { p.household.coastRetireAge = 30; })); // You is 42
+    expect(planProblems(young.plan).join(' ')).toMatch(/above You’s current age \(42\)/);
+    const late = parseSession(sessionText((p: any) => { p.household.coastRetireAge = 100; }));
+    expect(planProblems(late.plan).join(' ')).toMatch(/before the plan ends in 2082/);
+  });
+
+  test('a dated item dated absurdly far away is rejected (it would loop over every year)', () => {
+    expect(() => parseSession(sessionText((p) => {
+      p.datedItems = [{ id: 'x', label: 'x', direction: 'expense', amount: 1, frequency: 'ongoing', start: { kind: 'year', year: -1_000_000_000 }, fixedDollars: false }];
+    }))).toThrow(/datedItems\[0\]\.start\.year/);
+  });
+
+  test('saved results the results view can’t read are rejected', () => {
+    const s = JSON.parse(sessionText());
+    s.results = { calculatedAt: 'x', tiers: [{}], detail: {} };
+    expect(() => parseSession(JSON.stringify(s))).toThrow(/damaged/);
+  });
+});

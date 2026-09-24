@@ -29,7 +29,7 @@ export interface TierResult {
   successAtEarliest: Success | null;
   /**
    * Share of simulated markets that take retirement money before 59½ with the 10% penalty at the earliest date
-   * (they still count as successes, D27). Missing in sessions saved before it existed.
+   * (they still count as successes, D68). Missing in sessions saved before it existed.
    */
   penaltyRate?: number | null;
   /** Spending ÷ 4% sanity check (spending + first-year healthcare). */
@@ -162,6 +162,16 @@ export function evaluate(e: Engine, ctx: Context, opts: RunOpts = {}, full = fal
   return combine(boot, historical);
 }
 
+/**
+ * The whole plan from today on every path, both methods (the same answer as `evaluate(e, ctx, {}, true)`), keeping
+ * the bootstrap run's penalty rate and per-path outcomes for the callers that report them.
+ */
+function wholePlanRun(e: Engine, ctx: Context, totals?: Float64Array) {
+  const boot = successRate(ctx, e.boot, { totals });
+  const hist = e.hist.n > 0 ? successRate(ctx, e.hist, {}) : null;
+  return { boot, hist, success: combine(boot.rate, hist ? hist.rate : null) };
+}
+
 /** The stricter of the two methods decides (D3). */
 function combine(bootstrap: number, historical: number | null): Success {
   const hist = historical ?? Infinity;
@@ -279,10 +289,9 @@ export function solveTier(e: Engine, tier: Tier): TierResult {
     let successAtEarliest: Success | null = null;
     let penaltyRate: number | null = null;
     if (earliest !== null) {
-      const ctx = buildContext(plan, scenarioFor(plan, tier, earliest));
-      const boot = successRate(ctx, e.boot, {});
-      successAtEarliest = combine(boot.rate, e.hist.n > 0 ? successRate(ctx, e.hist, {}).rate : null);
-      penaltyRate = boot.penaltyRate;
+      const run = wholePlanRun(e, buildContext(plan, scenarioFor(plan, tier, earliest)));
+      successAtEarliest = run.success;
+      penaltyRate = run.boot.penaltyRate;
     }
     return {
       tier, spending, currentBalance: current, successToday, simpleNumber, fireNumber, successAtEarliest, penaltyRate,
@@ -303,9 +312,9 @@ export function solveTier(e: Engine, tier: Tier): TierResult {
     const ctx = buildContext(plan, scenarioFor(plan, tier, earliest));
     const idx = ctx.retireIdx;
     const totals = new Float64Array(e.boot.n * ctx.len);
-    const boot = successRate(ctx, e.boot, { totals });
-    successAtEarliest = combine(boot.rate, e.hist.n > 0 ? successRate(ctx, e.hist, {}).rate : null);
-    penaltyRate = boot.penaltyRate;
+    const run = wholePlanRun(e, ctx, totals);
+    successAtEarliest = run.success;
+    penaltyRate = run.boot.penaltyRate;
     projectedAtEarliest = idx === 0 ? { p50: current, p10: current } : balancesAt(totals, e.boot.n, ctx.len, idx - 1);
     fireNumber = minPortfolio(e, ctx, projectState(ctx, idx), idx, true);
   }
@@ -335,9 +344,7 @@ export function detailFor(e: Engine, tier: Tier, year: number): Detail {
   const scenario = scenarioFor(e.plan, tier, year);
   const ctx = buildContext(e.plan, scenario);
   const totals = new Float64Array(e.boot.n * ctx.len);
-  const boot = successRate(ctx, e.boot, { totals });
-  const histRun = e.hist.n > 0 ? successRate(ctx, e.hist, {}) : null;
-  const success = combine(boot.rate, histRun ? histRun.rate : null);
+  const { boot, hist: histRun, success } = wholePlanRun(e, ctx, totals);
 
   // Percentile bands: 50th / 25th / 10th of balances each year = Fidelity's average / below / significantly below.
   const bands = { p50: [] as number[], p25: [] as number[], p10: [] as number[] };

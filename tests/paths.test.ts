@@ -513,6 +513,72 @@ describe('yearly tax on brokerage and cash income (D70)', () => {
   });
 });
 
+describe('review follow-ups: the rest of D66 and D70', () => {
+  function allIn(plan: Plan, asset: 'stocks' | 'bonds' | 'cash') {
+    plan.assumptions.allocation = { stocks: asset === 'stocks' ? 1 : 0, bonds: asset === 'bonds' ? 1 : 0, cash: asset === 'cash' ? 1 : 0 };
+    return plan;
+  }
+
+  test('working: dividends are taxed as gains on top of wages (15% above the 0% band, plus state)', () => {
+    const plan = allIn(retiree(45), 'stocks');
+    plan.you.salary = 150_000; // taxable wages 117,800: above the 98,900 top of the 0% band
+    plan.assumptions.stateTaxRate = 0.05;
+    plan.household.taxable = plan.household.taxableBasis = 100_000;
+    const ctx = buildContext(plan, { stopContributingYear: START + 3, retireYear: START + 3, baseSpending: 0 });
+    const rec = simulatePath(ctx, constantPath(ctx.len, 0), 0, { record: true, stopIdx: 1 }).records![0];
+    expect(rec.capitalGains).toBeCloseTo(2_000, 6);
+    expect(rec.federalTax).toBeCloseTo(0.15 * 2_000, 6);
+    expect(rec.stateTax).toBeCloseTo(0.05 * 2_000, 6);
+  });
+
+  test('retired: the bracket fill leaves room for the year\u2019s interest', () => {
+    const plan = allIn(retiree(62), 'bonds');
+    plan.assumptions.bracketFill = '12';
+    plan.household.traditionalSpending = 0;
+    plan.household.taxable = plan.household.taxableBasis = 1_000_000; // 40,000 of interest
+    plan.you.balances.pretax = 1_000_000;
+    const ctx = ctxFor(plan);
+    const rec = simulatePath(ctx, constantPath(ctx.len, 0), 0, { record: true, stopIdx: 1 }).records![0];
+    const top = FEDERAL.ordinaryBrackets[1][0] + FEDERAL.standardDeduction; // 133,000
+    expect(rec.withdrawals.pretax + rec.conversions).toBeCloseTo(top - 40_000, 0);
+    expect(rec.ordinaryIncome).toBeCloseTo(top, 0);
+  });
+
+  test('the brokerage account\u2019s cash share earns the T-bill rate', () => {
+    const plan = allIn(retiree(62), 'cash');
+    plan.household.traditionalSpending = 0;
+    plan.household.taxable = plan.household.taxableBasis = 100_000;
+    const ctx = ctxFor(plan);
+    const rec = simulatePath(ctx, constantPath(ctx.len, 0, 0.01, 0.02), 0, { record: true, stopIdx: 1 }).records![0];
+    expect(rec.ordinaryIncome).toBeCloseTo(100_000 * (1.01 * 1.02 - 1), 6);
+  });
+
+  test('working: the brokerage and cash accounts each pay the tax on their own income', () => {
+    const plan = allIn(retiree(45), 'bonds');
+    plan.you.salary = 150_000; // 22% bracket
+    plan.assumptions.stateTaxRate = 0.05;
+    plan.household.taxable = plan.household.taxableBasis = 100_000; // 4,000 of bond interest
+    plan.household.cash = 50_000; // 50,000 × 3.02% = 1,510 of T-bill interest
+    const ctx = buildContext(plan, { stopContributingYear: START + 3, retireYear: START + 3, baseSpending: 0 });
+    const rec = simulatePath(ctx, constantPath(ctx.len, 0, 0.01, 0.02), 0, { record: true, stopIdx: 1 }).records![0];
+    const cashInterest = 50_000 * (1.01 * 1.02 - 1);
+    const tax = 0.27 * (4_000 + cashInterest);
+    const fromBrokerage = (tax * 4_000) / (4_000 + cashInterest);
+    expect(rec.federalTax + rec.stateTax).toBeCloseTo(tax, 6);
+    expect(rec.balances.taxable).toBeCloseTo(100_000 - fromBrokerage, 6);
+    expect(rec.balances.cash).toBeCloseTo((50_000 - (tax - fromBrokerage)) * 1.01, 6);
+  });
+
+  test('a taxed pension in fixed dollars counts at its value after inflation', () => {
+    const plan = retiree(62);
+    plan.you.balances.roth = plan.you.balances.rothBasis = 1_000_000;
+    plan.datedItems = [{ id: 'p', label: 'pension', direction: 'income', amount: 40_000, frequency: 'ongoing', start: { kind: 'year', year: START }, fixedDollars: true, taxable: true }];
+    const ctx = ctxFor(plan);
+    const recs = simulatePath(ctx, constantPath(ctx.len, 0, 0, 0.03), 0, { record: true, stopIdx: 2 }).records!;
+    expect(recs[1].ordinaryIncome).toBeCloseTo(40_000 / 1.03, 6);
+  });
+});
+
 describe('dated items and contributions', () => {
   test('while working, dated items not in today\'s budget use savings: cash, then taxable with gains tax (D17)', () => {
     const plan = retiree(45);

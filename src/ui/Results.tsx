@@ -98,6 +98,7 @@ export function TierCard({ r, plan, selected, onSelect }: { r: TierResult | null
           <p className="muted">
             {isCoast
               ? `Even saving until ${plan.you.name} is ${plan.household.coastRetireAge}, your money lasts in fewer than ${percent(target)} of markets.`
+              // Sessions saved before searchLimit existed were searched to the first person's 75 (the old D43).
               : notReachable(plan, r.searchLimit ?? plan.you.birthYear + 75, percent(target))}
           </p>
         )}

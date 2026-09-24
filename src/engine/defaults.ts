@@ -14,9 +14,9 @@ export const DEFAULT_ASSUMPTIONS: Assumptions = {
   blockLength: 5,
   seed: 20260924,
   stateTaxRate: 0.05,
-  bracketFill: '10', // decision 3 of the pending work (D29)
+  bracketFill: '10', // D29
   ssTrustFund: { ...TRUST_FUND_DEFAULT },
-  ssWageGrowth: 0, // decision 1 of the pending work: as cautious as v1 (D77)
+  ssWageGrowth: 0, // as cautious as v1 (D77)
 };
 
 /** The solver's quick-search sample for a number of markets: the default 2,000, or all of them if fewer (D5). */
@@ -77,7 +77,8 @@ export function untouchedSections(plan: Plan): string[] {
   const h = plan.household;
   const eh = ex.household;
   const sections: [string, boolean][] = [
-    ['People', anyPerson((p) => [p.birthYear, p.salary])],
+    // Salary alone, or birth year alone: moving the plan start shifts the example's birth years but not its salaries.
+    ['People', anyPerson((p) => p.salary) || anyPerson((p) => p.birthYear)],
     ['Balances', anyPerson((p) => p.balances) || same([h.taxable, h.taxableBasis, h.cash], [eh.taxable, eh.taxableBasis, eh.cash])],
     ['Yearly contributions', anyPerson((p) => p.contributions) ||
       same([h.taxableContribution, h.cashContribution], [eh.taxableContribution, eh.cashContribution])],

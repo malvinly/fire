@@ -151,10 +151,17 @@ function emptyDraws(): Draws {
   };
 }
 
+/**
+ * A Roth conversion can be withdrawn before 59½ once it is this many years old. Only the last SEASONING_YEARS
+ * entries of `State.conversions` are ever read (and deflated, D63); older entries stay in the dollars of the year
+ * they left the window and must not be read as today's dollars.
+ */
+const SEASONING_YEARS = 5;
+
 /** Conversions made in the last 5 years (this year included) — not yet withdrawable before 59½. */
 function unseasoned(s: State, i: 0 | 1, t: number): number {
   let sum = 0;
-  for (let k = Math.max(0, t - 4); k <= t; k++) sum += s.conversions[i][k];
+  for (let k = Math.max(0, t - SEASONING_YEARS + 1); k <= t; k++) sum += s.conversions[i][k];
   return sum;
 }
 
@@ -165,7 +172,7 @@ function rothAvailable(ctx: Context, s: State, i: 0 | 1, t: number): number {
 
 /** Withdrawn unseasoned principal leaves the conversion history oldest-first (IRS ordering). */
 function consumeConversions(s: State, i: 0 | 1, t: number, amount: number) {
-  for (let k = Math.max(0, t - 4); k <= t && amount > 0; k++) {
+  for (let k = Math.max(0, t - SEASONING_YEARS + 1); k <= t && amount > 0; k++) {
     const take = Math.min(amount, s.conversions[i][k]);
     s.conversions[i][k] -= take;
     amount -= take;
@@ -324,6 +331,10 @@ export function simulatePath(ctx: Context, paths: ReturnPaths, p: number, opts: 
       s.taxable += ctx.contrib.taxable[t];
       s.taxableBasis += ctx.contrib.taxable[t];
       s.cash += ctx.contrib.cash[t];
+      // Working-year tax is figured in layers, each as the extra tax on top of the layers before it:
+      //   wages → Social Security and RMDs (D49) → taxed dated income (D66) → the gain on a brokerage sale for a
+      //   dated cost (D17) → brokerage and cash income (D70).
+      // A new kind of working-year income must be added to the `ordinary` of every later layer.
       // Social Security already claimed and RMDs while still working: the paycheck covers spending, so they
       // are saved to taxable after the extra tax they cause on top of wages (D49). Taxed dated income is stacked
       // on top of those and loses its own extra tax (D66).
@@ -408,12 +419,14 @@ export function simulatePath(ctx: Context, paths: ReturnPaths, p: number, opts: 
         const after = computeTax({ ...base, ordinary: ordinary + inv.interest, ltcg: gain + inv.dividends, interest: inv.interest });
         invFederal = after.federal - before.federal;
         invState = after.state - before.state;
-        // Each account pays the tax on its own income; the brokerage reinvests the rest at full basis.
+        // Each account pays the tax on its own income; the brokerage reinvests the rest at full basis. The income
+        // itself is already inside the year's total return (the market data are total returns), so it adds to
+        // basis but not to the balance.
         const brokerageIncome = inv.dividends + inv.brokerageInterest;
-        const fromTaxable = ((invFederal + invState) * brokerageIncome) / (inv.dividends + inv.interest);
-        s.taxable -= fromTaxable;
-        s.cash -= Math.min(s.cash, invFederal + invState - fromTaxable);
-        s.taxableBasis += Math.max(0, brokerageIncome - fromTaxable);
+        const taxFromBrokerage = ((invFederal + invState) * brokerageIncome) / (inv.dividends + inv.interest);
+        s.taxable -= taxFromBrokerage;
+        s.cash -= Math.min(s.cash, invFederal + invState - taxFromBrokerage);
+        s.taxableBasis += Math.max(0, brokerageIncome - taxFromBrokerage);
       }
       if (records) {
         rec = blankRecord(ctx, t, true);
@@ -442,7 +455,8 @@ export function simulatePath(ctx: Context, paths: ReturnPaths, p: number, opts: 
       d.fillTarget[0] = d.fillTarget[1] = 0;
       if (ctx.fillTop > 0) {
         // Bracket room ignores this year's capital gains (they stack above ordinary income, D39).
-        // Investment income is estimated on the start-of-year balances here (it depends on this year's withdrawals).
+        // The fill room counts all ordinary income that isn't a withdrawal (keep in step with taxOf). Investment
+        // income is estimated on the start-of-year balances here (it depends on this year's withdrawals).
         const interest = investmentIncome(ctx, s.taxable, s.cash, tbill).interest;
         let room = bracketRoom(ctx.fillTop, rmd0 + rmd1 + taxedIn + interest, 0, ss, ctx.over65Count[t], priceLevel);
         for (const i of order) {
@@ -482,6 +496,7 @@ export function simulatePath(ctx: Context, paths: ReturnPaths, p: number, opts: 
       const deposit = d.rmdSurplus + d.surplus;
       s.taxable += deposit;
       // Deposits, and this year's brokerage dividends and interest (reinvested; their tax was part of the need), D70.
+      // The income is already inside the year's total return, so only the basis grows here.
       s.taxableBasis += deposit + tax.inv.dividends + tax.inv.brokerageInterest;
 
       const penaltyAmt = penalizedAmount(d);
@@ -531,7 +546,7 @@ export function simulatePath(ctx: Context, paths: ReturnPaths, p: number, opts: 
     s.taxableBasis /= inflation;
     for (const i of [0, 1] as const) {
       s.rothPrincipal[i] /= inflation;
-      for (let k = Math.max(0, t - 4); k <= t; k++) s.conversions[i][k] /= inflation;
+      for (let k = Math.max(0, t - SEASONING_YEARS + 1); k <= t; k++) s.conversions[i][k] /= inflation;
     }
     priceLevel *= inflation;
 

@@ -87,13 +87,52 @@ None pending.
 
 ## P2: narrower wrong answers, clarity gaps
 
-None pending.
+### 25. Bond interest at each market's own yield (accuracy)
+
+- **Problem:** D70 taxes brokerage bond interest at a fixed 4% of the bond share, while the cash share uses each
+  market's own T-bill rate. In high-rate stretches (1966–1981 starts, 10-year yields about 5–15%), which often
+  decide a 90% answer, bond interest is under-taxed; in the low-rate 1940s it is over-taxed. The fixed 2% dividend
+  yield has the same issue, more weakly (history's dividend yields ran 4–6% for long periods).
+- **Where:** `TAXABLE_YIELDS` in `src/engine/context.ts`; `investmentIncome` in `src/engine/simulate.ts`;
+  `scripts/build-market-data.ts` already parses Shiller's GS10 column (and dividends) but doesn't keep them in
+  `src/data/market.json`.
+- **Change:** keep the January 10-year yield (and optionally the dividend yield) per year in `market.json`, carry it
+  through `ReturnPaths` like `cash`, and use it in `investmentIncome`. Needs `npm run data:build` (network).
+- **Test:** a path with a 10% bond yield taxes 10% of the bond share as interest.
+- **Source:** adversarial review of the fixes (devil's advocate).
 
 ---
 
 ## P3: polish and rare edges
 
-None pending.
+### 26. Detail-view caption on money in and out (clarity)
+
+- **Problem:** the year-by-year table says money in equals spending plus taxes and penalty. In a year with an RMD
+  that isn't all spent, "From 401(k)/IRA" includes the reinvested surplus, so the two sides differ.
+- **Where:** the table caption and the `withdrawals.pretax` record in `src/engine/simulate.ts`.
+- **Change:** record the reinvested RMD surplus separately (or subtract it from "From 401(k)/IRA") and say where it went.
+
+### 27. Typing a year into the year picker (robustness)
+
+- **Problem:** the "Retire in" box accepts only complete, valid years, so typing a new year digit by digit is undone
+  at the first keystroke; only − / + and selecting-and-replacing work.
+- **Where:** the year input in `src/App.tsx`.
+- **Change:** keep the typed text locally and apply it when it is a valid year (as `NumberField` does).
+
+### 28. Detail view of a stale session (clarity)
+
+- **Problem:** opening a session whose results came from an older engine shows the saved cards, but the detail view
+  is recalculated with the current engine, so the two can disagree until Recalculate.
+- **Where:** `openSession` and the detail effect in `src/App.tsx`.
+- **Change:** show the saved detail only (no refetch) while the recalculate banner is up, or recalculate on open.
+
+### 29. Stronger detail-view and income-stacking tests (tests)
+
+- **Problem:** the D73 test checks only the first retired year, so the 10-year window could shrink unnoticed; the
+  D74 failure-year spending isn't tested with a fixed-dollar item; no test combines Social Security received while
+  working with taxed dated income (the D66 layer on top of D49).
+- **Where:** `tests/solve.test.ts`, `tests/paths.test.ts`.
+- **Source:** adversarial review of the fixes (test skeptic).
 
 ---
 

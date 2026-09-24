@@ -31,7 +31,7 @@ export function parseFieldText(text: string, kind: 'money' | 'percent' | 'int' |
 }
 
 /**
- * Why a typed value can't be accepted (pending-work decision 6: impossible values are blocked, D76), or null.
+ * Why a typed value can't be accepted (impossible values are blocked, D76), or null.
  * `min`/`max` are in stored units; the message shows them as typed (percent × 100).
  */
 export function fieldBlock(v: number, kind: 'money' | 'percent' | 'int' | 'number', opts: {

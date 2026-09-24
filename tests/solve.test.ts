@@ -9,6 +9,7 @@ import {
   averageInflation, contributionMix, detailFor, evaluate, makeEngine, projectState, scenarioFor, solveTier,
 } from '../src/engine/solve';
 import type { Plan } from '../src/engine/types';
+import { noYields } from './helpers';
 
 function smallPlan(): Plan {
   const plan = examplePlan(2026);
@@ -253,6 +254,37 @@ describe('price level in retirement-only runs', () => {
   test('shifting paths without a starting price level is refused', () => {
     const ctx = buildContext(plan, scenarioFor(plan, 'traditional', 2036));
     expect(() => simulatePath(ctx, constantPath(ctx.len, 0), 0, { startIdx: 10, pathShift: 10 })).toThrow();
+  });
+});
+
+describe('review follow-ups', () => {
+  test('the FIRE number\u2019s projection deflates cost basis and Roth principal at average inflation (D63)', () => {
+    const p = smallPlan();
+    p.household.taxableContribution = 0;
+    const ctx = noYields(buildContext(p, scenarioFor(p, 'traditional', 2036)));
+    const s = projectState(ctx, 10);
+    const level = (1 + averageInflation()) ** 10;
+    expect(s.taxableBasis).toBeCloseTo(100_000 / level, 4);
+    expect(s.rothPrincipal[0]).toBeCloseTo(30_000 / level, 4);
+  });
+
+  test('the penalty rate is the share of simulated markets that paid the penalty, counted path by path', () => {
+    const ctx = buildContext(plan, scenarioFor(plan, 'traditional', trad.earliest!.year));
+    let paid = 0;
+    for (let p = 0; p < engine.boot.n; p++) if (simulatePath(ctx, engine.boot, p).usedPenalty) paid++;
+    expect(trad.penaltyRate).toBe(paid / engine.boot.n);
+    expect(paid).toBeGreaterThan(0);
+  });
+
+  test('Roth contributions in the mix top up both the Roth balance and its withdrawable principal (D50)', () => {
+    const p = smallPlan();
+    p.you.contributions.roth = 10_000; // mix: 50k pre-tax, 10k Roth, 15k brokerage
+    const mix = contributionMix(p);
+    expect(mix.roth[0]).toBeCloseTo(10 / 75, 12);
+    const s = initialState(buildContext(p, scenarioFor(p, 'coast', p.startYear)));
+    const up = scaleState(s, 880_000 + 75_000, mix);
+    expect(up.roth[0]).toBeCloseTo(s.roth[0] + 10_000, 6);
+    expect(up.rothPrincipal[0]).toBeCloseTo(s.rothPrincipal[0] + 10_000, 6);
   });
 });
 

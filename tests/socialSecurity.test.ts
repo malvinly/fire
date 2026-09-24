@@ -2,7 +2,7 @@
 // (ssa.gov/oact/progdata/retirebenefit1.html and retirebenefit2.html).
 import { describe, expect, test } from 'vitest';
 import { computePia, ownClaimFactor, payableShare, piaFromAime, spousalClaimFactor, annualBenefits } from '../src/engine/socialSecurity';
-import { TRUST_FUND_DEFAULT } from '../src/data/rules';
+import { SOCIAL_SECURITY, TRUST_FUND_DEFAULT } from '../src/data/rules';
 import { buildContext } from '../src/engine/context';
 import { examplePlan } from '../src/engine/defaults';
 
@@ -73,8 +73,10 @@ describe('claiming age', () => {
     const december = { birthYear: 1980, birthMonth: 12, claimAge: 62, pia: 1_000 };
     const factor = ownClaimFactor(1980, 62);
     expect(annualBenefits(june, june, 2042)[0]).toBeCloseTo(5 * 1_000 * factor, 6); // July–November, paid Aug–Dec
-    expect(annualBenefits(december, december, 2042)[0]).toBe(0); // January's benefit arrives in February 2043
-    expect(annualBenefits(december, december, 2043)[0]).toBeCloseTo(12 * 1_000 * factor, 6);
+    // Entitled from January 2043, paid from February: nothing in 2042, 11 months in 2043.
+    expect(annualBenefits(december, december, 2042)[0]).toBe(0);
+    expect(annualBenefits(december, december, 2043)[0]).toBeCloseTo(11 * 1_000 * factor, 6);
+    expect(annualBenefits(december, december, 2044)[0]).toBeCloseTo(12 * 1_000 * factor, 6);
   });
 });
 
@@ -101,6 +103,15 @@ describe('real growth of the national wage index (fix 17, D77)', () => {
     const ctx = buildContext(plan, { stopContributingYear: 2040, retireYear: 2040, baseSpending: 0 });
     expect(ctx.pia[0]).toBeCloseTo(2_500 * 1.011 ** (1984 + 60 - 2024), 6); // +24.4% at 42
     expect(ctx.pia[1]).toBeCloseTo(2_500 * 1.011 ** (1986 + 60 - 2024), 6); // +27.2% at 40
+  });
+
+  test('pay above the taxable maximum: the maximum rises with national wages, so each year counts as the maximum / (1 + g)²', () => {
+    const { taxableMax, bendPoints, awiLatestYear } = SOCIAL_SECURITY;
+    const big = new Map(Array.from({ length: 35 }, (_, i) => [2026 + i, 1_000_000] as [number, number]));
+    const g = 0.02;
+    const aime = Math.floor((35 * taxableMax) / (1 + g) ** 2 / 420);
+    const expected = piaFromAime(aime, bendPoints) * (1 + g) ** (1990 + 60 - awiLatestYear);
+    expect(Math.abs(computePia([], big, { wageGrowth: g, birthYear: 1990 }) - expected)).toBeLessThan(1);
   });
 
   test('from an earnings record, future pay counts relative to faster-growing national wages, so the rise is smaller', () => {

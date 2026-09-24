@@ -4,6 +4,8 @@ import { CHUBBY_SPENDING_FACTOR, DEFAULT_ASSUMPTIONS, FIDELITY_SPENDING_FACTOR, 
 import { parseEarnings } from '../engine/earnings';
 import { computePia } from '../engine/socialSecurity';
 import type { BracketFill, Person, PersonId, Plan } from '../engine/types';
+import { planEndYear } from '../engine/context';
+import { FIELD_LIMITS, birthYearProblem, coastAgeProblem } from '../engine/validate';
 import { DatedItemsEditor } from './DatedItemsEditor';
 import { Help, NumberField, Section, SelectField, TextField } from './fields';
 import { money, percent } from './format';
@@ -13,12 +15,12 @@ type Update = (fn: (draft: Plan) => void) => void;
 
 const PEOPLE: PersonId[] = ['you', 'spouse'];
 
-// Limits enforced as you type (pending-work decision 6, D76); src/engine/validate.ts rejects the same values in
-// loaded files.
-const NO_DEBT = { min: 0, rangeMessage: 'Can’t be negative. Enter a debt or money you’ll take out as a dated expense instead (e.g. loan payments).' };
-const NOT_NEGATIVE = { min: 0, rangeMessage: 'Can’t be negative.' };
-const RATE = { min: 0, max: 1, rangeMessage: 'Must be between 0% and 100%.' };
-const GROWTH = { min: -0.5, max: 0.5, rangeMessage: 'Must be between −50% and 50% a year.' };
+// Limits enforced as you type come from FIELD_LIMITS, which also rejects the same values in loaded files (D76).
+const L = FIELD_LIMITS;
+const NO_DEBT = { ...L.money, rangeMessage: 'Can’t be negative. Enter a debt or money you’ll take out as a dated expense instead (e.g. loan payments).' };
+const NOT_NEGATIVE = { ...L.money, rangeMessage: 'Can’t be negative.' };
+const RATE = { ...L.rate, rangeMessage: 'Must be between 0% and 100%.' };
+const GROWTH = { ...L.growth, rangeMessage: 'Must be between −50% and 50% a year.' };
 
 export function InputsPanel({ plan, update }: { plan: Plan; update: Update }) {
   const h = plan.household;
@@ -27,13 +29,6 @@ export function InputsPanel({ plan, update }: { plan: Plan; update: Update }) {
   const spendingBase = dated ? `(${money(h.currentSpending)} − ${money(dated)} dated items)` : money(h.currentSpending);
   const a = plan.assumptions;
   const salaries = plan.you.salary + plan.spouse.salary;
-  // Coast age: after today and before the plan ends (when the younger of you reaches the plan-to age).
-  const ageNow = plan.startYear - plan.you.birthYear;
-  const planEnd = Math.max(plan.you.birthYear, plan.spouse.birthYear) + a.endAge;
-  const coastCheck = (v: number) =>
-    v <= ageNow ? `Must be above ${plan.you.name}’s current age (${ageNow}).`
-    : plan.you.birthYear + v >= planEnd ? `Must be before the plan ends in ${planEnd} (${plan.you.name} ${planEnd - plan.you.birthYear}).`
-    : null;
   const hsaLimit = LIMITS.hsaFamily + PEOPLE.filter((id) => plan.startYear - plan[id].birthYear >= 55).length * LIMITS.hsaCatchUp;
   const saved =
     PEOPLE.reduce((s, id) => {
@@ -48,15 +43,15 @@ export function InputsPanel({ plan, update }: { plan: Plan; update: Update }) {
           {PEOPLE.map((id) => (
             <div key={id} className="person-col section-body">
               <TextField label="Name" help={HELP.name} value={plan[id].name} onChange={(v) => update((d) => { d[id].name = v; })} />
-              <NumberField label="Birth year" help={HELP.birthYear} kind="int" value={plan[id].birthYear} min={plan.startYear - 120} max={plan.startYear} onChange={(v) => update((d) => { d[id].birthYear = v ?? d[id].birthYear; })}
+              <NumberField label="Birth year" help={HELP.birthYear} kind="int" value={plan[id].birthYear} {...L.year} check={(v) => birthYearProblem(plan, v)} onChange={(v) => update((d) => { d[id].birthYear = v ?? d[id].birthYear; })}
                 hint={`Age ${plan.startYear - plan[id].birthYear} in ${plan.startYear}`} />
-              <NumberField label="Birth month" help={HELP.birthMonth} kind="int" min={1} max={12} value={plan[id].birthMonth}
+              <NumberField label="Birth month" help={HELP.birthMonth} kind="int" {...L.birthMonth} value={plan[id].birthMonth}
                 onChange={(v) => update((d) => { d[id].birthMonth = Math.min(12, Math.max(1, v ?? 1)); })} />
               <NumberField label="Yearly salary (before taxes)" help={HELP.salary} {...NOT_NEGATIVE} value={plan[id].salary} onChange={(v) => update((d) => { d[id].salary = v ?? 0; })} />
             </div>
           ))}
         </div>
-        <NumberField label="Plan starts in year" help={HELP.startYear} kind="int" min={1900} max={2200} value={plan.startYear} onChange={(v) => update((d) => { d.startYear = v ?? d.startYear; })}
+        <NumberField label="Plan starts in year" help={HELP.startYear} kind="int" {...L.year} value={plan.startYear} onChange={(v) => update((d) => { d.startYear = v ?? d.startYear; })}
           hint="Balances below are as of the start of this year." />
       </Section>
 
@@ -141,7 +136,7 @@ export function InputsPanel({ plan, update }: { plan: Plan; update: Update }) {
               {' '}Clear it to skip Chubby FIRE.
             </>
           } />
-        <NumberField label={`Coast FIRE: ${plan.you.name}'s age when you both stop working`} help={HELP.coastAge} kind="int" value={h.coastRetireAge} check={coastCheck}
+        <NumberField label={`Coast FIRE: ${plan.you.name}'s age when you both stop working`} help={HELP.coastAge} kind="int" value={h.coastRetireAge} {...L.age} check={(v) => coastAgeProblem(plan, v)}
           onChange={(v) => update((d) => { d.household.coastRetireAge = v ?? 65; })}
           hint="Coast = stop contributing, keep working (paycheck covers spending) until this age." />
       </Section>
@@ -165,7 +160,7 @@ export function InputsPanel({ plan, update }: { plan: Plan; update: Update }) {
 
       <Section title="Social Security" icon="landmark">
         {PEOPLE.map((id) => (
-          <SocialSecurityInputs key={id} id={id} person={plan[id]} update={update} />
+          <SocialSecurityInputs key={id} id={id} person={plan[id]} ssWageGrowth={a.ssWageGrowth} update={update} />
         ))}
       </Section>
 
@@ -175,10 +170,10 @@ export function InputsPanel({ plan, update }: { plan: Plan; update: Update }) {
 
       <Section title="Assumptions (advanced)" icon="sliders">
         <div className="grid2">
-          <NumberField label="Plan until the younger of you is age" help={HELP.endAge} kind="int" min={1} max={130} value={a.endAge} onChange={(v) => update((d) => { d.assumptions.endAge = v ?? 96; })}
-            warn={Math.max(plan.you.birthYear, plan.spouse.birthYear) + a.endAge <= plan.startYear ? "Must be above the younger spouse's current age" : null} />
-          <NumberField label="Required chance of success" help={HELP.targetSuccess} kind="percent" value={a.targetSuccess} min={0.5} max={0.99}
-            onChange={(v) => update((d) => { d.assumptions.targetSuccess = Math.min(0.99, Math.max(0.5, v ?? 0.9)); })} />
+          <NumberField label="Plan until the younger of you is age" help={HELP.endAge} kind="int" {...L.endAge} value={a.endAge} onChange={(v) => update((d) => { d.assumptions.endAge = v ?? 96; })}
+            warn={planEndYear(plan) <= plan.startYear ? "Must be above the younger spouse's current age" : null} />
+          <NumberField label="Required chance of success" help={HELP.targetSuccess} kind="percent" value={a.targetSuccess} {...L.targetSuccess}
+            onChange={(v) => update((d) => { d.assumptions.targetSuccess = Math.min(L.targetSuccess.max, Math.max(L.targetSuccess.min, v ?? 0.9)); })} />
           <NumberField label="Stocks share" help={HELP.stocks} kind="percent" {...RATE} value={a.allocation.stocks}
             onChange={(v) => update((d) => { setAllocation(d, 'stocks', v ?? 0); })} />
           <NumberField label="Bonds share" help={HELP.bonds} kind="percent" {...RATE} value={a.allocation.bonds}
@@ -189,7 +184,7 @@ export function InputsPanel({ plan, update }: { plan: Plan; update: Update }) {
           <NumberField label="Raises above inflation" help={HELP.wageGrowth} kind="percent" {...GROWTH} value={a.wageGrowth} onChange={(v) => update((d) => { d.assumptions.wageGrowth = v ?? 0; })} />
           <NumberField label="Healthcare cost growth above inflation" help={HELP.healthcareInflation} kind="percent" {...GROWTH} value={a.healthcareInflation}
             warn={a.healthcareInflation > 0.1 ? 'Unusually high: it compounds every year.' : a.healthcareInflation < 0 ? 'Healthcare costs have usually risen faster than other prices.' : null} onChange={(v) => update((d) => { d.assumptions.healthcareInflation = v ?? 0; })} />
-          <NumberField label="Social Security wage growth above inflation" help={HELP.ssWageGrowth} kind="percent" min={-0.05} max={0.05}
+          <NumberField label="Social Security wage growth above inflation" help={HELP.ssWageGrowth} kind="percent" {...L.ssWageGrowth}
             rangeMessage="Must be between −5% and 5% a year." value={a.ssWageGrowth} step={0.1}
             onChange={(v) => update((d) => { d.assumptions.ssWageGrowth = v ?? 0; })} />
           <NumberField label="State income tax in retirement" help={HELP.stateTax} kind="percent" {...RATE} value={a.stateTaxRate}
@@ -197,17 +192,17 @@ export function InputsPanel({ plan, update }: { plan: Plan; update: Update }) {
           <SelectField<BracketFill> label="Yearly Roth conversions: fill up to" help={HELP.bracketFill} value={a.bracketFill}
             options={[{ value: 'none', label: 'Off' }, { value: '10', label: '10% bracket' }, { value: '12', label: '12% bracket' }, { value: '22', label: '22% bracket' }, { value: '24', label: '24% bracket' }]}
             onChange={(v) => update((d) => { d.assumptions.bracketFill = v; })} />
-          <NumberField label="Number of simulated markets" help={HELP.paths} kind="int" value={a.paths} min={500} max={50_000}
-            onChange={(v) => update((d) => { d.assumptions.paths = Math.min(50_000, Math.max(500, Math.round(v ?? 10_000))); d.assumptions.searchPaths = searchPathsFor(d.assumptions.paths); })} />
-          <NumberField label="Simulated markets: chunk size (years)" help={HELP.blockLength} kind="int" value={a.blockLength} min={1} max={200}
+          <NumberField label="Number of simulated markets" help={HELP.paths} kind="int" value={a.paths} {...L.paths}
+            onChange={(v) => update((d) => { d.assumptions.paths = Math.min(L.paths.max, Math.max(L.paths.min, Math.round(v ?? 10_000))); d.assumptions.searchPaths = searchPathsFor(d.assumptions.paths); })} />
+          <NumberField label="Simulated markets: chunk size (years)" help={HELP.blockLength} kind="int" value={a.blockLength} {...L.blockLength}
             onChange={(v) => update((d) => { d.assumptions.blockLength = Math.max(1, Math.round(v ?? 5)); })} />
           <NumberField label="Random seed" help={HELP.seed} kind="int" value={a.seed} onChange={(v) => update((d) => { d.assumptions.seed = Math.round(v ?? 1); })} />
         </div>
         <div className="subhead">Social Security trust fund</div>
         <div className="grid2">
-          <NumberField label="Benefit cut starts in (year)" help={HELP.tfStart} kind="int" value={a.ssTrustFund.startYear} onChange={(v) => update((d) => { d.assumptions.ssTrustFund.startYear = v ?? TRUST_FUND_DEFAULT.startYear; })} />
+          <NumberField label="Benefit cut starts in (year)" help={HELP.tfStart} kind="int" {...L.year} value={a.ssTrustFund.startYear} onChange={(v) => update((d) => { d.assumptions.ssTrustFund.startYear = v ?? TRUST_FUND_DEFAULT.startYear; })} />
           <NumberField label="Share paid when the cut starts" help={HELP.tfStartPct} kind="percent" {...RATE} value={a.ssTrustFund.startPct} onChange={(v) => update((d) => { d.assumptions.ssTrustFund.startPct = v ?? 0; })} />
-          <NumberField label="Cut deepens until (year)" help={HELP.tfEnd} kind="int" value={a.ssTrustFund.endYear} onChange={(v) => update((d) => { d.assumptions.ssTrustFund.endYear = v ?? TRUST_FUND_DEFAULT.endYear; })} />
+          <NumberField label="Cut deepens until (year)" help={HELP.tfEnd} kind="int" {...L.year} value={a.ssTrustFund.endYear} onChange={(v) => update((d) => { d.assumptions.ssTrustFund.endYear = v ?? TRUST_FUND_DEFAULT.endYear; })} />
           <NumberField label="Share paid from then on" help={HELP.tfEndPct} kind="percent" {...RATE} value={a.ssTrustFund.endPct} onChange={(v) => update((d) => { d.assumptions.ssTrustFund.endPct = v ?? 0; })}
             />
         </div>
@@ -227,10 +222,11 @@ function setAllocation(d: Plan, key: 'stocks' | 'bonds', v: number) {
   al.cash = +(1 - al.stocks - al.bonds).toFixed(6);
 }
 
-function SocialSecurityInputs({ id, person, update }: { id: PersonId; person: Person; update: Update }) {
+function SocialSecurityInputs({ id, person, ssWageGrowth, update }: { id: PersonId; person: Person; ssWageGrowth: number; update: Update }) {
   const ss = person.socialSecurity;
   const [draft, setDraft] = useState('');
-  const piaNow = ss.earnings.length ? computePia(ss.earnings, new Map()) : null;
+  // Same wage-growth setting as the engine (D77), so this matches the detail view.
+  const piaNow = ss.earnings.length ? computePia(ss.earnings, new Map(), { wageGrowth: ssWageGrowth, birthYear: person.birthYear }) : null;
   return (
     <div className="item">
       <h3>{person.name}</h3>
@@ -238,7 +234,7 @@ function SocialSecurityInputs({ id, person, update }: { id: PersonId; person: Pe
         <SelectField<'record' | 'manual'> label="How to estimate the benefit" help={HELP.ssMode} value={ss.mode}
           options={[{ value: 'record', label: 'Earnings record (recommended)' }, { value: 'manual', label: 'Statement estimate' }]}
           onChange={(v) => update((d) => { d[id].socialSecurity.mode = v; })} />
-        <NumberField label="Start Social Security at age" help={HELP.claimAge} kind="int" min={62} max={70} value={ss.claimAge}
+        <NumberField label="Start Social Security at age" help={HELP.claimAge} kind="int" {...L.claimAge} value={ss.claimAge}
           onChange={(v) => update((d) => { d[id].socialSecurity.claimAge = Math.min(70, Math.max(62, v ?? 67)); })} />
       </div>
       {ss.mode === 'manual' ? (
