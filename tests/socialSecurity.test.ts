@@ -89,7 +89,7 @@ describe('trust fund', () => {
   });
 });
 
-describe('real growth of the national wage index (fix 17, D77)', () => {
+describe('real growth of the national wage index (D77)', () => {
   const earnings = CASE_A.map(([year, amount]) => ({ year, amount }));
   const future = new Map(Array.from({ length: 20 }, (_, i) => [2026 + i, 90_000] as [number, number]));
 

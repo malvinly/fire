@@ -7,7 +7,7 @@ describe('default spending', () => {
     expect(DEFAULT_ASSUMPTIONS.bracketFill).toBe('10');
   });
 
-  test('the quick-search sample follows the number of markets, never a past keystroke (fix 23, D5)', () => {
+  test('the quick-search sample follows the number of markets, never a past keystroke (D5)', () => {
     expect(searchPathsFor(30_000)).toBe(2_000);
     expect(searchPathsFor(1_000)).toBe(1_000);
   });
@@ -31,7 +31,7 @@ describe('default spending', () => {
   });
 });
 
-describe('sections still holding example values (fix 2)', () => {
+describe('sections still holding example values (D64)', () => {
   const ALL = ['People', 'Balances', 'Yearly contributions', 'Spending', 'Healthcare', 'Social Security'];
 
   test('the example plan is example everywhere', () => {

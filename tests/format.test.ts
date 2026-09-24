@@ -1,4 +1,4 @@
-// Parsing what is typed into number fields (fix 10).
+// Parsing what is typed into number fields (D72).
 import { describe, expect, test } from 'vitest';
 import { fieldBlock, parseFieldText, parseYearText, yearTextFor } from '../src/ui/format';
 
@@ -17,7 +17,7 @@ describe('number fields', () => {
   });
 });
 
-describe('blocked values (fix 16)', () => {
+describe('blocked values (D76)', () => {
   test('values outside a field’s limits are refused with a message in the units typed', () => {
     expect(fieldBlock(-1, 'money', { min: 0 })).toBe('Must be at least $0.');
     expect(fieldBlock(1.5, 'percent', { min: 0, max: 1 })).toBe('Must be at most 100%.');

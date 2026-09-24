@@ -150,7 +150,7 @@ describe('deflation reaches conversions still inside the 5-year window (D63)', (
   });
 });
 
-describe('dated items outside the plan (fix 22)', () => {
+describe('dated items outside the plan (D79)', () => {
   const plan = simplePlan(); // plan 2026–2055
   const item = (start: DatedTiming, end?: DatedTiming): DatedItem => ({
     id: 'x', label: 'x', direction: 'expense', amount: 1_000, frequency: end ? 'ongoing' : 'oneTime', start, end, fixedDollars: false,

@@ -121,7 +121,7 @@ describe('Coast FIRE', () => {
     expect(r.fireNumber).toBeGreaterThan(0);
   });
 
-  test('a small cash balance does not price the whole Coast number as cash (fix 15, D50)', () => {
+  test('a small cash balance does not price the whole Coast number as cash (D50)', () => {
     const zero = smallPlan();
     for (const id of ['you', 'spouse'] as const) zero[id].balances = { pretax: 0, roth: 0, rothBasis: 0, hsa: 0 };
     zero.household.taxable = zero.household.taxableBasis = zero.household.cash = 0;
@@ -251,7 +251,7 @@ describe('detail view', () => {
     expect(shown.every((v, t) => v === level[B](t))).toBe(true);
   });
 
-  test('the markets that fail: their share, the median year money runs out, and Social Security then (fix 12)', () => {
+  test('the markets that fail: their share, the median year money runs out, and Social Security then (D74)', () => {
     const f = d.failures!;
     expect(f.share).toBeCloseTo(1 - d.success.bootstrap, 12);
     const ctx = buildContext(plan, d.scenario);
@@ -380,7 +380,7 @@ describe('review follow-ups', () => {
   });
 });
 
-describe('fractional years (fix 10)', () => {
+describe('fractional years (D72)', () => {
   test('a fractional "plan to age" is rejected with a readable message instead of crashing', () => {
     const p = smallPlan();
     p.assumptions.endAge = 96.5;
@@ -388,7 +388,7 @@ describe('fractional years (fix 10)', () => {
   });
 });
 
-describe('age-gap couples (fix 14)', () => {
+describe('age-gap couples (D43)', () => {
   test('the earliest date does not depend on who is entered as "You"', () => {
     const p = smallPlan();
     p.you.birthYear = 2026 - 74;

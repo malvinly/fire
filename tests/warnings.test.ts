@@ -16,7 +16,7 @@ function tier(t: TierResult['tier'], year: number | null, fireNumber: number | n
 
 const texts = (lines: ReturnType<typeof beforeYouAct>) => lines.map((l) => l.text);
 
-describe('early-withdrawal penalty rate (fix 6)', () => {
+describe('early-withdrawal penalty rate (D68)', () => {
   test('a tier paying the penalty in more than 5% of markets gets a line; 5% or less, or unknown, does not', () => {
     const lines = texts(beforeYouAct(examplePlan(2026), {
       traditional: tier('traditional', 2039, 2_627_800, { penaltyRate: 0.225 }),
@@ -28,7 +28,7 @@ describe('early-withdrawal penalty rate (fix 6)', () => {
   });
 });
 
-describe('Coast assumptions (fix 7)', () => {
+describe('Coast assumptions (D69)', () => {
   test('Coast names the year work stops and the employer matches given up', () => {
     const plan = examplePlan(2026); // You born 1984, coast age 65 → 2049; $5,000 matches each
     const lines = texts(beforeYouAct(plan, { coast: tier('coast', 2026, 774_400) }));
@@ -44,7 +44,7 @@ describe('Coast assumptions (fix 7)', () => {
   });
 });
 
-describe('borderline results (fix 18)', () => {
+describe('borderline results (D78)', () => {
   test('a date passing within 1.5 points of the target is flagged; a comfortable one is not', () => {
     const at = (combined: number): Success => ({ ...ok, combined, bootstrap: combined });
     const lines = texts(beforeYouAct(examplePlan(2026), {
@@ -56,7 +56,7 @@ describe('borderline results (fix 18)', () => {
   });
 });
 
-describe('last line (fix 13)', () => {
+describe('last line (D75)', () => {
   test('the panel always ends with the disclaimer, linking to what the model leaves out', () => {
     const lines = beforeYouAct(examplePlan(2026), { traditional: tier('traditional', 2039, 2_627_800) });
     const last = lines[lines.length - 1];
@@ -65,7 +65,7 @@ describe('last line (fix 13)', () => {
   });
 });
 
-describe('savings needed by the earliest date (fix 4)', () => {
+describe('savings needed by the earliest date (D67)', () => {
   test('Traditional and Chubby share one line naming each year and amount', () => {
     const lines = beforeYouAct(examplePlan(2026), {
       traditional: tier('traditional', 2039, 2_695_200), chubby: tier('chubby', 2043, 3_297_400), coast: tier('coast', 2026, 783_000),
