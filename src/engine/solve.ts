@@ -27,6 +27,11 @@ export interface TierResult {
   /** Success if you retire (or, for Coast, stop contributing) this year. */
   successToday: Success;
   successAtEarliest: Success | null;
+  /**
+   * Share of simulated markets that take retirement money before 59½ with the 10% penalty at the earliest date
+   * (they still count as successes, D27). Missing in sessions saved before it existed.
+   */
+  penaltyRate?: number | null;
   /** Spending ÷ 4% sanity check (spending + first-year healthcare). */
   simpleNumber: number;
   /**
@@ -243,10 +248,16 @@ export function solveTier(e: Engine, tier: Tier): TierResult {
     const coastYear = coastRetireYear(plan);
     const earliest = earliestYear(e, tier, e.startYear, Math.max(e.startYear, coastYear));
     const fireNumber = minPortfolio(e, todayCtx, initialState(todayCtx), 0, false);
-    const successAtEarliest =
-      earliest === null ? null : evaluate(e, buildContext(plan, scenarioFor(plan, tier, earliest)), {}, true);
+    let successAtEarliest: Success | null = null;
+    let penaltyRate: number | null = null;
+    if (earliest !== null) {
+      const ctx = buildContext(plan, scenarioFor(plan, tier, earliest));
+      const boot = successRate(ctx, e.boot, {});
+      successAtEarliest = combine(boot.rate, e.hist.n > 0 ? successRate(ctx, e.hist, {}).rate : null);
+      penaltyRate = boot.penaltyRate;
+    }
     return {
-      tier, spending, currentBalance: current, successToday, simpleNumber, fireNumber, successAtEarliest,
+      tier, spending, currentBalance: current, successToday, simpleNumber, fireNumber, successAtEarliest, penaltyRate,
       earliest: earliest === null ? null : agesAt(plan, earliest), projectedAtEarliest: null,
     };
   }
@@ -256,6 +267,7 @@ export function solveTier(e: Engine, tier: Tier): TierResult {
   const earliest = earliestYear(e, tier, e.startYear, latest);
   let fireNumber: number | null = null;
   let successAtEarliest: Success | null = null;
+  let penaltyRate: number | null = null;
   let projectedAtEarliest: TierResult['projectedAtEarliest'] = null;
   if (earliest !== null) {
     const ctx = buildContext(plan, scenarioFor(plan, tier, earliest));
@@ -263,11 +275,12 @@ export function solveTier(e: Engine, tier: Tier): TierResult {
     const totals = new Float64Array(e.boot.n * ctx.len);
     const boot = successRate(ctx, e.boot, { totals });
     successAtEarliest = combine(boot.rate, e.hist.n > 0 ? successRate(ctx, e.hist, {}).rate : null);
+    penaltyRate = boot.penaltyRate;
     projectedAtEarliest = idx === 0 ? { p50: current, p10: current } : balancesAt(totals, e.boot.n, ctx.len, idx - 1);
     fireNumber = minPortfolio(e, ctx, projectState(ctx, idx), idx, true);
   }
   return {
-    tier, spending, currentBalance: current, successToday, simpleNumber, fireNumber, successAtEarliest,
+    tier, spending, currentBalance: current, successToday, simpleNumber, fireNumber, successAtEarliest, penaltyRate,
     earliest: earliest === null ? null : agesAt(plan, earliest), projectedAtEarliest,
   };
 }

@@ -79,23 +79,6 @@ Example for the example plan:
 
 ## P1: materially changes answers or breaks on plausible input
 
-### 6. Show the early-withdrawal penalty rate below the cards (clarity)
-
-- **Problem:** Plans that must pay the 10% early-withdrawal penalty still count as successes (kept that
-  way by [decision 4](pending-decisions.md#4-penalty-paths-as-success)). The share of markets where it
-  happens appears only in the detail view.
-- **Where:**
-  - `successRate` already returns `penaltyRate` (`src/engine/solve.ts:133`).
-  - `solveTier` (`solve.ts:230`) calls it at the earliest year (~line 260) but drops the value.
-  - `TierResult` is at `solve.ts:19`, `TierCard` at `src/ui/Results.tsx:51`, and the detail tile at
-    `Results.tsx:195`.
-- **Evidence:** 37.5% at the example's headline Traditional date.
-- **Change:**
-  - Carry `penaltyRate` into `TierResult`.
-  - When it is above ~5%, add a line to the [warnings panel](#where-warnings-go): "In X% of markets the
-    {tier} plan pays a 10% penalty on early 401(k)/IRA withdrawals." Not on the card.
-- **Related:** [decision 4](pending-decisions.md#4-penalty-paths-as-success).
-
 ### 7. Coast caveats and the 4% line (clarity)
 
 - **Problem:**

@@ -3,12 +3,15 @@
 
 import type { Tier, TierResult } from '../engine/solve';
 import type { Plan } from '../engine/types';
-import { moneyShort } from './format';
+import { moneyShort, percent } from './format';
 
 export interface WarningLine {
   key: string;
   text: string;
 }
+
+/** Share of markets paying the early-withdrawal penalty above which the panel says so (D68). */
+export const PENALTY_WARN = 0.05;
 
 const SHORT: Record<Tier, string> = { traditional: 'Traditional', chubby: 'Chubby', coast: 'Coast' };
 
@@ -31,6 +34,14 @@ export function beforeYouAct(_plan: Plan, tiers: Partial<Record<Tier, TierResult
       key: 'needed',
       text: `${names} ${retire.length > 1 ? 'assume' : 'assumes'} you’ll have about ${amounts} by then. Re-run each year with your real balances.`,
     });
+  }
+
+  // Penalized early withdrawals count as successes (their cost is already in the balances), so say how often (D68).
+  for (const t of ['traditional', 'chubby', 'coast'] as const) {
+    const rate = tiers[t]?.penaltyRate;
+    if (rate != null && rate > PENALTY_WARN) {
+      lines.push({ key: `penalty-${t}`, text: `In ${percent(rate)} of markets the ${SHORT[t]} plan pays a 10% penalty on early 401(k)/IRA withdrawals.` });
+    }
   }
   return lines;
 }

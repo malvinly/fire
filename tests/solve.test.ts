@@ -44,6 +44,10 @@ describe('Traditional FIRE', () => {
     expect(run(trad.fireNumber! * 0.99).combined).toBeLessThan(target);
   });
 
+  test('the penalty rate at the earliest date matches the detail view', () => {
+    expect(trad.penaltyRate).toBe(detailFor(engine, 'traditional', trad.earliest!.year).penaltyRate);
+  });
+
   test('combined success is the lower of bootstrap and history', () => {
     for (const s of [trad.successToday, trad.successAtEarliest!]) {
       expect(s.combined).toBe(Math.min(s.bootstrap, s.historical ?? Infinity));

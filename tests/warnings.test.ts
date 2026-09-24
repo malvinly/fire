@@ -16,6 +16,18 @@ function tier(t: TierResult['tier'], year: number | null, fireNumber: number | n
 
 const texts = (lines: ReturnType<typeof beforeYouAct>) => lines.map((l) => l.text);
 
+describe('early-withdrawal penalty rate (fix 6)', () => {
+  test('a tier paying the penalty in more than 5% of markets gets a line; 5% or less, or unknown, does not', () => {
+    const lines = texts(beforeYouAct(examplePlan(2026), {
+      traditional: tier('traditional', 2039, 2_627_800, { penaltyRate: 0.225 }),
+      chubby: tier('chubby', 2043, 3_270_900, { penaltyRate: 0.05 }),
+      coast: tier('coast', 2026, 774_400), // a session saved before the rate existed
+    }));
+    expect(lines).toContain('In 23% of markets the Traditional plan pays a 10% penalty on early 401(k)/IRA withdrawals.');
+    expect(lines.filter((l) => l.includes('penalty'))).toHaveLength(1);
+  });
+});
+
 describe('savings needed by the earliest date (fix 4)', () => {
   test('Traditional and Chubby share one line naming each year and amount', () => {
     const lines = beforeYouAct(examplePlan(2026), {
