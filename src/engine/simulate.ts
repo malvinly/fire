@@ -445,7 +445,15 @@ export function simulatePath(ctx: Context, paths: ReturnPaths, p: number, opts: 
       s.pretax[i] *= 1 + r;
       s.roth[i] *= 1 + r;
     }
-    priceLevel *= 1 + paths.inflation[pi];
+    // Cost basis, Roth principal and conversion amounts are fixed nominal dollars: deflate them so they stay in
+    // today's dollars like everything else (D63). Conversions older than 5 years are never read again.
+    const inflation = 1 + paths.inflation[pi];
+    s.taxableBasis /= inflation;
+    for (const i of [0, 1] as const) {
+      s.rothPrincipal[i] /= inflation;
+      for (let k = Math.max(0, t - 4); k <= t; k++) s.conversions[i][k] /= inflation;
+    }
+    priceLevel *= inflation;
 
     const total = totalBalance(s);
     if (opts.totals) opts.totals[t] = failYear === null ? total : 0;

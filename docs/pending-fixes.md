@@ -75,34 +75,6 @@ Example for the example plan:
 
 ## P0: wrong or dangerously misleading
 
-### 1. Deflate tax-basis amounts each year (accuracy)
-
-- **Problem:** Some amounts are fixed in nominal dollars: taxable cost basis, Roth contributions
-  (`rothPrincipal`) and Roth conversion amounts (`conversions`). The engine works in today's dollars (D6),
-  but it never deflates these amounts. As a result:
-  - capital gains are understated;
-  - early Roth access is overstated (a $133k conversion is treated as $133k when it seasons 5 years later,
-    but it is worth ~$115k in today's dollars at 3% inflation).
-  - This is not documented anywhere.
-- **Where:**
-  - `src/engine/simulate.ts` `simulatePath`, growth step (~lines 440–448): balances are multiplied by the
-    real return and `priceLevel` advances, but the three amounts above are not touched.
-  - `src/engine/solve.ts` `projectState` (~line 187) calls `constantPath(len, portfolio, cash)` with the
-    default 0% inflation. `constantPath` (`src/engine/returns.ts:116`) takes a fourth `inflation` argument.
-- **Evidence:** $100k at full basis, 5% real, 3% inflation, sold after 20 years:
-  - Real value is $265,330 and the price level is 1.806.
-  - The true gain share is 1 − 100,000/(265,330 × 1.806) = **79.1%**. The engine reports **62.3%**.
-  - With a patched copy that deflates basis each year (and gives `projectState` average inflation), the
-    example plan's Traditional date moves **2039 → 2040**. A plan heavy in taxable savings needs 0.7–1.4% more.
-- **Change:**
-  - After the growth step, divide `s.taxableBasis`, `s.rothPrincipal[i]` and every `s.conversions[i][k]`
-    by `1 + paths.inflation[pi]`.
-  - In `projectState`, pass `averageInflation()` (`solve.ts:183`) as the fourth argument to `constantPath`.
-  - Add a D-row explaining it.
-- **Test:** deterministic test with the 5% real / 3% inflation / 20-year case, asserting that the gain share
-  of a sale is 79.1%. Also a Roth-seasoning test: a conversion is spendable at its deflated value.
-- **Related:** D6, D42/D51.
-
 ### 2. Flag example values still in use (clarity)
 
 - **Problem:**

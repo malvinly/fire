@@ -1,7 +1,8 @@
 // Layer 1: fixed returns, no volatility — the engine must match hand arithmetic exactly.
 import { describe, expect, test } from 'vitest';
 import { constantPath } from '../src/engine/returns';
-import { simulatePath } from '../src/engine/simulate';
+import { buildContext } from '../src/engine/context';
+import { initialState, simulatePath } from '../src/engine/simulate';
 import { ctxFor, simplePlan, START } from './helpers';
 
 describe('cash flow with constant returns', () => {
@@ -82,5 +83,53 @@ describe('cash flow with constant returns', () => {
     const ctx = ctxFor(plan);
     const years = ctx.years.filter((_, t) => ctx.realOut[t] > 0);
     expect(years).toEqual([START + 1, START + 11, START + 21]);
+  });
+});
+
+describe('amounts fixed in nominal dollars are deflated each year (D63)', () => {
+  // 5% real return, 3% inflation. The engine works in today's dollars, so cost basis, Roth principal and
+  // conversion amounts (fixed nominal dollars) must shrink with the price level.
+  const r = 0.05;
+  const inflation = 0.03;
+
+  test('a sale after 20 years realizes the true gain share: 1 − 100,000 / (265,330 × 1.806) = 79.1%', () => {
+    const plan = simplePlan({ roth: 0 });
+    plan.household.taxable = plan.household.taxableBasis = 100_000;
+    const ctx = buildContext(plan, { stopContributingYear: START + 20, retireYear: START + 20, baseSpending: 40_000 });
+    const rec = simulatePath(ctx, constantPath(ctx.len, r, r, inflation), 0, { record: true }).records![20];
+    expect(rec.working).toBe(false);
+    const real = 100_000 * (1 + r) ** 20; // 265,329.77
+    const priceLevel = (1 + inflation) ** 20; // 1.806
+    const gainShare = 1 - 100_000 / (real * priceLevel);
+    expect(gainShare).toBeCloseTo(0.791, 3);
+    expect(rec.capitalGains / rec.withdrawals.taxable).toBeCloseTo(gainShare, 6);
+  });
+
+  test('Roth contributions withdrawable tax-free shrink with inflation', () => {
+    const plan = simplePlan({ roth: 100_000, spending: 50_000 });
+    plan.you.birthYear = plan.spouse.birthYear = START - 50;
+    plan.assumptions.endAge = 80;
+    const ctx = ctxFor(plan);
+    const s = simulatePath(ctx, constantPath(ctx.len, 0, 0, inflation), 0, { stopIdx: 1 }).state;
+    expect(s.roth[0]).toBeCloseTo(50_000, 6); // 0% real return: the real balance is unchanged
+    expect(s.rothPrincipal[0]).toBeCloseTo(50_000 / (1 + inflation), 6);
+  });
+
+  test('a conversion becomes spendable 5 years later at its deflated value', () => {
+    const plan = simplePlan({ roth: 0, spending: 0 });
+    plan.you.birthYear = plan.spouse.birthYear = START - 50;
+    plan.assumptions.endAge = 80;
+    const ctx = ctxFor(plan);
+    const start = initialState(ctx);
+    start.roth[0] = start.rothPrincipal[0] = start.conversions[0][0] = 30_000;
+    const path = constantPath(ctx.len, 0, 0, inflation);
+    const seasoned = 30_000 / (1 + inflation) ** 5; // 25,878.26
+    const after5 = simulatePath(ctx, path, 0, { startState: start, stopIdx: 5 }).state;
+    expect(after5.rothPrincipal[0]).toBeCloseTo(seasoned, 6);
+    // Year 5, spending 28,000: only the deflated 25,878.26 comes out free of penalty; the rest is Roth earnings.
+    const ctx28 = buildContext(plan, { stopContributingYear: START, retireYear: START, baseSpending: 28_000 });
+    const rec = simulatePath(ctx28, path, 0, { startIdx: 5, startState: after5, record: true, stopIdx: 6 }).records![0];
+    expect(Math.abs(rec.withdrawals.roth - rec.penaltyWithdrawals - seasoned)).toBeLessThan(1);
+    expect(rec.penaltyWithdrawals).toBeGreaterThan(2_000);
   });
 });

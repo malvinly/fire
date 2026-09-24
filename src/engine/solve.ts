@@ -184,11 +184,14 @@ export function averageInflation(): number {
   return Math.pow(MARKET.years.reduce((acc, y) => acc * (1 + y.inflation), 1), 1 / MARKET.years.length) - 1;
 }
 
-/** Deterministic projection of balances to the start of `idx` using long-run average real returns. */
+/**
+ * Deterministic projection of balances to the start of `idx` using long-run average real returns and average
+ * inflation (which shrinks cost basis and Roth principal in today's dollars, D63).
+ */
 export function projectState(ctx: Context, idx: number): State {
   const a = ctx.plan.assumptions;
   const avg = averageRealReturns(a.allocation, a.feeRate);
-  const path = constantPath(ctx.len, avg.portfolio, avg.cash);
+  const path = constantPath(ctx.len, avg.portfolio, avg.cash, averageInflation());
   return simulatePath(ctx, path, 0, { stopIdx: idx }).state;
 }
 

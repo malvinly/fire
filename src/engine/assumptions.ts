@@ -30,7 +30,7 @@ export const DATA_VERSIONS = {
   rulesYear: RULES_YEAR,
   wageIndexYear: SOCIAL_SECURITY.awiLatestYear,
   trusteesReport: 2026,
-  engine: 3,
+  engine: 4,
 };
 
 export function describeAssumptions(plan: Plan): AssumptionRow[] {
@@ -68,7 +68,7 @@ export function describeAssumptions(plan: Plan): AssumptionRow[] {
     { group: 'Markets', label: 'Cash returns', value: 'Short-term Treasury rates from 1928; before that the 10-year Treasury yield', status: 'fixed',
       why: 'No free T-bill series exists before 1928; yield curves were fairly flat then.', source: { label: 'Aswath Damodaran, histretSP.xls', url: 'https://pages.stern.nyu.edu/~adamodar/New_Home_Page/datafile/histret.html' }, decision: 'D11' },
     { group: 'Markets', label: "Today's dollars", value: 'All amounts are after inflation', status: 'fixed',
-      why: "Each historical year's actual inflation converts returns, so no inflation forecast is needed.", decision: 'D6' },
+      why: "Each historical year's actual inflation converts returns, so no inflation forecast is needed. Amounts fixed in actual dollars — brokerage cost basis, Roth contributions and conversions — shrink with inflation, so gains and early Roth access are counted at today's value.", decision: 'D6, D63' },
     { group: 'Markets', label: 'Timing', value: 'Contributions and withdrawals at the start of each year', status: 'fixed',
       why: 'Same convention as FI Calc; slightly conservative for withdrawals.', decision: 'D7' },
 
