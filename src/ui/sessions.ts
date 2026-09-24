@@ -99,6 +99,16 @@ export function detailMatches(d: Detail | null, tier: Tier, year: number | null)
   return s.tier === tier && s.year === year;
 }
 
+/**
+ * What the detail area shows (D85). Fresh results show the detail fetched for the selection (the previous one,
+ * dimmed, while a new one loads). Stale saved results are never recalculated: their saved detail shows only for
+ * the FIRE type and year it was saved for, and any other choice gets a note to Recalculate.
+ */
+export function detailArea(stale: boolean, d: Detail | null, tier: Tier, year: number | null): 'detail' | 'note' | 'none' {
+  if (!stale) return d ? 'detail' : 'none';
+  return detailMatches(d, tier, year) ? 'detail' : 'note';
+}
+
 export function fileNameFor(name: string, createdAt: string): string {
   const safe = name.replace(/[\\/:*?"<>|]+/g, '-').trim() || 'session';
   return `${createdAt.slice(0, 10)} ${safe}.json`;

@@ -68,7 +68,7 @@ The panel for the example plan today:
 > **Before you act on these numbers**
 > - Traditional 2040 and Chubby 2043 assume you'll have about $2.52M and $3.28M by then. Re-run each year
 >   with your real balances.
-> - In 10% of markets the Traditional plan pays a 10% penalty on early 401(k)/IRA withdrawals.
+> - In 9% of markets the Traditional plan pays a 10% penalty on early 401(k)/IRA withdrawals.
 > - Coast assumes you both keep working until 2049 (You 65) with pay covering all spending, and that stopping
 >   saving includes giving up employer matches.
 > - All amounts are in today's dollars. These are estimates, not financial advice. *What this doesn't model →*
@@ -125,19 +125,19 @@ None pending.
 ## Reproducing the numbers
 
 "Example plan" means `examplePlan(2026)` from `src/engine/defaults.ts`: plan start 2026, 10,000 simulated
-markets, seed 20260924. Baseline results after fix 25 (engine version 5, 10% bracket-fill default):
+markets, seed 20260924. Baseline results after fix 25 and its review (engine version 6, 10% bracket-fill default):
 
 | Tier | Earliest year | FIRE number | Success at that year | Penalty rate at that year |
 |---|---|---|---|---|
-| Traditional | 2040 | $2,517,100 | 93.3% | 10.1% |
-| Chubby | 2043 | $3,278,500 | 91.5% | 0% |
-| Coast | stop saving now | $816,300 needed today | 92.1% | 0% |
+| Traditional | 2040 | $2,517,100 | 93.6% | 8.8% |
+| Chubby | 2043 | $3,278,500 | 91.8% | 0% |
+| Coast | stop saving now | $803,900 needed today | 92.3% | 0% |
 
 Engine 4 (before fix 25) gave Traditional 2039 / $2,630,700 (90.3%, 26.9% penalty rate), Chubby 2043 /
 $3,274,700 (91.9%) and Coast $803,000 (92.4%). Taxing bond interest at each market's own 10-year yield (D82) moved
-Traditional a year later: 2039 now passes at exactly 90.0% on all 10,000 markets but not on the 2,000-market search
-subset (D5). The dividend yields account for almost all of Coast's rise. Chubby's 91.5% is exactly the D78
-borderline cut-off, so the panel has no borderline line.
+Traditional's date, but only just: 2039 still passes on all 10,000 markets (90.2%, 27.4% penalty rate) and now
+fails on the 2,000-market search subset, so the earliest date is 2040 (D5). The lower penalty rate and FIRE number
+come from the later date, not from the tax change. Chubby's number rose $3,800 and Coast's $900.
 
 v1 (engine 3, 12% fill) gave Traditional 2039 / $2,695,200 (37.5% penalty rate), Chubby 2043 / $3,297,400
 and Coast $783,000. The main moves: the 10% fill (fix 5) lowered Traditional's number and penalty rate; deflating
@@ -157,7 +157,7 @@ test('probe', () => {
   // plan.assumptions.bracketFill = '10';   // change inputs here
   const e = makeEngine(plan);
   const r = solveTier(e, 'traditional');
-  const d = detailFor(e, 'traditional', 2039);
+  const d = detailFor(e, 'traditional', 2040);
   console.log(r.earliest?.year, r.fireNumber, d.success, d.penaltyRate);
 });
 ```

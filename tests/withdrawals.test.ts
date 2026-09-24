@@ -107,7 +107,7 @@ describe('required minimum distributions', () => {
     const ctx = noYields(ctxFor(plan));
     const r = simulatePath(ctx, constantPath(ctx.len, 0.03), 0, { record: true, stopIdx: 1 }).records![0];
     expect(r.rmd).toBeCloseTo(2_000_000 / 24.6, 6);
-    expect(r.withdrawals.pretax).toBeCloseTo(r.rmd, 6); // "From 401(k)/IRA" is what was withdrawn and taxed
+    expect(r.withdrawals.pretax).toBeCloseTo(r.rmd, 6); // "From 401(k)/IRA" is the RMD in full (nothing converted here)
     expect(r.federalTax).toBeGreaterThan(0);
     expect(r.stateTax).toBeGreaterThan(0);
     expect(r.reinvested).toBeGreaterThan(20_000);
@@ -133,6 +133,19 @@ describe('required minimum distributions', () => {
     expect(r.reinvested).toBeGreaterThan(60_000);
     expect(r.reinvested).toBeCloseTo(r.socialSecurity + r.otherIncome - (r.spending + r.federalTax + r.stateTax), 2);
     expect(moneyIn(r)).toBeCloseTo(moneyOut(r), 2);
+  });
+
+  test('with brokerage income, Roth conversions and inflation on, the identity holds every year within the tax loop’s 50 cents', () => {
+    const plan = earlyRetiree(75);
+    plan.you.balances.pretax = 2_000_000;
+    plan.household.taxable = plan.household.taxableBasis = 300_000;
+    plan.assumptions.stateTaxRate = 0.05;
+    plan.assumptions.bracketFill = '12';
+    const ctx = ctxFor(plan); // yields on
+    const recs = simulatePath(ctx, constantPath(ctx.len, 0.03, 0.01, 0.02, 0.05), 0, { record: true }).records!;
+    // RMD years with room left in the 12% bracket both convert and reinvest; "Moved to Roth" is outside both sides.
+    expect(recs.some((r) => r.conversions > 1_000 && r.reinvested! > 1_000)).toBe(true);
+    for (const r of recs) expect(Math.abs(moneyIn(r) - moneyOut(r)), String(r.year)).toBeLessThan(0.5);
   });
 });
 

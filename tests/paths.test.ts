@@ -548,57 +548,67 @@ describe('yearly tax on brokerage and cash income (D70)', () => {
     expect(res.state.taxableBasis).toBeCloseTo(100_000 + 4_000 - 1_080, 6); // interest reinvested net of its tax
   });
 
-  // Each market's own yields, never below the fixed ones (D82). $200k of bonds or $500k of stocks keeps the
-  // income inside the standard deduction or the 0% gains band, so nothing is withdrawn for tax.
-  function firstYear(plan: Plan, bondYield: number, dividendYield: number) {
+  // Bond interest at each market's own 10-year yield, never below 4%; dividends at 2% in every market (D82). $200k
+  // of bonds or $500k of stocks keeps the income inside the standard deduction or the 0% gains band, so nothing is
+  // withdrawn for tax.
+  function firstYear(plan: Plan, bondYield: number) {
     plan.household.traditionalSpending = 0;
     const ctx = ctxFor(plan);
-    return simulatePath(ctx, constantPath(ctx.len, 0, 0, 0, bondYield, dividendYield), 0, { record: true, stopIdx: 1 }).records![0];
+    return simulatePath(ctx, constantPath(ctx.len, 0, 0, 0, bondYield), 0, { record: true, stopIdx: 1 }).records![0];
+  }
+  // A real past market's first year, for a window starting in `year`.
+  function firstPastYear(plan: Plan, year: number) {
+    plan.household.traditionalSpending = 0;
+    const ctx = ctxFor(plan);
+    const hist = historicalPaths(ctx.len, plan.assumptions.allocation, 0);
+    return simulatePath(ctx, hist, hist.startYears!.indexOf(year), { record: true, stopIdx: 1 }).records![0];
   }
 
   test('a market’s 10-year yield above 4% sets the bond interest (D82)', () => {
     const plan = allIn(retiree(62), 'bonds');
     plan.household.taxable = plan.household.taxableBasis = 200_000;
-    const rec = firstYear(plan, 0.1, 0);
-    expect(rec.ordinaryIncome).toBeCloseTo(0.1 * 200_000, 6);
+    const rec = firstYear(plan, 0.1);
+    expect(rec.ordinaryIncome).toBeCloseTo(0.1 * 200_000, 2); // to the cent: paths keep the yield in single precision
     expect(rec.withdrawals.taxable).toBe(0);
   });
 
   test('a market’s 10-year yield below 4% is still taxed at 4% (D82)', () => {
     const plan = allIn(retiree(62), 'bonds');
     plan.household.taxable = plan.household.taxableBasis = 200_000;
-    expect(firstYear(plan, 0.01, 0).ordinaryIncome).toBeCloseTo(bond * 200_000, 6);
+    expect(firstYear(plan, 0.01).ordinaryIncome).toBeCloseTo(bond * 200_000, 6);
   });
 
-  test('a market’s dividend yield above 2% sets the dividends; below 2% the 2% stands (D82)', () => {
+  test('dividends stay at 2% even in a market whose dividend yield was far higher (1950: about 6.8%) (D82)', () => {
     const plan = allIn(retiree(62), 'stocks');
     plan.household.taxable = plan.household.taxableBasis = 500_000;
-    expect(firstYear(plan, 0, 0.06).capitalGains).toBeCloseTo(0.06 * 500_000, 6);
-    expect(firstYear(plan, 0, 0.01).capitalGains).toBeCloseTo(div * 500_000, 6);
+    expect(firstPastYear(plan, 1950).capitalGains).toBeCloseTo(div * 500_000, 6);
   });
 
   test('a real past market starting in 1981 taxes January 1981’s 12.57% 10-year yield (D82)', () => {
     const plan = allIn(retiree(62), 'bonds');
-    plan.household.traditionalSpending = 0;
     plan.household.taxable = plan.household.taxableBasis = 200_000;
-    const ctx = ctxFor(plan);
-    const hist = historicalPaths(ctx.len, plan.assumptions.allocation, 0);
-    const p = hist.startYears!.indexOf(1981);
     expect(MARKET.years.find((y) => y.year === 1981)!.bondYield).toBe(0.1257);
-    const rec = simulatePath(ctx, hist, p, { record: true, stopIdx: 1 }).records![0];
-    expect(rec.ordinaryIncome).toBeCloseTo(0.1257 * 200_000, 6);
+    // To the cent: paths keep the yield in single precision.
+    expect(firstPastYear(plan, 1981).ordinaryIncome).toBeCloseTo(0.1257 * 200_000, 2);
+  });
+
+  test('every year of market data has a plausible 10-year yield (a shifted spreadsheet column would show)', () => {
+    for (const y of MARKET.years) {
+      expect(y.bondYield, String(y.year)).toBeGreaterThan(0.01);
+      expect(y.bondYield, String(y.year)).toBeLessThan(0.16);
+    }
+    expect(MARKET.years.find((y) => y.year === 1946)!.bondYield).toBeLessThan(0.03); // the low-rate 1940s
   });
 
   test('simulated and past markets keep each year’s yields with that year’s returns', () => {
-    // Tag each year so its inflation identifies it: year i has inflation i/1000, bond yield i/100, dividends i/500.
+    // Tag each year so its inflation identifies it: year i has inflation i/1000 and bond yield i/100.
     const years: MarketYear[] = Array.from({ length: 40 }, (_, i) => ({
-      year: 1900 + i, stocks: 0, bonds: 0, cash: 0, inflation: i / 1000, bondYield: i / 100, dividendYield: i / 500,
+      year: 1900 + i, stocks: 0, bonds: 0, cash: 0, inflation: i / 1000, bondYield: i / 100,
     }));
     const mix = { stocks: 0.6, bonds: 0.4, cash: 0 };
     const check = (paths: ReturnPaths) => {
       for (let i = 0; i < paths.n * paths.len; i++) {
-        expect(paths.bondYield[i]).toBeCloseTo(paths.inflation[i] * 10, 12);
-        expect(paths.dividendYield[i]).toBeCloseTo(paths.inflation[i] * 2, 12);
+        expect(paths.bondYield[i]).toBeCloseTo(paths.inflation[i] * 10, 7); // single precision
       }
     };
     const boot = bootstrapPaths(50, 30, mix, 0, 5, 7, years);
@@ -606,7 +616,7 @@ describe('yearly tax on brokerage and cash income (D70)', () => {
     check(firstPaths(boot, 10));
     const hist = historicalPaths(30, mix, 0, years);
     check(hist);
-    expect(hist.bondYield[3 * 30]).toBe(0.03); // the window starting in 1903 opens with 1903's yield
+    expect(hist.bondYield[3 * 30]).toBeCloseTo(0.03, 7); // the window starting in 1903 opens with 1903's yield
   });
 });
 

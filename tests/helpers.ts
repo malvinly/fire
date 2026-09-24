@@ -50,6 +50,6 @@ export function ctxFor(plan: Plan, scenario: Scenario = retiredNow(plan)) {
  * account still earns the path's T-bill rate (zero on a 0%-return, 0%-inflation path).
  */
 export function noYields(ctx: Context): Context {
-  ctx.yields = { stocks: 0, bonds: 0, cash: 0 };
+  ctx.incomeMix = { stocks: 0, bonds: 0, cash: 0 };
   return ctx;
 }

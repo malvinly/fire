@@ -8,8 +8,6 @@ export interface MarketYear {
   inflation: number;
   /** January 10-year Treasury yield (D82). */
   bondYield: number;
-  /** January S&P 500 dividend yield (D82). */
-  dividendYield: number;
 }
 
 export const MARKET: { firstYear: number; lastYear: number; generated: string; years: MarketYear[] } = market;
@@ -23,9 +21,11 @@ export interface ReturnPaths {
   /** Real return on the cash account. */
   cash: Float64Array;
   inflation: Float64Array;
-  /** Nominal 10-year Treasury yield and S&P 500 dividend yield at the start of each year (D82). */
-  bondYield: Float64Array;
-  dividendYield: Float64Array;
+  /**
+   * Nominal 10-year Treasury yield at the start of each year (D82). Single precision: it only sets the taxed bond
+   * interest, and a fourth double-precision array would add a third to each worker's memory at 50,000 markets (D60).
+   */
+  bondYield: Float32Array;
   /** For historical paths, the calendar year each path starts in. */
   startYears?: number[];
 }
@@ -41,7 +41,6 @@ interface RealYear {
   cash: number;
   inflation: number;
   bondYield: number;
-  dividendYield: number;
 }
 
 function realYears(alloc: Allocation, feeRate: number, years: MarketYear[] = MARKET.years): RealYear[] {
@@ -53,7 +52,6 @@ function realYears(alloc: Allocation, feeRate: number, years: MarketYear[] = MAR
       cash: deflate(y.cash),
       inflation: y.inflation,
       bondYield: y.bondYield,
-      dividendYield: y.dividendYield,
     };
   });
 }
@@ -77,8 +75,7 @@ function alloc(n: number, len: number): Omit<ReturnPaths, 'startYears'> {
     portfolio: new Float64Array(n * len),
     cash: new Float64Array(n * len),
     inflation: new Float64Array(n * len),
-    bondYield: new Float64Array(n * len),
-    dividendYield: new Float64Array(n * len),
+    bondYield: new Float32Array(n * len),
   };
 }
 
@@ -107,7 +104,6 @@ export function bootstrapPaths(
       out.cash[i] = h.cash;
       out.inflation[i] = h.inflation;
       out.bondYield[i] = h.bondYield;
-      out.dividendYield[i] = h.dividendYield;
     }
   }
   return out;
@@ -127,27 +123,21 @@ export function historicalPaths(len: number, allocation: Allocation, feeRate: nu
       out.cash[i] = h.cash;
       out.inflation[i] = h.inflation;
       out.bondYield[i] = h.bondYield;
-      out.dividendYield[i] = h.dividendYield;
     }
   }
   return { ...out, startYears: Array.from({ length: n }, (_, p) => src[p].year) };
 }
 
-/** A single path with the same real return every year — for tests and the deterministic sanity check. */
-export function constantPath(
-  len: number,
-  portfolio: number,
-  cash = portfolio,
-  inflation = 0,
-  bondYield = 0,
-  dividendYield = 0,
-): ReturnPaths {
+/**
+ * A single path with the same real return every year — for tests and the deterministic sanity check. A `bondYield`
+ * below the 4% floor (the default 0) taxes bond interest at the floor (D82).
+ */
+export function constantPath(len: number, portfolio: number, cash = portfolio, inflation = 0, bondYield = 0): ReturnPaths {
   const out = alloc(1, len);
   out.portfolio.fill(portfolio);
   out.cash.fill(cash);
   out.inflation.fill(inflation);
   out.bondYield.fill(bondYield);
-  out.dividendYield.fill(dividendYield);
   return out;
 }
 
@@ -162,7 +152,6 @@ export function firstPaths(paths: ReturnPaths, n: number): ReturnPaths {
     cash: paths.cash.subarray(0, k),
     inflation: paths.inflation.subarray(0, k),
     bondYield: paths.bondYield.subarray(0, k),
-    dividendYield: paths.dividendYield.subarray(0, k),
     startYears: paths.startYears?.slice(0, n),
   };
 }

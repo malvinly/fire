@@ -6,7 +6,7 @@ import { simulatePath } from '../src/engine/simulate';
 import { planProblems } from '../src/engine/validate';
 import type { Detail } from '../src/engine/solve';
 import { moneyShort } from '../src/ui/format';
-import { detailMatches, detailSelection, makeSession, parseSession } from '../src/ui/sessions';
+import { detailArea, detailMatches, detailSelection, makeSession, parseSession } from '../src/ui/sessions';
 import { ctxFor, simplePlan, START } from './helpers';
 
 function sessionText(edit: (plan: Record<string, unknown>) => void = () => {}): string {
@@ -106,6 +106,17 @@ describe('the saved detail view of a stale session is shown only for the choice 
   test('no saved detail or no year never matches', () => {
     expect(detailMatches(null, 'traditional', 2040)).toBe(false);
     expect(detailMatches(saved('traditional', 2040, 2040), 'traditional', null)).toBe(false);
+  });
+
+  test('stale results show the saved detail only for its own choice, otherwise the note; fresh results show what was fetched', () => {
+    const d = saved('traditional', 2040, 2040);
+    expect(detailArea(true, d, 'traditional', 2040)).toBe('detail');
+    expect(detailArea(true, d, 'traditional', 2041)).toBe('note');
+    expect(detailArea(true, d, 'chubby', 2040)).toBe('note');
+    expect(detailArea(true, null, 'traditional', 2040)).toBe('note'); // saved without a detail
+    // Fresh results: the fetched detail stays on screen (dimmed) while the next selection loads.
+    expect(detailArea(false, d, 'traditional', 2041)).toBe('detail');
+    expect(detailArea(false, null, 'traditional', 2040)).toBe('none');
   });
 });
 

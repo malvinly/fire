@@ -334,19 +334,20 @@ describe('price level in retirement-only runs', () => {
 });
 
 describe('review follow-ups', () => {
-  test('the FIRE number’s projection taxes brokerage income at the average yield the markets pay, floors included (D82)', () => {
+  test('the FIRE number’s projection taxes bond interest at the average rate the markets pay, floor included (D82)', () => {
     const p = smallPlan();
     const ctx = buildContext(p, scenarioFor(p, 'traditional', 2036));
     const idx = ctx.retireIdx;
-    const avg = (k: 'bondYield' | 'dividendYield', floor: number) =>
-      MARKET.years.reduce((acc, y) => acc + Math.max(floor, y[k]), 0) / MARKET.years.length;
-    const run = (bond: number, div: number) =>
-      simulatePath(ctx, constantPath(ctx.len, avg0.portfolio, avg0.cash, averageInflation(), bond, div), 0, { stopIdx: idx }).state;
-    const avg0 = averageRealReturns(p.assumptions.allocation, p.assumptions.feeRate);
-    const floored = run(avg('bondYield', 0.04), avg('dividendYield', 0.02));
-    const plainMeans = run(avg('bondYield', 0), avg('dividendYield', 0));
-    expect(projectState(ctx, idx)).toEqual(floored);
-    expect(floored.taxable).toBeLessThan(plainMeans.taxable); // more tax while working than at the plain means
+    // Each year's rate is at least 4%, so the average is above the plain average of the yields.
+    const floored = MARKET.years.reduce((acc, y) => acc + Math.max(0.04, y.bondYield), 0) / MARKET.years.length;
+    const plain = MARKET.years.reduce((acc, y) => acc + y.bondYield, 0) / MARKET.years.length;
+    expect(floored).toBeGreaterThan(plain + 0.003);
+    const avg = averageRealReturns(p.assumptions.allocation, p.assumptions.feeRate);
+    const run = (bond: number) =>
+      simulatePath(ctx, constantPath(ctx.len, avg.portfolio, avg.cash, averageInflation(), bond), 0, { stopIdx: idx }).state;
+    const projected = projectState(ctx, idx);
+    expect(projected.taxable).toBeCloseTo(run(floored).taxable, 2); // single precision on the path
+    expect(projected.taxable).toBeLessThan(run(plain).taxable); // more tax while working than at the plain average
   });
 
   test('the FIRE number\u2019s projection deflates cost basis and Roth principal at average inflation (D63)', () => {

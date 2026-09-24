@@ -1,6 +1,6 @@
 // Parsing what is typed into number fields (fix 10).
 import { describe, expect, test } from 'vitest';
-import { fieldBlock, parseFieldText, parseYearText } from '../src/ui/format';
+import { fieldBlock, parseFieldText, parseYearText, yearTextFor } from '../src/ui/format';
 
 describe('number fields', () => {
   test('whole-number fields round what is typed', () => {
@@ -27,7 +27,7 @@ describe('blocked values (fix 16)', () => {
   });
 });
 
-describe('year picker (fix 27)', () => {
+describe('year picker (D84)', () => {
   test('a typed year is applied only once it is a whole year in range', () => {
     expect(parseYearText('2040', 2026, 2080)).toBe(2040);
     expect(parseYearText('2026', 2026, 2080)).toBe(2026);
@@ -41,5 +41,12 @@ describe('year picker (fix 27)', () => {
     expect(parseYearText('2040.5', 2026, 2080)).toBeNull();
     expect(parseYearText('', 2026, 2080)).toBeNull();
     expect(parseYearText('abc', 2026, 2080)).toBeNull();
+  });
+
+  test('a year changed from outside (− / +, "Back to earliest") replaces the typed text unless it already reads as that year', () => {
+    expect(yearTextFor('204', 2041, 2026, 2080)).toBe('2041'); // half-typed text gives way to the new year
+    expect(yearTextFor('2039', 2041, 2026, 2080)).toBe('2041');
+    expect(yearTextFor('2041', 2041, 2026, 2080)).toBe('2041');
+    expect(yearTextFor('02041', 2041, 2026, 2080)).toBe('02041'); // the year just typed stays as typed
   });
 });

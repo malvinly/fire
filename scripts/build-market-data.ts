@@ -12,8 +12,7 @@
 //   cash      1928+: Damodaran 3-month T-bill (average rate for the year)
 //             pre-1928: January GS10 yield as pure income (no price change) — see docs/DECISIONS.md
 //   inflation CPI January-to-January
-//   bondYield      January 10-year Treasury yield (Shiller GS10), for taxing bond interest (D82)
-//   dividendYield  January S&P 500 dividend yield (Shiller D / P), for taxing dividends (D82)
+//   bondYield January 10-year Treasury yield (Shiller GS10), for taxing bond interest (D82)
 // All values are nominal decimals (0.05 = 5%).
 
 import * as XLSX from 'xlsx';
@@ -42,9 +41,9 @@ function sheetRows(buf: Buffer, sheet: string): unknown[][] {
   return XLSX.utils.sheet_to_json<unknown[]>(ws, { header: 1, raw: true });
 }
 
-// Shiller Data sheet columns (0-based): 0 Date (1871.01 = Jan 1871), 1 S&P price P, 2 dividend D (12 months),
-// 4 CPI, 6 GS10 (%), 9 Real Total Return Price, 18 Real Total Bond Returns (index).
-interface January { price: number; dividend: number; cpi: number; gs10: number; stockIdx: number; bondIdx: number }
+// Shiller Data sheet columns (0-based): 0 Date (1871.01 = Jan 1871), 4 CPI, 6 GS10 (%),
+// 9 Real Total Return Price, 18 Real Total Bond Returns (index).
+interface January { cpi: number; gs10: number; stockIdx: number; bondIdx: number }
 
 function shillerJanuaries(rows: unknown[][]): Map<number, January> {
   const out = new Map<number, January>();
@@ -54,16 +53,9 @@ function shillerJanuaries(rows: unknown[][]): Map<number, January> {
     const year = Math.floor(date);
     const month = Math.round((date - year) * 100);
     if (month !== 1) continue;
-    const [price, dividend, cpi, gs10, stockIdx, bondIdx] = [r[1], r[2], r[4], r[6], r[9], r[18]];
-    if ([price, dividend, cpi, gs10, stockIdx, bondIdx].every((v) => typeof v === 'number')) {
-      out.set(year, {
-        price: price as number,
-        dividend: dividend as number,
-        cpi: cpi as number,
-        gs10: gs10 as number,
-        stockIdx: stockIdx as number,
-        bondIdx: bondIdx as number,
-      });
+    const [cpi, gs10, stockIdx, bondIdx] = [r[4], r[6], r[9], r[18]];
+    if ([cpi, gs10, stockIdx, bondIdx].every((v) => typeof v === 'number')) {
+      out.set(year, { cpi: cpi as number, gs10: gs10 as number, stockIdx: stockIdx as number, bondIdx: bondIdx as number });
     }
   }
   return out;
@@ -87,15 +79,7 @@ async function main() {
   const jan = shillerJanuaries(sheetRows(shiller, 'Data'));
   const tbill = damodaranTbills(sheetRows(damodaran, 'Returns by year'));
 
-  const years: {
-    year: number;
-    stocks: number;
-    bonds: number;
-    cash: number;
-    inflation: number;
-    bondYield: number;
-    dividendYield: number;
-  }[] = [];
+  const years: { year: number; stocks: number; bonds: number; cash: number; inflation: number; bondYield: number }[] = [];
   const firstYear = Math.min(...jan.keys());
   for (let y = firstYear; jan.has(y) && jan.has(y + 1); y++) {
     const a = jan.get(y)!;
@@ -118,18 +102,17 @@ async function main() {
       cash: round(cash),
       inflation: round(inflation),
       bondYield: round(a.gs10 / 100),
-      dividendYield: round(a.dividend / a.price),
     });
   }
 
   const out = {
     description:
-      'Annual nominal US returns, January-to-January, and the January 10-year Treasury and S&P 500 dividend yields. See scripts/build-market-data.ts.',
+      'Annual nominal US returns, January-to-January, and the January 10-year Treasury yield. See scripts/build-market-data.ts.',
     sources: {
       stocksBondsInflation: 'Robert J. Shiller, ie_data.xls (https://shillerdata.com/)',
       cash1928Plus: 'Aswath Damodaran, histretSP.xls 3-month T-bill (https://pages.stern.nyu.edu/~adamodar/)',
       cashPre1928: 'Shiller January GS10 long-term yield used as income-only cash return (approximation)',
-      yields: 'Shiller January GS10 long-term yield (bondYield) and dividend D / price P (dividendYield)',
+      bondYield: 'Shiller January GS10 long-term yield',
     },
     generated: new Date().toISOString().slice(0, 10),
     firstYear: years[0].year,

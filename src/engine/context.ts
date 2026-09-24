@@ -7,12 +7,17 @@ import { bracketTop } from './tax';
 import type { DatedItem, DatedTiming, Person, Plan, Scenario } from './types';
 
 /**
- * The lowest yearly income paid out by the brokerage account, as a share of the money in each asset class (D70):
- * stock dividends (qualified, taxed like long-term gains) and bond interest (ordinary income). Each market pays
- * its own January dividend yield and 10-year yield when higher (D82). The cash share of the mix, and the cash
- * account, pay the path's own T-bill rate.
+ * Yearly income paid out by the brokerage account, as a share of the money in each asset class (D70): stock
+ * dividends (qualified, taxed like long-term gains) and bond interest (ordinary income). Bond interest is the
+ * floor: each market pays its own January 10-year yield when higher (`bondInterestRate`, D82). The cash share of
+ * the mix, and the cash account, pay the path's own T-bill rate.
  */
 export const TAXABLE_YIELDS = { stockDividends: 0.02, bondInterest: 0.04 };
+
+/** The bond interest rate taxed in a year whose January 10-year yield is `marketYield`: never below 4% (D82). */
+export function bondInterestRate(marketYield: number): number {
+  return Math.max(TAXABLE_YIELDS.bondInterest, marketYield);
+}
 
 export interface Context {
   plan: Plan;
@@ -60,10 +65,12 @@ export interface Context {
   hsaPenalty: Uint8Array;
   fillTop: number; // 0 = no bracket fill
   /**
-   * The shares of the brokerage balance that earn dividends (`stocks`), bond interest (`bonds`) and the T-bill
-   * rate (`cash`) each year, at that year's yields (D70, D82). The cash account's interest doesn't depend on these.
+   * The plan's asset mix, as the shares of the brokerage balance that pay dividends (`stocks`), bond interest
+   * (`bonds`) and the T-bill rate (`cash`) each year (D70, D82) — shares, not yields. A copy of the allocation so
+   * tests can switch brokerage income off (`noYields` in tests/helpers.ts). The cash account's interest doesn't
+   * depend on it.
    */
-  yields: { stocks: number; bonds: number; cash: number };
+  incomeMix: { stocks: number; bonds: number; cash: number };
   pia: [number, number];
 }
 
@@ -156,7 +163,7 @@ export function buildContext(plan: Plan, scenario: Scenario): Context {
     rmdDivisor: [f64(), f64()],
     hsaPenalty: new Uint8Array(len),
     fillTop: a.bracketFill === 'none' ? 0 : bracketTop(a.bracketFill),
-    yields: { ...a.allocation },
+    incomeMix: { ...a.allocation },
     pia: [0, 0],
   };
 

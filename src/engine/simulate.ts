@@ -2,7 +2,7 @@
 // then that year's real return applies. All amounts are today's (real) dollars.
 
 import { FEDERAL } from '../data/rules';
-import { TAXABLE_YIELDS, type Context } from './context';
+import { bondInterestRate, TAXABLE_YIELDS, type Context } from './context';
 import type { ReturnPaths } from './returns';
 import { bracketRoom, computeTax } from './tax';
 import type { PathOutcome, YearRecord } from './types';
@@ -157,6 +157,8 @@ function emptyDraws(): Draws {
  * they left the window and must not be read as today's dollars.
  */
 const SEASONING_YEARS = 5;
+/** Savings run out in a year that is short of what it needs by more than this many dollars. */
+export const RUN_OUT_SHORTFALL = 1;
 
 /** Conversions made in the last 5 years (this year included) — not yet withdrawable before 59½. */
 function unseasoned(s: State, i: 0 | 1, t: number): number {
@@ -254,24 +256,24 @@ function penalizedAmount(d: Draws): number {
 }
 
 /**
- * A path's income rates for one year (D70): `dividends` and `brokerageInterest` are shares of the brokerage
- * balance, `tbill` the nominal T-bill rate the cash account earns.
+ * A path's income rates for one year (D70): `dividendRate` and `interestRate` are the shares of the brokerage
+ * balance paid as dividends and interest, `tbill` the nominal T-bill rate the cash account earns.
  */
 interface IncomeRates {
-  dividends: number;
-  brokerageInterest: number;
+  dividendRate: number;
+  interestRate: number;
   tbill: number;
 }
 
 /**
- * Sets `r` to year `pi` of `paths`: the market's own January dividend yield and 10-year yield, but never below the
- * fixed yields (D82), and its T-bill rate for the cash share and the cash account.
+ * Sets `r` to year `pi` of `paths`: dividends at the fixed yield, bond interest at the market's own January
+ * 10-year yield but never below the fixed one (D82), and its T-bill rate for the cash share and the cash account.
  */
 function setIncomeRates(ctx: Context, paths: ReturnPaths, pi: number, r: IncomeRates) {
-  const y = ctx.yields;
+  const mix = ctx.incomeMix;
   r.tbill = Math.max(0, (1 + paths.cash[pi]) * (1 + paths.inflation[pi]) - 1);
-  r.dividends = y.stocks * Math.max(TAXABLE_YIELDS.stockDividends, paths.dividendYield[pi]);
-  r.brokerageInterest = y.bonds * Math.max(TAXABLE_YIELDS.bondInterest, paths.bondYield[pi]) + y.cash * r.tbill;
+  r.dividendRate = mix.stocks * TAXABLE_YIELDS.stockDividends;
+  r.interestRate = mix.bonds * bondInterestRate(paths.bondYield[pi]) + mix.cash * r.tbill;
 }
 
 /**
@@ -280,8 +282,8 @@ function setIncomeRates(ctx: Context, paths: ReturnPaths, pi: number, r: IncomeR
  */
 function investmentIncome(taxable: number, cash: number, r: IncomeRates) {
   const invested = Math.max(0, taxable);
-  const dividends = invested * r.dividends;
-  const brokerageInterest = invested * r.brokerageInterest;
+  const dividends = invested * r.dividendRate;
+  const brokerageInterest = invested * r.interestRate;
   return { dividends, brokerageInterest, interest: brokerageInterest + Math.max(0, cash) * r.tbill };
 }
 
@@ -315,7 +317,7 @@ export function simulatePath(ctx: Context, paths: ReturnPaths, p: number, opts: 
   const s = opts.startState ? cloneState(opts.startState) : initialState(ctx);
   const records: YearRecord[] | undefined = opts.record ? [] : undefined;
   const d = emptyDraws();
-  const rates: IncomeRates = { dividends: 0, brokerageInterest: 0, tbill: 0 };
+  const rates: IncomeRates = { dividendRate: 0, interestRate: 0, tbill: 0 };
   let priceLevel = opts.initialPriceLevel ?? 1;
   if (opts.initialPriceLevel === undefined) {
     if (shift !== 0 && startIdx > 0) throw new Error('initialPriceLevel is required when pathShift is used');
@@ -425,7 +427,7 @@ export function simulatePath(ctx: Context, paths: ReturnPaths, p: number, opts: 
             s.taxable -= fromTaxable;
           }
         }
-        if (short > 1 && failYear === null) failYear = ctx.years[t];
+        if (short > RUN_OUT_SHORTFALL && failYear === null) failYear = ctx.years[t];
       }
       // Brokerage and cash income on what stays invested this year (D70), taxed on top of everything above. The
       // paycheck already covers spending (D16), so the tax comes out of the accounts and the rest is reinvested.
@@ -521,7 +523,7 @@ export function simulatePath(ctx: Context, paths: ReturnPaths, p: number, opts: 
 
       const penaltyAmt = penalizedAmount(d);
       if (penaltyAmt > 1) usedPenalty = true;
-      if (d.shortfall > 1 && failYear === null) failYear = ctx.years[t];
+      if (d.shortfall > RUN_OUT_SHORTFALL && failYear === null) failYear = ctx.years[t];
 
       if (records) {
         rec = blankRecord(ctx, t, false);

@@ -1,10 +1,10 @@
 {
- "description": "Annual nominal US returns, January-to-January, and the January 10-year Treasury and S&P 500 dividend yields. See scripts/build-market-data.ts.",
+ "description": "Annual nominal US returns, January-to-January, and the January 10-year Treasury yield. See scripts/build-market-data.ts.",
  "sources": {
   "stocksBondsInflation": "Robert J. Shiller, ie_data.xls (https://shillerdata.com/)",
   "cash1928Plus": "Aswath Damodaran, histretSP.xls 3-month T-bill (https://pages.stern.nyu.edu/~adamodar/)",
   "cashPre1928": "Shiller January GS10 long-term yield used as income-only cash return (approximation)",
-  "yields": "Shiller January GS10 long-term yield (bondYield) and dividend D / price P (dividendYield)"
+  "bondYield": "Shiller January GS10 long-term yield"
  },
  "generated": "2026-09-24",
  "firstYear": 1871,
@@ -16,8 +16,7 @@
    "bonds": 0.051486,
    "cash": 0.0532,
    "inflation": 0.01527,
-   "bondYield": 0.0532,
-   "dividendYield": 0.058559
+   "bondYield": 0.0532
   },
   {
    "year": 1872,
@@ -25,8 +24,7 @@
    "bonds": 0.038467,
    "cash": 0.0536,
    "inflation": 0.022555,
-   "bondYield": 0.0536,
-   "dividendYield": 0.054177
+   "bondYield": 0.0536
   },
   {
    "year": 1873,
@@ -34,8 +32,7 @@
    "bonds": 0.065574,
    "cash": 0.0558,
    "inflation": -0.044121,
-   "bondYield": 0.0558,
-   "dividendYield": 0.059198
+   "bondYield": 0.0558
   },
   {
    "year": 1874,
@@ -43,8 +40,7 @@
    "bonds": 0.087022,
    "cash": 0.0547,
    "inflation": -0.069226,
-   "bondYield": 0.0547,
-   "dividendYield": 0.070815
+   "bondYield": 0.0547
   },
   {
    "year": 1875,
@@ -52,8 +48,7 @@
    "bonds": 0.089795,
    "cash": 0.0507,
    "inflation": -0.057856,
-   "bondYield": 0.0507,
-   "dividendYield": 0.072137
+   "bondYield": 0.0507
   },
   {
    "year": 1876,
@@ -61,8 +56,7 @@
    "bonds": 0.057916,
    "cash": 0.0459,
    "inflation": 0.008774,
-   "bondYield": 0.0459,
-   "dividendYield": 0.067265
+   "bondYield": 0.0459
   },
   {
    "year": 1877,
@@ -70,8 +64,7 @@
    "bonds": 0.054125,
    "cash": 0.0445,
    "inflation": -0.156525,
-   "bondYield": 0.0445,
-   "dividendYield": 0.081915
+   "bondYield": 0.0445
   },
   {
    "year": 1878,
@@ -79,8 +72,7 @@
    "bonds": 0.053819,
    "cash": 0.0434,
    "inflation": -0.103088,
-   "bondYield": 0.0434,
-   "dividendYield": 0.058215
+   "bondYield": 0.0434
   },
   {
    "year": 1879,
@@ -88,8 +80,7 @@
    "bonds": 0.059091,
    "cash": 0.0422,
    "inflation": 0.2069,
-   "bondYield": 0.0422,
-   "dividendYield": 0.050754
+   "bondYield": 0.0422
   },
   {
    "year": 1880,
@@ -97,8 +88,7 @@
    "bonds": 0.067058,
    "cash": 0.0402,
    "inflation": -0.057146,
-   "bondYield": 0.0402,
-   "dividendYield": 0.040117
+   "bondYield": 0.0402
   },
   {
    "year": 1881,
@@ -106,8 +96,7 @@
    "bonds": 0.044148,
    "cash": 0.037,
    "inflation": 0.080808,
-   "bondYield": 0.037,
-   "dividendYield": 0.042811
+   "bondYield": 0.037
   },
   {
    "year": 1882,
@@ -115,8 +104,7 @@
    "bonds": 0.035994,
    "cash": 0.0362,
    "inflation": -0.018687,
-   "bondYield": 0.0362,
-   "dividendYield": 0.054054
+   "bondYield": 0.0362
   },
   {
    "year": 1883,
@@ -124,8 +112,7 @@
    "bonds": 0.037723,
    "cash": 0.0363,
    "inflation": -0.076198,
-   "bondYield": 0.0363,
-   "dividendYield": 0.055215
+   "bondYield": 0.0363
   },
   {
    "year": 1884,
@@ -133,8 +120,7 @@
    "bonds": 0.044986,
    "cash": 0.0362,
    "inflation": -0.103088,
-   "bondYield": 0.0362,
-   "dividendYield": 0.063378
+   "bondYield": 0.0362
   },
   {
    "year": 1885,
@@ -142,8 +128,7 @@
    "bonds": 0.048132,
    "cash": 0.0352,
    "inflation": -0.034484,
-   "bondYield": 0.0352,
-   "dividendYield": 0.071745
+   "bondYield": 0.0352
   },
   {
    "year": 1886,
@@ -151,8 +136,7 @@
    "bonds": 0.022025,
    "cash": 0.0337,
    "inflation": 0,
-   "bondYield": 0.0337,
-   "dividendYield": 0.045827
+   "bondYield": 0.0337
   },
   {
    "year": 1887,
@@ -160,8 +144,7 @@
    "bonds": 0.023647,
    "cash": 0.0352,
    "inflation": 0.047623,
-   "bondYield": 0.0352,
-   "dividendYield": 0.039875
+   "bondYield": 0.0352
   },
   {
    "year": 1888,
@@ -169,8 +152,7 @@
    "bonds": 0.055418,
    "cash": 0.0367,
    "inflation": -0.045458,
-   "bondYield": 0.0367,
-   "dividendYield": 0.046761
+   "bondYield": 0.0367
   },
   {
    "year": 1889,
@@ -178,8 +160,7 @@
    "bonds": 0.037511,
    "cash": 0.0345,
    "inflation": -0.047619,
-   "bondYield": 0.0345,
-   "dividendYield": 0.04374
+   "bondYield": 0.0345
   },
   {
    "year": 1890,
@@ -187,8 +168,7 @@
    "bonds": 0.018558,
    "cash": 0.0342,
    "inflation": 0.025,
-   "bondYield": 0.0342,
-   "dividendYield": 0.040892
+   "bondYield": 0.0342
   },
   {
    "year": 1891,
@@ -196,8 +176,7 @@
    "bonds": 0.038434,
    "cash": 0.0362,
    "inflation": -0.060976,
-   "bondYield": 0.0362,
-   "dividendYield": 0.045455
+   "bondYield": 0.0362
   },
   {
    "year": 1892,
@@ -205,8 +184,7 @@
    "bonds": 0.024512,
    "cash": 0.036,
    "inflation": 0.077923,
-   "bondYield": 0.036,
-   "dividendYield": 0.040236
+   "bondYield": 0.036
   },
   {
    "year": 1893,
@@ -214,8 +192,7 @@
    "bonds": 0.042207,
    "cash": 0.0375,
    "inflation": -0.132531,
-   "bondYield": 0.0375,
-   "dividendYield": 0.042923
+   "bondYield": 0.0375
   },
   {
    "year": 1894,
@@ -223,8 +200,7 @@
    "bonds": 0.057374,
    "cash": 0.037,
    "inflation": -0.041666,
-   "bondYield": 0.037,
-   "dividendYield": 0.057106
+   "bondYield": 0.037
   },
   {
    "year": 1895,
@@ -232,8 +208,7 @@
    "bonds": 0.023801,
    "cash": 0.0346,
    "inflation": 0.014492,
-   "bondYield": 0.0346,
-   "dividendYield": 0.049012
+   "bondYield": 0.0346
   },
   {
    "year": 1896,
@@ -241,8 +216,7 @@
    "bonds": 0.053076,
    "cash": 0.036,
    "inflation": -0.028571,
-   "bondYield": 0.036,
-   "dividendYield": 0.044309
+   "bondYield": 0.036
   },
   {
    "year": 1897,
@@ -250,8 +224,7 @@
    "bonds": 0.038648,
    "cash": 0.034,
    "inflation": 0.029412,
-   "bondYield": 0.034,
-   "dividendYield": 0.042654
+   "bondYield": 0.034
   },
   {
    "year": 1898,
@@ -259,8 +232,7 @@
    "bonds": 0.054893,
    "cash": 0.0335,
    "inflation": 0.014286,
-   "bondYield": 0.0335,
-   "dividendYield": 0.037234
+   "bondYield": 0.0335
   },
   {
    "year": 1899,
@@ -268,8 +240,7 @@
    "bonds": 0.027307,
    "cash": 0.031,
    "inflation": 0.169014,
-   "bondYield": 0.031,
-   "dividendYield": 0.033026
+   "bondYield": 0.031
   },
   {
    "year": 1900,
@@ -277,8 +248,7 @@
    "bonds": 0.036114,
    "cash": 0.0315,
    "inflation": -0.024097,
-   "bondYield": 0.0315,
-   "dividendYield": 0.035656
+   "bondYield": 0.0315
   },
   {
    "year": 1901,
@@ -286,8 +256,7 @@
    "bonds": 0.024837,
    "cash": 0.031,
    "inflation": 0.024692,
-   "bondYield": 0.031,
-   "dividendYield": 0.042673
+   "bondYield": 0.031
   },
   {
    "year": 1902,
@@ -295,8 +264,7 @@
    "bonds": 0.022413,
    "cash": 0.0318,
    "inflation": 0.096386,
-   "bondYield": 0.0318,
-   "dividendYield": 0.039507
+   "bondYield": 0.0318
   },
   {
    "year": 1903,
@@ -304,8 +272,7 @@
    "bonds": 0.025321,
    "cash": 0.033,
    "inflation": -0.043956,
-   "bondYield": 0.033,
-   "dividendYield": 0.039208
+   "bondYield": 0.033
   },
   {
    "year": 1904,
@@ -313,8 +280,7 @@
    "bonds": 0.028007,
    "cash": 0.034,
    "inflation": 0.022983,
-   "bondYield": 0.034,
-   "dividendYield": 0.051901
+   "bondYield": 0.034
   },
   {
    "year": 1905,
@@ -322,8 +288,7 @@
    "bonds": 0.039461,
    "cash": 0.0348,
    "inflation": 0,
-   "bondYield": 0.0348,
-   "dividendYield": 0.036975
+   "bondYield": 0.0348
   },
   {
    "year": 1906,
@@ -331,8 +296,7 @@
    "bonds": 0.015481,
    "cash": 0.0343,
    "inflation": 0.044944,
-   "bondYield": 0.0343,
-   "dividendYield": 0.034022
+   "bondYield": 0.0343
   },
   {
    "year": 1907,
@@ -340,8 +304,7 @@
    "bonds": 0.021302,
    "cash": 0.0367,
    "inflation": -0.021501,
-   "bondYield": 0.0367,
-   "dividendYield": 0.042186
+   "bondYield": 0.0367
   },
   {
    "year": 1908,
@@ -349,8 +312,7 @@
    "bonds": 0.048306,
    "cash": 0.0387,
    "inflation": 0.032964,
-   "bondYield": 0.0387,
-   "dividendYield": 0.063752
+   "bondYield": 0.0387
   },
   {
    "year": 1909,
@@ -358,8 +320,7 @@
    "bonds": 0.026244,
    "cash": 0.0376,
    "inflation": 0.106387,
-   "bondYield": 0.0376,
-   "dividendYield": 0.044514
+   "bondYield": 0.0376
   },
   {
    "year": 1910,
@@ -367,8 +328,7 @@
    "bonds": 0.034209,
    "cash": 0.0391,
    "inflation": -0.067313,
-   "bondYield": 0.0391,
-   "dividendYield": 0.043899
+   "bondYield": 0.0391
   },
   {
    "year": 1911,
@@ -376,8 +336,7 @@
    "bonds": 0.038135,
    "cash": 0.0398,
    "inflation": -0.010303,
-   "bondYield": 0.0398,
-   "dividendYield": 0.050701
+   "bondYield": 0.0398
   },
   {
    "year": 1912,
@@ -385,8 +344,7 @@
    "bonds": 0.006578,
    "cash": 0.0401,
    "inflation": 0.072914,
-   "bondYield": 0.0401,
-   "dividendYield": 0.051623
+   "bondYield": 0.0401
   },
   {
    "year": 1913,
@@ -394,8 +352,7 @@
    "bonds": 0.068626,
    "cash": 0.0445,
    "inflation": 0.020408,
-   "bondYield": 0.0445,
-   "dividendYield": 0.051613
+   "bondYield": 0.0445
   },
   {
    "year": 1914,
@@ -403,8 +360,7 @@
    "bonds": 0.036071,
    "cash": 0.0416,
    "inflation": 0.01,
-   "bondYield": 0.0416,
-   "dividendYield": 0.05675
+   "bondYield": 0.0416
   },
   {
    "year": 1915,
@@ -412,8 +368,7 @@
    "bonds": 0.058474,
    "cash": 0.0424,
    "inflation": 0.029703,
-   "bondYield": 0.0424,
-   "dividendYield": 0.056257
+   "bondYield": 0.0424
   },
   {
    "year": 1916,
@@ -421,8 +376,7 @@
    "bonds": 0.02704,
    "cash": 0.0405,
    "inflation": 0.125,
-   "bondYield": 0.0405,
-   "dividendYield": 0.047245
+   "bondYield": 0.0405
   },
   {
    "year": 1917,
@@ -430,8 +384,7 @@
    "bonds": 0.016719,
    "cash": 0.0423,
    "inflation": 0.196581,
-   "bondYield": 0.0423,
-   "dividendYield": 0.059645
+   "bondYield": 0.0423
   },
   {
    "year": 1918,
@@ -439,8 +392,7 @@
    "bonds": 0.05217,
    "cash": 0.0457,
    "inflation": 0.178571,
-   "bondYield": 0.0457,
-   "dividendYield": 0.094313
+   "bondYield": 0.0457
   },
   {
    "year": 1919,
@@ -448,8 +400,7 @@
    "bonds": 0.010095,
    "cash": 0.045,
    "inflation": 0.169697,
-   "bondYield": 0.045,
-   "dividendYield": 0.072191
+   "bondYield": 0.045
   },
   {
    "year": 1920,
@@ -457,8 +408,7 @@
    "bonds": 0.041673,
    "cash": 0.0497,
    "inflation": -0.015544,
-   "bondYield": 0.0497,
-   "dividendYield": 0.05983
+   "bondYield": 0.0497
   },
   {
    "year": 1921,
@@ -466,8 +416,7 @@
    "bonds": 0.115626,
    "cash": 0.0509,
    "inflation": -0.110526,
-   "bondYield": 0.0509,
-   "dividendYield": 0.071139
+   "bondYield": 0.0509
   },
   {
    "year": 1922,
@@ -475,8 +424,7 @@
    "bonds": 0.03913,
    "cash": 0.043,
    "inflation": -0.005917,
-   "bondYield": 0.043,
-   "dividendYield": 0.063589
+   "bondYield": 0.043
   },
   {
    "year": 1923,
@@ -484,8 +432,7 @@
    "bonds": 0.068592,
    "cash": 0.0436,
    "inflation": 0.029762,
-   "bondYield": 0.0436,
-   "dividendYield": 0.057494
+   "bondYield": 0.0436
   },
   {
    "year": 1924,
@@ -493,8 +440,7 @@
    "bonds": 0.057534,
    "cash": 0.0406,
    "inflation": 0,
-   "bondYield": 0.0406,
-   "dividendYield": 0.060215
+   "bondYield": 0.0406
   },
   {
    "year": 1925,
@@ -502,8 +448,7 @@
    "bonds": 0.053943,
    "cash": 0.0386,
    "inflation": 0.034682,
-   "bondYield": 0.0386,
-   "dividendYield": 0.052382
+   "bondYield": 0.0386
   },
   {
    "year": 1926,
@@ -511,8 +456,7 @@
    "bonds": 0.065594,
    "cash": 0.0368,
    "inflation": -0.022346,
-   "bondYield": 0.0368,
-   "dividendYield": 0.048024
+   "bondYield": 0.0368
   },
   {
    "year": 1927,
@@ -520,8 +464,7 @@
    "bonds": 0.034739,
    "cash": 0.0334,
    "inflation": -0.011429,
-   "bondYield": 0.0334,
-   "dividendYield": 0.051993
+   "bondYield": 0.0334
   },
   {
    "year": 1928,
@@ -529,8 +472,7 @@
    "bonds": 0.011982,
    "cash": 0.0308,
    "inflation": -0.011561,
-   "bondYield": 0.0333,
-   "dividendYield": 0.044307
+   "bondYield": 0.0333
   },
   {
    "year": 1929,
@@ -538,8 +480,7 @@
    "bonds": 0.062317,
    "cash": 0.0316,
    "inflation": 0,
-   "bondYield": 0.036,
-   "dividendYield": 0.034594
+   "bondYield": 0.036
   },
   {
    "year": 1930,
@@ -547,8 +488,7 @@
    "bonds": 0.029295,
    "cash": 0.0455,
    "inflation": -0.070175,
-   "bondYield": 0.0329,
-   "dividendYield": 0.044717
+   "bondYield": 0.0329
   },
   {
    "year": 1931,
@@ -556,8 +496,7 @@
    "bonds": 0.006557,
    "cash": 0.0231,
    "inflation": -0.100629,
-   "bondYield": 0.0334,
-   "dividendYield": 0.060494
+   "bondYield": 0.0334
   },
   {
    "year": 1932,
@@ -565,8 +504,7 @@
    "bonds": 0.068137,
    "cash": 0.0107,
    "inflation": -0.097902,
-   "bondYield": 0.0368,
-   "dividendYield": 0.095578
+   "bondYield": 0.0368
   },
   {
    "year": 1933,
@@ -574,8 +512,7 @@
    "bonds": 0.049436,
    "cash": 0.0096,
    "inflation": 0.023256,
-   "bondYield": 0.0331,
-   "dividendYield": 0.069817
+   "bondYield": 0.0331
   },
   {
    "year": 1934,
@@ -583,8 +520,7 @@
    "bonds": 0.059612,
    "cash": 0.002783,
    "inflation": 0.030303,
-   "bondYield": 0.0312,
-   "dividendYield": 0.041822
+   "bondYield": 0.0312
   },
   {
    "year": 1935,
@@ -592,8 +528,7 @@
    "bonds": 0.040138,
    "cash": 0.001675,
    "inflation": 0.014706,
-   "bondYield": 0.0279,
-   "dividendYield": 0.048596
+   "bondYield": 0.0279
   },
   {
    "year": 1936,
@@ -601,8 +536,7 @@
    "bonds": 0.024292,
    "cash": 0.001725,
    "inflation": 0.021739,
-   "bondYield": 0.0265,
-   "dividendYield": 0.034884
+   "bondYield": 0.0265
   },
   {
    "year": 1937,
@@ -610,8 +544,7 @@
    "bonds": 0.037347,
    "cash": 0.002758,
    "inflation": 0.007092,
-   "bondYield": 0.0268,
-   "dividendYield": 0.041501
+   "bondYield": 0.0268
   },
   {
    "year": 1938,
@@ -619,8 +552,7 @@
    "bonds": 0.043103,
    "cash": 0.00065,
    "inflation": -0.014085,
-   "bondYield": 0.0256,
-   "dividendYield": 0.070144
+   "bondYield": 0.0256
   },
   {
    "year": 1939,
@@ -628,8 +560,7 @@
    "bonds": 0.036823,
    "cash": 0.000458,
    "inflation": -0.007143,
-   "bondYield": 0.0236,
-   "dividendYield": 0.041067
+   "bondYield": 0.0236
   },
   {
    "year": 1940,
@@ -637,8 +568,7 @@
    "bonds": 0.045107,
    "cash": 0.000358,
    "inflation": 0.014388,
-   "bondYield": 0.0221,
-   "dividendYield": 0.050677
+   "bondYield": 0.0221
   },
   {
    "year": 1941,
@@ -646,8 +576,7 @@
    "bonds": -0.023256,
    "cash": 0.001292,
    "inflation": 0.113475,
-   "bondYield": 0.0195,
-   "dividendYield": 0.063823
+   "bondYield": 0.0195
   },
   {
    "year": 1942,
@@ -655,8 +584,7 @@
    "bonds": 0.024027,
    "cash": 0.003425,
    "inflation": 0.076433,
-   "bondYield": 0.0246,
-   "dividendYield": 0.078761
+   "bondYield": 0.0246
   },
   {
    "year": 1943,
@@ -664,8 +592,7 @@
    "bonds": 0.02413,
    "cash": 0.0038,
    "inflation": 0.029586,
-   "bondYield": 0.0247,
-   "dividendYield": 0.058474
+   "bondYield": 0.0247
   },
   {
    "year": 1944,
@@ -673,8 +600,7 @@
    "bonds": 0.03452,
    "cash": 0.0038,
    "inflation": 0.022989,
-   "bondYield": 0.0248,
-   "dividendYield": 0.051758
+   "bondYield": 0.0248
   },
   {
    "year": 1945,
@@ -682,8 +608,7 @@
    "bonds": 0.039542,
    "cash": 0.0038,
    "inflation": 0.022472,
-   "bondYield": 0.0237,
-   "dividendYield": 0.04769
+   "bondYield": 0.0237
   },
   {
    "year": 1946,
@@ -691,8 +616,7 @@
    "bonds": 0.01697,
    "cash": 0.0038,
    "inflation": 0.181319,
-   "bondYield": 0.0219,
-   "dividendYield": 0.036996
+   "bondYield": 0.0219
   },
   {
    "year": 1947,
@@ -700,8 +624,7 @@
    "bonds": 0.0066,
    "cash": 0.006008,
    "inflation": 0.102326,
-   "bondYield": 0.0225,
-   "dividendYield": 0.046899
+   "bondYield": 0.0225
   },
   {
    "year": 1948,
@@ -709,8 +632,7 @@
    "bonds": 0.035859,
    "cash": 0.01045,
    "inflation": 0.012658,
-   "bondYield": 0.0244,
-   "dividendYield": 0.056867
+   "bondYield": 0.0244
   },
   {
    "year": 1949,
@@ -718,8 +640,7 @@
    "bonds": 0.022489,
    "cash": 0.01115,
    "inflation": -0.020833,
-   "bondYield": 0.0231,
-   "dividendYield": 0.061632
+   "bondYield": 0.0231
   },
   {
    "year": 1950,
@@ -727,8 +648,7 @@
    "bonds": 0.002364,
    "cash": 0.012033,
    "inflation": 0.080851,
-   "bondYield": 0.0232,
-   "dividendYield": 0.068128
+   "bondYield": 0.0232
   },
   {
    "year": 1951,
@@ -736,8 +656,7 @@
    "bonds": 0.016738,
    "cash": 0.015175,
    "inflation": 0.043307,
-   "bondYield": 0.0257,
-   "dividendYield": 0.070093
+   "bondYield": 0.0257
   },
   {
    "year": 1952,
@@ -745,8 +664,7 @@
    "bonds": 0.014585,
    "cash": 0.017225,
    "inflation": 0.003774,
-   "bondYield": 0.0268,
-   "dividendYield": 0.058426
+   "bondYield": 0.0268
   },
   {
    "year": 1953,
@@ -754,8 +672,7 @@
    "bonds": 0.060252,
    "cash": 0.018908,
    "inflation": 0.011278,
-   "bondYield": 0.0283,
-   "dividendYield": 0.053858
+   "bondYield": 0.0283
   },
   {
    "year": 1954,
@@ -763,8 +680,7 @@
    "bonds": 0.012624,
    "cash": 0.009375,
    "inflation": -0.007435,
-   "bondYield": 0.0248,
-   "dividendYield": 0.057214
+   "bondYield": 0.0248
   },
   {
    "year": 1955,
@@ -772,8 +688,7 @@
    "bonds": 0.002981,
    "cash": 0.017243,
    "inflation": 0.003745,
-   "bondYield": 0.0261,
-   "dividendYield": 0.043446
+   "bondYield": 0.0261
   },
   {
    "year": 1956,
@@ -781,8 +696,7 @@
    "bonds": -0.015863,
    "cash": 0.026214,
    "inflation": 0.029851,
-   "bondYield": 0.029,
-   "dividendYield": 0.037826
+   "bondYield": 0.029
   },
   {
    "year": 1957,
@@ -790,8 +704,7 @@
    "bonds": 0.069256,
    "cash": 0.032246,
    "inflation": 0.036232,
-   "bondYield": 0.0346,
-   "dividendYield": 0.038227
+   "bondYield": 0.0346
   },
   {
    "year": 1958,
@@ -799,8 +712,7 @@
    "bonds": -0.043756,
    "cash": 0.017665,
    "inflation": 0.013986,
-   "bondYield": 0.0309,
-   "dividendYield": 0.043369
+   "bondYield": 0.0309
   },
   {
    "year": 1959,
@@ -808,8 +720,7 @@
    "bonds": -0.012951,
    "cash": 0.03386,
    "inflation": 0.010345,
-   "bondYield": 0.0402,
-   "dividendYield": 0.031583
+   "bondYield": 0.0402
   },
   {
    "year": 1960,
@@ -817,8 +728,7 @@
    "bonds": 0.117971,
    "cash": 0.02873,
    "inflation": 0.017065,
-   "bondYield": 0.0472,
-   "dividendYield": 0.032167
+   "bondYield": 0.0472
   },
   {
    "year": 1961,
@@ -826,8 +736,7 @@
    "bonds": 0.019236,
    "cash": 0.023525,
    "inflation": 0.006711,
-   "bondYield": 0.0384,
-   "dividendYield": 0.032597
+   "bondYield": 0.0384
   },
   {
    "year": 1962,
@@ -835,8 +744,7 @@
    "bonds": 0.061566,
    "cash": 0.027724,
    "inflation": 0.013333,
-   "bondYield": 0.0408,
-   "dividendYield": 0.029342
+   "bondYield": 0.0408
   },
   {
    "year": 1963,
@@ -844,8 +752,7 @@
    "bonds": 0.012293,
    "cash": 0.03156,
    "inflation": 0.016447,
-   "bondYield": 0.0383,
-   "dividendYield": 0.032842
+   "bondYield": 0.0383
   },
   {
    "year": 1964,
@@ -853,8 +760,7 @@
    "bonds": 0.040981,
    "cash": 0.035457,
    "inflation": 0.009709,
-   "bondYield": 0.0417,
-   "dividendYield": 0.030041
+   "bondYield": 0.0417
   },
   {
    "year": 1965,
@@ -862,8 +768,7 @@
    "bonds": 0.009144,
    "cash": 0.039491,
    "inflation": 0.019231,
-   "bondYield": 0.0419,
-   "dividendYield": 0.029223
+   "bondYield": 0.0419
   },
   {
    "year": 1966,
@@ -871,8 +776,7 @@
    "bonds": 0.052353,
    "cash": 0.048557,
    "inflation": 0.034591,
-   "bondYield": 0.0461,
-   "dividendYield": 0.029361
+   "bondYield": 0.0461
   },
   {
    "year": 1967,
@@ -880,8 +784,7 @@
    "bonds": -0.023125,
    "cash": 0.042935,
    "inflation": 0.036474,
-   "bondYield": 0.0458,
-   "dividendYield": 0.034103
+   "bondYield": 0.0458
   },
   {
    "year": 1968,
@@ -889,8 +792,7 @@
    "bonds": 0.017886,
    "cash": 0.053376,
    "inflation": 0.043988,
-   "bondYield": 0.0553,
-   "dividendYield": 0.030829
+   "bondYield": 0.0553
   },
   {
    "year": 1969,
@@ -898,8 +800,7 @@
    "bonds": -0.057115,
    "cash": 0.066685,
    "inflation": 0.061798,
-   "bondYield": 0.0604,
-   "dividendYield": 0.030196
+   "bondYield": 0.0604
   },
   {
    "year": 1970,
@@ -907,8 +808,7 @@
    "bonds": 0.199506,
    "cash": 0.06391,
    "inflation": 0.05291,
-   "bondYield": 0.0779,
-   "dividendYield": 0.035027
+   "bondYield": 0.0779
   },
   {
    "year": 1971,
@@ -916,8 +816,7 @@
    "bonds": 0.085366,
    "cash": 0.043343,
    "inflation": 0.032663,
-   "bondYield": 0.0624,
-   "dividendYield": 0.03348
+   "bondYield": 0.0624
   },
   {
    "year": 1972,
@@ -925,8 +824,7 @@
    "bonds": 0.024488,
    "cash": 0.040618,
    "inflation": 0.036496,
-   "bondYield": 0.0595,
-   "dividendYield": 0.029719
+   "bondYield": 0.0595
   },
   {
    "year": 1973,
@@ -934,8 +832,7 @@
    "bonds": 0.030163,
    "cash": 0.070354,
    "inflation": 0.093897,
-   "bondYield": 0.0646,
-   "dividendYield": 0.026661
+   "bondYield": 0.0646
   },
   {
    "year": 1974,
@@ -943,8 +840,7 @@
    "bonds": 0.039941,
    "cash": 0.078458,
    "inflation": 0.118026,
-   "bondYield": 0.0699,
-   "dividendYield": 0.035376
+   "bondYield": 0.0699
   },
   {
    "year": 1975,
@@ -952,8 +848,7 @@
    "bonds": 0.064369,
    "cash": 0.057864,
    "inflation": 0.067179,
-   "bondYield": 0.075,
-   "dividendYield": 0.049936
+   "bondYield": 0.075
   },
   {
    "year": 1976,
@@ -961,8 +856,7 @@
    "bonds": 0.118726,
    "cash": 0.049766,
    "inflation": 0.052158,
-   "bondYield": 0.0774,
-   "dividendYield": 0.038027
+   "bondYield": 0.0774
   },
   {
    "year": 1977,
@@ -970,8 +864,7 @@
    "bonds": 0.022166,
    "cash": 0.05261,
    "inflation": 0.068376,
-   "bondYield": 0.0721,
-   "dividendYield": 0.039467
+   "bondYield": 0.0721
   },
   {
    "year": 1978,
@@ -979,8 +872,7 @@
    "bonds": 0.008022,
    "cash": 0.071783,
    "inflation": 0.0928,
-   "bondYield": 0.0796,
-   "dividendYield": 0.052225
+   "bondYield": 0.0796
   },
   {
    "year": 1979,
@@ -988,8 +880,7 @@
    "bonds": -0.012962,
    "cash": 0.100543,
    "inflation": 0.139092,
-   "bondYield": 0.091,
-   "dividendYield": 0.051282
+   "bondYield": 0.091
   },
   {
    "year": 1980,
@@ -997,8 +888,7 @@
    "bonds": 0.006756,
    "cash": 0.113919,
    "inflation": 0.118252,
-   "bondYield": 0.108,
-   "dividendYield": 0.051398
+   "bondYield": 0.108
   },
   {
    "year": 1981,
@@ -1006,8 +896,7 @@
    "bonds": 0.02753,
    "cash": 0.140362,
    "inflation": 0.083908,
-   "bondYield": 0.1257,
-   "dividendYield": 0.046617
+   "bondYield": 0.1257
   },
   {
    "year": 1982,
@@ -1015,8 +904,7 @@
    "bonds": 0.431972,
    "cash": 0.1109,
    "inflation": 0.037116,
-   "bondYield": 0.1459,
-   "dividendYield": 0.056777
+   "bondYield": 0.1459
   },
   {
    "year": 1983,
@@ -1024,8 +912,7 @@
    "bonds": 0.038687,
    "cash": 0.0895,
    "inflation": 0.041922,
-   "bondYield": 0.1046,
-   "dividendYield": 0.047702
+   "bondYield": 0.1046
   },
   {
    "year": 1984,
@@ -1033,8 +920,7 @@
    "bonds": 0.14996,
    "cash": 0.0992,
    "inflation": 0.035329,
-   "bondYield": 0.1167,
-   "dividendYield": 0.042788
+   "bondYield": 0.1167
   },
   {
    "year": 1985,
@@ -1042,8 +928,7 @@
    "bonds": 0.270573,
    "cash": 0.0772,
    "inflation": 0.038863,
-   "bondYield": 0.1138,
-   "dividendYield": 0.044134
+   "bondYield": 0.1138
   },
   {
    "year": 1986,
@@ -1051,8 +936,7 @@
    "bonds": 0.2428,
    "cash": 0.0615,
    "inflation": 0.014599,
-   "bondYield": 0.0919,
-   "dividendYield": 0.038136
+   "bondYield": 0.0919
   },
   {
    "year": 1987,
@@ -1060,8 +944,7 @@
    "bonds": -0.026351,
    "cash": 0.0596,
    "inflation": 0.040468,
-   "bondYield": 0.0708,
-   "dividendYield": 0.03138
+   "bondYield": 0.0708
   },
   {
    "year": 1988,
@@ -1069,8 +952,7 @@
    "bonds": 0.061969,
    "cash": 0.0689,
    "inflation": 0.046672,
-   "bondYield": 0.0867,
-   "dividendYield": 0.035356
+   "bondYield": 0.0867
   },
   {
    "year": 1989,
@@ -1078,8 +960,7 @@
    "bonds": 0.152685,
    "cash": 0.0839,
    "inflation": 0.052023,
-   "bondYield": 0.0909,
-   "dividendYield": 0.034384
+   "bondYield": 0.0909
   },
   {
    "year": 1990,
@@ -1087,8 +968,7 @@
    "bonds": 0.097304,
    "cash": 0.0775,
    "inflation": 0.056515,
-   "bondYield": 0.0821,
-   "dividendYield": 0.032768
+   "bondYield": 0.0821
   },
   {
    "year": 1991,
@@ -1096,8 +976,7 @@
    "bonds": 0.16326,
    "cash": 0.0554,
    "inflation": 0.026003,
-   "bondYield": 0.0809,
-   "dividendYield": 0.037195
+   "bondYield": 0.0809
   },
   {
    "year": 1992,
@@ -1105,8 +984,7 @@
    "bonds": 0.105266,
    "cash": 0.0351,
    "inflation": 0.032585,
-   "bondYield": 0.0703,
-   "dividendYield": 0.029417
+   "bondYield": 0.0703
   },
   {
    "year": 1993,
@@ -1114,8 +992,7 @@
    "bonds": 0.128193,
    "cash": 0.0307,
    "inflation": 0.025245,
-   "bondYield": 0.066,
-   "dividendYield": 0.028521
+   "bondYield": 0.066
   },
   {
    "year": 1994,
@@ -1123,8 +1000,7 @@
    "bonds": -0.073082,
    "cash": 0.0437,
    "inflation": 0.028044,
-   "bondYield": 0.0575,
-   "dividendYield": 0.026688
+   "bondYield": 0.0575
   },
   {
    "year": 1995,
@@ -1132,8 +1008,7 @@
    "bonds": 0.243504,
    "cash": 0.0566,
    "inflation": 0.027279,
-   "bondYield": 0.0778,
-   "dividendYield": 0.028329
+   "bondYield": 0.0778
   },
   {
    "year": 1996,
@@ -1141,8 +1016,7 @@
    "bonds": -0.005264,
    "cash": 0.0515,
    "inflation": 0.03044,
-   "bondYield": 0.0565,
-   "dividendYield": 0.022612
+   "bondYield": 0.0565
   },
   {
    "year": 1997,
@@ -1150,8 +1024,7 @@
    "bonds": 0.150144,
    "cash": 0.052,
    "inflation": 0.015713,
-   "bondYield": 0.0658,
-   "dividendYield": 0.019516
+   "bondYield": 0.0658
   },
   {
    "year": 1998,
@@ -1159,8 +1032,7 @@
    "bonds": 0.122114,
    "cash": 0.0491,
    "inflation": 0.016708,
-   "bondYield": 0.0554,
-   "dividendYield": 0.016141
+   "bondYield": 0.0554
   },
   {
    "year": 1999,
@@ -1168,8 +1040,7 @@
    "bonds": -0.086709,
    "cash": 0.0478,
    "inflation": 0.027389,
-   "bondYield": 0.0472,
-   "dividendYield": 0.013039
+   "bondYield": 0.0472
   },
   {
    "year": 2000,
@@ -1177,8 +1048,7 @@
    "bonds": 0.18663,
    "cash": 0.06,
    "inflation": 0.037322,
-   "bondYield": 0.0666,
-   "dividendYield": 0.011724
+   "bondYield": 0.0666
   },
   {
    "year": 2001,
@@ -1186,8 +1056,7 @@
    "bonds": 0.060409,
    "cash": 0.0348,
    "inflation": 0.011422,
-   "bondYield": 0.0516,
-   "dividendYield": 0.012107
+   "bondYield": 0.0516
   },
   {
    "year": 2002,
@@ -1195,8 +1064,7 @@
    "bonds": 0.131814,
    "cash": 0.0164,
    "inflation": 0.025974,
-   "bondYield": 0.0504,
-   "dividendYield": 0.013802
+   "bondYield": 0.0504
   },
   {
    "year": 2003,
@@ -1204,8 +1072,7 @@
    "bonds": 0.031009,
    "cash": 0.0103,
    "inflation": 0.019263,
-   "bondYield": 0.0405,
-   "dividendYield": 0.017994
+   "bondYield": 0.0405
   },
   {
    "year": 2004,
@@ -1213,8 +1080,7 @@
    "bonds": 0.036807,
    "cash": 0.014,
    "inflation": 0.029698,
-   "bondYield": 0.0415,
-   "dividendYield": 0.015541
+   "bondYield": 0.0415
   },
   {
    "year": 2005,
@@ -1222,8 +1088,7 @@
    "bonds": 0.026671,
    "cash": 0.0322,
    "inflation": 0.039853,
-   "bondYield": 0.0422,
-   "dividendYield": 0.016678
+   "bondYield": 0.0422
   },
   {
    "year": 2006,
@@ -1231,8 +1096,7 @@
    "bonds": 0.020747,
    "cash": 0.0485,
    "inflation": 0.020756,
-   "bondYield": 0.0442,
-   "dividendYield": 0.017523
+   "bondYield": 0.0442
   },
   {
    "year": 2007,
@@ -1240,8 +1104,7 @@
    "bonds": 0.136037,
    "cash": 0.0448,
    "inflation": 0.042803,
-   "bondYield": 0.0476,
-   "dividendYield": 0.017613
+   "bondYield": 0.0476
   },
   {
    "year": 2008,
@@ -1249,8 +1112,7 @@
    "bonds": 0.147711,
    "cash": 0.014,
    "inflation": 0.000298,
-   "bondYield": 0.0374,
-   "dividendYield": 0.02025
+   "bondYield": 0.0374
   },
   {
    "year": 2009,
@@ -1258,8 +1120,7 @@
    "bonds": -0.068747,
    "cash": 0.0015,
    "inflation": 0.026257,
-   "bondYield": 0.0252,
-   "dividendYield": 0.032364
+   "bondYield": 0.0252
   },
   {
    "year": 2010,
@@ -1267,8 +1128,7 @@
    "bonds": 0.060972,
    "cash": 0.0014,
    "inflation": 0.016318,
-   "bondYield": 0.0373,
-   "dividendYield": 0.019794
+   "bondYield": 0.0373
   },
   {
    "year": 2011,
@@ -1276,8 +1136,7 @@
    "bonds": 0.16151,
    "cash": 0.0005,
    "inflation": 0.029252,
-   "bondYield": 0.0339,
-   "dividendYield": 0.017903
+   "bondYield": 0.0339
   },
   {
    "year": 2012,
@@ -1285,8 +1144,7 @@
    "bonds": 0.023226,
    "cash": 0.0009,
    "inflation": 0.015949,
-   "bondYield": 0.0197,
-   "dividendYield": 0.020557
+   "bondYield": 0.0197
   },
   {
    "year": 2013,
@@ -1294,8 +1152,7 @@
    "bonds": -0.059099,
    "cash": 0.0006,
    "inflation": 0.015789,
-   "bondYield": 0.0191,
-   "dividendYield": 0.021303
+   "bondYield": 0.0191
   },
   {
    "year": 2014,
@@ -1303,8 +1160,7 @@
    "bonds": 0.117725,
    "cash": 0.0003,
    "inflation": -0.000893,
-   "bondYield": 0.0286,
-   "dividendYield": 0.019427
+   "bondYield": 0.0286
   },
   {
    "year": 2015,
@@ -1312,8 +1168,7 @@
    "bonds": 0.00209,
    "cash": 0.0005,
    "inflation": 0.013731,
-   "bondYield": 0.0188,
-   "dividendYield": 0.019671
+   "bondYield": 0.0188
   },
   {
    "year": 2016,
@@ -1321,8 +1176,7 @@
    "bonds": -0.012519,
    "cash": 0.0032,
    "inflation": 0.025,
-   "bondYield": 0.0209,
-   "dividendYield": 0.022701
+   "bondYield": 0.0209
   },
   {
    "year": 2017,
@@ -1330,8 +1184,7 @@
    "bonds": 0.009945,
    "cash": 0.0095,
    "inflation": 0.020705,
-   "bondYield": 0.0243,
-   "dividendYield": 0.020186
+   "bondYield": 0.0243
   },
   {
    "year": 2018,
@@ -1339,8 +1192,7 @@
    "bonds": 0.017521,
    "cash": 0.0197,
    "inflation": 0.015512,
-   "bondYield": 0.0258,
-   "dividendYield": 0.017667
+   "bondYield": 0.0258
   },
   {
    "year": 2019,
@@ -1348,8 +1200,7 @@
    "bonds": 0.11034,
    "cash": 0.0211,
    "inflation": 0.024866,
-   "bondYield": 0.0271,
-   "dividendYield": 0.020767
+   "bondYield": 0.0271
   },
   {
    "year": 2020,
@@ -1357,8 +1208,7 @@
    "bonds": 0.073093,
    "cash": 0.0036,
    "inflation": 0.013998,
-   "bondYield": 0.0176,
-   "dividendYield": 0.017902
+   "bondYield": 0.0176
   },
   {
    "year": 2021,
@@ -1366,8 +1216,7 @@
    "bonds": -0.047918,
    "cash": 0.0004,
    "inflation": 0.074799,
-   "bondYield": 0.0108,
-   "dividendYield": 0.015305
+   "bondYield": 0.0108
   },
   {
    "year": 2022,
@@ -1375,8 +1224,7 @@
    "bonds": -0.118956,
    "cash": 0.0209,
    "inflation": 0.064101,
-   "bondYield": 0.0176,
-   "dividendYield": 0.01332
+   "bondYield": 0.0176
   },
   {
    "year": 2023,
@@ -1384,8 +1232,7 @@
    "bonds": -0.005185,
    "cash": 0.0528,
    "inflation": 0.030909,
-   "bondYield": 0.0353,
-   "dividendYield": 0.017005
+   "bondYield": 0.0353
   },
   {
    "year": 2024,
@@ -1393,8 +1240,7 @@
    "bonds": -0.004539,
    "cash": 0.0518,
    "inflation": 0.030005,
-   "bondYield": 0.0406,
-   "dividendYield": 0.014635
+   "bondYield": 0.0406
   },
   {
    "year": 2025,
@@ -1402,8 +1248,7 @@
    "bonds": 0.079187,
    "cash": 0.0421,
    "inflation": 0.023864,
-   "bondYield": 0.0463,
-   "dividendYield": 0.012588
+   "bondYield": 0.0463
   }
  ]
 }

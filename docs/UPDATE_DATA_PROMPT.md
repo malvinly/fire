@@ -30,9 +30,8 @@ that is a bug, not a data update.
   Shiller row for the following year and a Damodaran T-bill value, so `lastYear` may be Y−1 or Y−2.
 - Sanity-check: `firstYear` is 1871; no NaN; the newest years look plausible (compare the S&P 500 total
   return for the latest year with a public source within ~2 percentage points; the latest `bondYield`
-  should match that January's 10-year Treasury yield (FRED GS10) and `dividendYield` the S&P 500
-  dividend yield then, about 1–2% in the 2020s). If a spreadsheet's column layout changed, fix the
-  column indexes in the script (documented in its comments), not the data.
+  should match that January's 10-year Treasury yield (FRED GS10)). If a spreadsheet's column layout
+  changed, fix the column indexes in the script (documented in its comments), not the data.
 
 **2. Federal tax rules** (`src/data/rules.ts` → `FEDERAL`, `LIMITS`, `RULES_YEAR`, and the worked
 examples in `tests/tax.test.ts`, which hard-code the brackets, deduction and 0% LTCG threshold)

@@ -1,7 +1,7 @@
 import { useState, type ReactNode } from 'react';
 import { timingYear } from '../engine/context';
 import type { Detail, Success, Tier, TierResult } from '../engine/solve';
-import type { Mix } from '../engine/simulate';
+import { RUN_OUT_SHORTFALL, type Mix } from '../engine/simulate';
 import type { Plan } from '../engine/types';
 import { accountLegend, AccountsChart, BAND_LABELS, BandsChart, useTheme, type Marker } from './charts';
 import { Help } from './fields';
@@ -231,7 +231,7 @@ export function DetailView({ plan, detail, loading, simpleNumber }: { plan: Plan
   const target = plan.assumptions.targetSuccess;
   const retireYear = detail.scenario.retireYear;
   const retired = detail.medianPath.filter((r) => !r.working);
-  const runsOut = retired.find((r) => r.shortfall > 1)?.year;
+  const runsOut = retired.find((r) => r.shortfall > RUN_OUT_SHORTFALL)?.year;
   const [zoom, setZoom] = useState(false);
   return (
     <div style={{ opacity: loading ? 0.6 : 1 }}>

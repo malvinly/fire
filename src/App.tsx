@@ -12,7 +12,7 @@ import { Icon, TIER_ICONS } from './ui/icons';
 import { InputsPanel } from './ui/InputsPanel';
 import { BeforeYouAct, DetailView, TIER_NAMES, TierCard } from './ui/Results';
 import { SessionsDialog, type SessionMeta } from './ui/SessionsDialog';
-import { DRAFT_KEY, REJECTED_DRAFT_KEY, describeProblems, detailMatches, detailSelection, downloadJson, isStale, makeSession, type SessionFile } from './ui/sessions';
+import { DRAFT_KEY, REJECTED_DRAFT_KEY, describeProblems, detailArea, detailSelection, downloadJson, isStale, makeSession, type SessionFile } from './ui/sessions';
 import { beforeYouAct } from './ui/warnings';
 import { CancelledError, detail as fetchDetail, solveAll } from './worker/client';
 
@@ -132,7 +132,7 @@ export default function App() {
 
   // Fetch the detail view whenever the selection changes, once the year picker has been still for a moment; a
   // newer request cancels the one in progress (D80). Stale saved results keep their saved detail instead, so it
-  // can't disagree with the saved cards (D85).
+  // can't disagree with the saved cards (D85); `openSession` clears the spinner, which this early return can't.
   useEffect(() => {
     if (!results?.done || staleData || selYear === null || !results.tiers[selTier]) return;
     let cancelled = false;
@@ -162,7 +162,8 @@ export default function App() {
     setDirty(false);
     setError(null);
     setDetail(s.results?.detail ?? null);
-    // A detail request still running for the previous plan is dropped, so it can't leave the spinner on.
+    // Opening a session cancels any detail request still running (the effect's cleanup), and for stale results
+    // the effect then returns early (D85), so nothing else would turn its spinner off.
     setDetailLoading(false);
     if (s.results) {
       const tiers = Object.fromEntries(s.results.tiers.map((t) => [t.tier, t]));
@@ -326,13 +327,13 @@ export default function App() {
                     </div>
                   </div>
                 )}
-                {staleData && results.done && selResult && selYear !== null && !detailMatches(detail, selTier, selYear) && (
+                {results.done && selResult && selYear !== null && detailArea(staleData, detail, selTier, selYear) === 'note' && (
                   <div className="banner">
                     The saved results don't include the details for this FIRE type and year. Recalculate to see them.
                     <button className="btn small" onClick={calculate}>Recalculate</button>
                   </div>
                 )}
-                {detail && (!staleData || detailMatches(detail, selTier, selYear)) && (
+                {detail && detailArea(staleData, detail, selTier, selYear) === 'detail' && (
                   <DetailView plan={results.plan} detail={detail} loading={detailLoading} simpleNumber={results.tiers[detail.tier]?.simpleNumber} />
                 )}
               </>

@@ -31,7 +31,7 @@ export const DATA_VERSIONS = {
   rulesYear: RULES_YEAR,
   wageIndexYear: SOCIAL_SECURITY.awiLatestYear,
   trusteesReport: 2026,
-  engine: 5,
+  engine: 6,
 };
 
 export function describeAssumptions(plan: Plan): AssumptionRow[] {
@@ -65,7 +65,7 @@ export function describeAssumptions(plan: Plan): AssumptionRow[] {
     { group: 'Markets', label: 'Fund fees', value: pct(a.feeRate, 2), status: st(a.feeRate === d.feeRate),
       why: 'Subtracted from returns every year.', decision: 'D8' },
     { group: 'Markets', label: 'Historical data', value: `${MARKET.firstYear}–${MARKET.lastYear}, January to January`, status: 'fixed',
-      why: 'Stocks: S&P 500 total return. Bonds: 10-year Treasury. Inflation: CPI. Each January’s 10-year Treasury and S&P 500 dividend yields set the taxed income (D82).', source: { label: 'Robert Shiller, ie_data.xls', url: 'https://shillerdata.com/' }, decision: 'D10' },
+      why: 'Stocks: S&P 500 total return. Bonds: 10-year Treasury. Inflation: CPI. Each January’s 10-year Treasury yield sets the taxed bond interest (D82).', source: { label: 'Robert Shiller, ie_data.xls', url: 'https://shillerdata.com/' }, decision: 'D10' },
     { group: 'Markets', label: 'Cash returns', value: 'Short-term Treasury rates from 1928; before that the 10-year Treasury yield', status: 'fixed',
       why: 'No free T-bill series exists before 1928; yield curves were fairly flat then.', source: { label: 'Aswath Damodaran, histretSP.xls', url: 'https://pages.stern.nyu.edu/~adamodar/New_Home_Page/datafile/histret.html' }, decision: 'D11' },
     { group: 'Markets', label: "Today's dollars", value: 'All amounts are after inflation', status: 'fixed',
@@ -111,8 +111,8 @@ export function describeAssumptions(plan: Plan): AssumptionRow[] {
       why: 'Brackets, 0/15/20% capital gains, tax on part of Social Security, and the 3.8% extra tax on investment income for high earners. While working, only the extra tax that Social Security, RMDs, taxed dated income and investment income add on top of wages is counted (D49, D66, D70).', source: { label: 'IRS 2026 inflation adjustments', url: 'https://www.irs.gov/newsroom/irs-releases-tax-inflation-adjustments-for-tax-year-2026-including-amendments-from-the-one-big-beautiful-bill' }, decision: 'D32' },
     { group: 'Taxes & accounts', label: 'State tax', value: pct(a.stateTaxRate), status: st(a.stateTaxRate === d.stateTaxRate),
       why: 'Flat rate on taxable income excluding Social Security. Use the rate of the state you expect to retire in (0% for no-income-tax states).', decision: 'D33' },
-    { group: 'Taxes & accounts', label: 'Brokerage and cash income', value: `Taxed every year: dividends on stocks and interest on bonds at each market’s own yields (at least ${pct(TAXABLE_YIELDS.stockDividends, 0)} and ${pct(TAXABLE_YIELDS.bondInterest, 0)}), T-bill interest on cash`, status: 'fixed',
-      why: `Dividends are taxed like long-term gains and interest as ordinary income, each year, and then reinvested. While you work, the tax comes out of those accounts; in retirement it is part of the year’s tax bill. Each simulated or past market pays the yields of its own years (10-year yields near 15% in 1982, dividend yields of 5–7% for long stretches before 1955), but never less than ${pct(TAXABLE_YIELDS.stockDividends, 0)} on stocks and ${pct(TAXABLE_YIELDS.bondInterest, 0)} on bonds (about today’s yields), so years when yields were lower, such as bonds in the 1940s or stocks since the 1990s, are taxed at those rates.`, decision: 'D34, D70, D82' },
+    { group: 'Taxes & accounts', label: 'Brokerage and cash income', value: `Taxed every year: dividends ${pct(TAXABLE_YIELDS.stockDividends, 0)} of stocks, interest on bonds at each market’s 10-year yield (at least ${pct(TAXABLE_YIELDS.bondInterest, 0)}), T-bill interest on cash`, status: 'fixed',
+      why: `Dividends are taxed like long-term gains and interest as ordinary income, each year, and then reinvested. While you work, the tax comes out of those accounts; in retirement it is part of the year’s tax bill. Bond interest follows each simulated or past market’s own January 10-year yield (near 15% in 1982), but never less than ${pct(TAXABLE_YIELDS.bondInterest, 0)} (about today’s), so low-rate years such as the 1940s are taxed at that rate. Dividends stay at ${pct(TAXABLE_YIELDS.stockDividends, 0)}, a little above today’s yield: history’s higher dividend yields came from a time before companies paid shareholders mostly through buybacks.`, decision: 'D34, D70, D82' },
     { group: 'Taxes & accounts', label: 'Yearly Roth conversions', value: a.bracketFill === 'none' ? 'Off' : `Fill the ${a.bracketFill}% bracket every retired year`, status: st(a.bracketFill === d.bracketFill),
       why: 'Pre-tax money up to the top of this bracket is withdrawn; what you don\'t spend is converted to Roth and usable after 5 years. It helps an early retirement only if it becomes usable before its owner turns 60 (the older spouse\'s money goes first). The 10% default did better than 12% or Off on the example plan.', decision: 'D29' },
     { group: 'Taxes & accounts', label: 'Before 59½', value: 'cash → brokerage → Roth contributions → Roth conversions 5+ years old → 401(k)/IRA with 10% penalty', status: 'fixed',

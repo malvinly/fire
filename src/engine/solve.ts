@@ -1,6 +1,6 @@
 // Turns the simulator into answers: success rates, earliest retirement dates, FIRE numbers (D3, D5).
 
-import { buildContext, planYears, TAXABLE_YIELDS, type Context } from './context';
+import { bondInterestRate, buildContext, planYears, type Context } from './context';
 import { bootstrapPaths, constantPath, firstPaths, historicalPaths, MARKET, type ReturnPaths } from './returns';
 import { initialState, scaleState, simulatePath, totalBalance, type Mix, type State } from './simulate';
 import type { Plan, Scenario, YearRecord } from './types';
@@ -210,17 +210,22 @@ export function averageInflation(): number {
 }
 
 /**
+ * The average bond interest rate the markets are taxed at: each year's rate with its floor applied, then averaged
+ * (D82; an arithmetic mean, since yields are levels, not returns).
+ */
+export function averageBondInterestRate(): number {
+  return MARKET.years.reduce((acc, y) => acc + bondInterestRate(y.bondYield), 0) / MARKET.years.length;
+}
+
+/**
  * Deterministic projection of balances to the start of `idx` using long-run average real returns and average
- * inflation (which shrinks cost basis and Roth principal in today's dollars, D63), with the brokerage income taxed
- * at the average yields the markets pay: each year's 10-year and dividend yield, floors included, averaged (D82;
- * arithmetic means, since yields are levels, not returns).
+ * inflation (which shrinks cost basis and Roth principal in today's dollars, D63), with bond interest taxed at the
+ * average rate the markets pay (D82).
  */
 export function projectState(ctx: Context, idx: number): State {
   const a = ctx.plan.assumptions;
   const avg = averageRealReturns(a.allocation, a.feeRate);
-  const mean = (k: 'bondYield' | 'dividendYield', floor: number) =>
-    MARKET.years.reduce((acc, y) => acc + Math.max(floor, y[k]), 0) / MARKET.years.length;
-  const path = constantPath(ctx.len, avg.portfolio, avg.cash, averageInflation(), mean('bondYield', TAXABLE_YIELDS.bondInterest), mean('dividendYield', TAXABLE_YIELDS.stockDividends));
+  const path = constantPath(ctx.len, avg.portfolio, avg.cash, averageInflation(), averageBondInterestRate());
   return simulatePath(ctx, path, 0, { stopIdx: idx }).state;
 }
 
