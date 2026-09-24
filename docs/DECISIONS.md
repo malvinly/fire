@@ -46,7 +46,7 @@ supporting decisions. Dollar figures below describe the data as of the last entr
 
 | # | Decision | Why |
 |---|---|---|
-| D21 | *(core)* Per person: pre-65 cost applies only in years the household is **not working**; Medicare-phase cost from 65 on. Healthcare grows **1.5%/yr above inflation from today**. No ACA subsidies (full price). | Conservative; subsidies need yearly-income (MAGI) modeling (v2). |
+| D21 | *(core)* Per person: pre-65 cost applies only in years the household is **not working**; Medicare-phase cost from 65 on. Healthcare grows **1.5%/yr above inflation from today**. No ACA subsidies (full price). | Conservative; subsidies need yearly-income (MAGI) modeling, which was considered and declined. |
 | D22 | HSA balances pay healthcare first (tax-free). HSA is also the very last resort for other spending (ordinary tax, +20% penalty — see D41). | Standard HSA rules. |
 | D58 | Example healthcare costs per person: **$16,000/yr before 65** and **$7,500/yr from 65** (today's dollars). The "?" help lists the 2026 reference prices. Pre-65 is one flat number, not age-rated. | Pre-65: 2026 US average benchmark silver premium is $7,500/yr at 40 (KFF, $625/mo) and ~$15,900 at 60; under the federal age curve (64 pays 3× a 21-year-old) the average from a mid-50s retirement to 65 is ~$14k, plus ~$2–3k out-of-pocket (2026 limit $10,600). Unsubsidized premiums rose 26% for 2026 as the enhanced tax credits expired. From 65: Part B $2,435 + Medigap G ~$2,650 + Part D ~$400 + ~$1,500–2,000 out-of-pocket, dental and vision. State prices vary widely; IRMAA isn't modeled. Sources: KFF 2026 benchmark premiums and older-adults brief; CMS 2026 Medicare costs. Refresh with the yearly data update. |
 

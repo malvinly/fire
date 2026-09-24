@@ -93,7 +93,7 @@ export function describeAssumptions(plan: Plan): AssumptionRow[] {
     { group: 'Healthcare', label: 'Healthcare inflation', value: `${pct(a.healthcareInflation)} above inflation`, status: st(a.healthcareInflation === d.healthcareInflation),
       why: 'Healthcare costs have historically outpaced general inflation.', decision: 'D21' },
     { group: 'Healthcare', label: 'ACA subsidies', value: 'Not modeled (full price)', status: 'fixed',
-      why: 'Conservative. Subsidies depend on yearly income from withdrawals; planned for v2.', decision: 'D21' },
+      why: 'Conservative. Subsidies depend on yearly income from withdrawals; modeling them was considered and declined.', decision: 'D21' },
 
     // Social Security
     { group: 'Social Security', label: 'Benefit formula', value: `${SOCIAL_SECURITY.awiLatestYear + 2} bend points ${usd(SOCIAL_SECURITY.bendPoints[0])} / ${usd(SOCIAL_SECURITY.bendPoints[1])}, earnings indexed to the ${SOCIAL_SECURITY.awiLatestYear} wage index`, status: 'fixed',
