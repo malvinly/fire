@@ -1,6 +1,6 @@
 // Default spending levels (D18, D57).
 import { describe, expect, test } from 'vitest';
-import { chubbyDefaultSpending, examplePlan, fidelityDefaultSpending } from '../src/engine/defaults';
+import { chubbyDefaultSpending, examplePlan, fidelityDefaultSpending, untouchedSections } from '../src/engine/defaults';
 
 describe('default spending', () => {
   test('example plan starts at the defaults', () => {
@@ -19,5 +19,38 @@ describe('default spending', () => {
     });
     expect(chubbyDefaultSpending(plan)).toBe(96_000);
     expect(fidelityDefaultSpending(plan)).toBe(68_000);
+  });
+});
+
+describe('sections still holding example values (fix 2)', () => {
+  const ALL = ['People', 'Balances', 'Yearly contributions', 'Spending', 'Healthcare', 'Social Security'];
+
+  test('the example plan is example everywhere', () => {
+    expect(untouchedSections(examplePlan(2026))).toEqual(ALL);
+  });
+
+  test('a section clears only when no part of it still matches the example', () => {
+    const plan = examplePlan(2026);
+    plan.you.birthYear = plan.spouse.birthYear = 1991; // People edited: both birth years changed
+    plan.you.balances.pretax = 60_000; // Balances: only your part edited, spouse's and household's untouched
+    expect(untouchedSections(plan)).toEqual(ALL.filter((s) => s !== 'People'));
+    plan.spouse.balances.pretax = 0;
+    plan.household.cash = 20_000;
+    expect(untouchedSections(plan)).not.toContain('Balances');
+  });
+
+  test('a plan with every section edited has none left', () => {
+    const plan = examplePlan(2026);
+    for (const p of [plan.you, plan.spouse]) {
+      p.salary = 80_000;
+      p.balances.roth = 10_000;
+      p.contributions.pretax = 10_000;
+      p.healthcare.preMedicare = 12_000;
+      p.socialSecurity.manualPia = 1_800;
+    }
+    plan.household.taxable = 50_000;
+    plan.household.taxableContribution = 5_000;
+    plan.household.traditionalSpending = 60_000;
+    expect(untouchedSections(plan)).toEqual([]);
   });
 });

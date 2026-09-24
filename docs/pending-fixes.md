@@ -75,30 +75,6 @@ Example for the example plan:
 
 ## P0: wrong or dangerously misleading
 
-### 2. Flag example values still in use (clarity)
-
-- **Problem:**
-  - The app starts with an example plan. Only the People section is open; Balances, Contributions,
-    Spending, Healthcare, Social Security, Dated items and Assumptions start collapsed.
-  - The only warning ("The left side is filled with example numbers…") disappears once results show.
-  - "How this works" tags the example claim ages as "yours", because the status is hard-coded `'changed'`.
-- **Where:**
-  - `src/ui/InputsPanel.tsx`: the `<Section>` calls at lines 32–162 (only People has `open`).
-  - `src/ui/fields.tsx` `Section`.
-  - `src/App.tsx`: the empty-state text at ~line 219.
-  - `src/engine/assumptions.ts:102`: the claim-age row.
-  - The example plan itself is `examplePlan()` in `src/engine/defaults.ts`.
-- **Evidence:** A 35-year-old couple (both born 1991, salaries $70k and $60k) who edit only People:
-  - Coast says **"You can stop saving now"** (needs $560k, "has" the example's $880k).
-  - Traditional says 2041.
-  - With a real $60k saved, the answers are Coast 2035 and Traditional 2047.
-- **Change:**
-  - Compare each section's values with `examplePlan()`. While any section still matches, show a persistent
-    banner above the results naming those sections. Alternatively, open all sections on first launch.
-  - Base the claim-age status on the actual default value.
-- **Test:** unit-test the "which sections are untouched" function. Check in the browser that the banner
-  appears and clears.
-
 ### 3. Tax dated income (accuracy)
 
 - **Problem:**

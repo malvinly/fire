@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { examplePlan } from './engine/defaults';
+import { examplePlan, untouchedSections } from './engine/defaults';
 import type { Detail, Tier, TierResult } from './engine/solve';
 import { MARKET } from './engine/returns';
 import type { Plan } from './engine/types';
@@ -159,6 +159,7 @@ export default function App() {
   const tierOrder: Tier[] = ['traditional', 'chubby', 'coast'];
   const thisYear = new Date().getFullYear();
   const selResult = results?.tiers[selTier];
+  const exampleSections = untouchedSections(plan);
 
   return (
     <div className="app">
@@ -187,6 +188,12 @@ export default function App() {
           </aside>
           <section className="results" aria-label="Results">
             {error && <div className="banner warn"><Icon name="alert" /> {error}</div>}
+            {exampleSections.length > 0 && (
+              <div className="banner warn">
+                <Icon name="alert" /> Still example numbers: {exampleSections.join(', ')}. Results use them until you replace
+                them with yours.
+              </div>
+            )}
             {plan.startYear < thisYear && (
               <div className="banner warn">
                 <Icon name="alert" /> This plan starts in {plan.startYear}. For a yearly checkup, move it to {thisYear} and

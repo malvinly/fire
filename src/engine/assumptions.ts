@@ -3,7 +3,7 @@
 // (docs/UPDATE_DATA_PROMPT.md). Each row: what, the value used, default or yours, why, and the source.
 
 import { FEDERAL, LIMITS, RULES_YEAR, SOCIAL_SECURITY, rmdStartAge } from '../data/rules';
-import { CHUBBY_SPENDING_FACTOR, DEFAULT_ASSUMPTIONS, FIDELITY_SPENDING_FACTOR, chubbyDefaultSpending, datedExpensesToday, fidelityDefaultSpending } from './defaults';
+import { CHUBBY_SPENDING_FACTOR, DEFAULT_ASSUMPTIONS, EXAMPLE_CLAIM_AGE, FIDELITY_SPENDING_FACTOR, chubbyDefaultSpending, datedExpensesToday, fidelityDefaultSpending } from './defaults';
 import { MARKET } from './returns';
 import type { Plan } from './types';
 
@@ -99,7 +99,8 @@ export function describeAssumptions(plan: Plan): AssumptionRow[] {
       why: 'SSA’s formula: your top 35 years of pay, adjusted for wage growth; years after you stop working count as zero.', source: { label: 'SSA benefit formula', url: 'https://www.ssa.gov/oact/cola/piaformula.html' }, decision: 'D24' },
     { group: 'Social Security', label: 'Trust fund cut', value: `100% until ${tf.startYear}, then ${pct(tf.startPct, 0)} falling to ${pct(tf.endPct, 0)} by ${tf.endYear}`, status: st(tfSame),
       why: 'Plans conservatively for the retirement trust fund’s officially projected shortfall. Set both shares to 100% for no cut.', source: { label: '2026 Trustees Report', url: 'https://www.ssa.gov/oact/trsum/' }, decision: 'D26' },
-    { group: 'Social Security', label: 'Claim ages', value: `${plan.you.name} ${plan.you.socialSecurity.claimAge}, ${plan.spouse.name} ${plan.spouse.socialSecurity.claimAge}`, status: 'changed',
+    { group: 'Social Security', label: 'Claim ages', value: `${plan.you.name} ${plan.you.socialSecurity.claimAge}, ${plan.spouse.name} ${plan.spouse.socialSecurity.claimAge}`,
+      status: st(plan.you.socialSecurity.claimAge === EXAMPLE_CLAIM_AGE && plan.spouse.socialSecurity.claimAge === EXAMPLE_CLAIM_AGE),
       why: 'Early claiming reduces, delayed claiming (to 70) increases benefits; spousal top-up included.', decision: 'D25' },
 
     // Taxes & accounts
