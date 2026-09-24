@@ -87,18 +87,6 @@ Example for the example plan:
 
 ## P3: polish and rare edges
 
-### 21. Social Security first-year months (accuracy)
-
-- **Problem:** the first year of benefits pays `13 − birthMonth` months.
-  - SSA pays each month's benefit the following month, so at most `12 − birthMonth` months arrive that
-    calendar year.
-  - At 62, entitlement starts the month after the birthday month, which is one month fewer again.
-- **Where:** `annualBenefits` in `src/engine/socialSecurity.ts:67` (own benefit) and `:77` (spousal).
-- **Evidence:** a June-born claimant at 62 is paid 7 months in the first year; cash actually received is 5.
-  That overpays $2–5k once.
-- **Change:** use `12 − birthMonth` (and one fewer at 62), or document the convention in a D-row. Update
-  `tests/socialSecurity.test.ts`.
-
 ### 22. Warn on dated items outside the plan (robustness)
 
 - **Problem:** some items silently add $0: an ongoing item whose end is before its start, a one-time item in

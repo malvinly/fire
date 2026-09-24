@@ -71,23 +71,37 @@ export function annualBenefits(a: ClaimantInput, b: ClaimantInput, year: number)
   return [personBenefit(a, b, year), personBenefit(b, a, year)];
 }
 
+/**
+ * First month (1–12) a claimant is entitled to benefits in the claim year. At 62 it is the month after the
+ * birthday month, because you must be 62 for the whole month (D25).
+ */
+function firstMonth(c: ClaimantInput): number {
+  return c.birthMonth + (c.claimAge === 62 ? 1 : 0);
+}
+
+/** Months of benefit received in `year`, cash basis: each month's benefit arrives the following month (D25). */
+function monthsPaid(year: number, fromYear: number, fromMonth: number): number {
+  if (year < fromYear) return 0;
+  return year > fromYear ? 12 : Math.max(0, 12 - fromMonth);
+}
+
 function personBenefit(self: ClaimantInput, other: ClaimantInput, year: number): number {
   const startYear = self.birthYear + self.claimAge;
   if (year < startYear) return 0;
-  const monthsThisYear = year === startYear ? 13 - self.birthMonth : 12;
   const own = self.pia * ownClaimFactor(self.birthYear, self.claimAge);
-  let spousal = 0;
+  let total = own * monthsPaid(year, startYear, firstMonth(self));
   const otherStart = other.birthYear + other.claimAge;
   if (year >= otherStart) {
     const excess = Math.max(0, 0.5 * other.pia - self.pia);
     // Spousal starts when both have filed; its reduction depends on self's age when it starts.
     const spousalStartAge = Math.max(self.claimAge, otherStart - self.birthYear);
-    spousal = excess * spousalClaimFactor(self.birthYear, Math.min(spousalStartAge, 70));
-    if (year === otherStart && otherStart > startYear) {
-      return own * monthsThisYear + spousal * (13 - other.birthMonth);
-    }
+    const spousal = excess * spousalClaimFactor(self.birthYear, Math.min(spousalStartAge, 70));
+    const fromYear = Math.max(startYear, otherStart);
+    const fromMonth = startYear === otherStart ? Math.max(firstMonth(self), firstMonth(other))
+      : otherStart > startYear ? firstMonth(other) : firstMonth(self);
+    total += spousal * monthsPaid(year, fromYear, fromMonth);
   }
-  return (own + spousal) * monthsThisYear;
+  return total;
 }
 
 /** Share of scheduled benefits payable in `year` under the trust-fund assumption (D26). */

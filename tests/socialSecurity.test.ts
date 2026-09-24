@@ -56,14 +56,25 @@ describe('claiming age', () => {
   test('spousal top-up: lower earner gets 50% of the higher PIA once both have filed', () => {
     const hi = { birthYear: 1980, birthMonth: 1, claimAge: 67, pia: 3_000 };
     const lo = { birthYear: 1980, birthMonth: 1, claimAge: 67, pia: 1_000 };
-    const [, loAnnual] = annualBenefits(hi, lo, 2047);
-    expect(loAnnual).toBeCloseTo(12 * 1_500, 6);
+    // Both entitled from January 2047; January's benefit arrives in February, so 11 months that year.
+    expect(annualBenefits(hi, lo, 2047)[1]).toBeCloseTo(11 * 1_500, 6);
+    expect(annualBenefits(hi, lo, 2048)[1]).toBeCloseTo(12 * 1_500, 6);
   });
-  test('first benefit year is prorated by birth month', () => {
+  test('first benefit year counts only the months paid that year (each month is paid the month after, D25)', () => {
     const a = { birthYear: 1980, birthMonth: 7, claimAge: 67, pia: 1_200 };
     const b = { birthYear: 1980, birthMonth: 7, claimAge: 67, pia: 1_200 };
-    expect(annualBenefits(a, b, 2047)[0]).toBeCloseTo(6 * 1_200, 6);
+    // Entitled from July; July–November arrive August–December: 5 months. December's comes in January.
+    expect(annualBenefits(a, b, 2047)[0]).toBeCloseTo(5 * 1_200, 6);
     expect(annualBenefits(a, b, 2048)[0]).toBeCloseTo(12 * 1_200, 6);
+  });
+
+  test('at 62 entitlement starts the month after the birthday month', () => {
+    const june = { birthYear: 1980, birthMonth: 6, claimAge: 62, pia: 1_000 };
+    const december = { birthYear: 1980, birthMonth: 12, claimAge: 62, pia: 1_000 };
+    const factor = ownClaimFactor(1980, 62);
+    expect(annualBenefits(june, june, 2042)[0]).toBeCloseTo(5 * 1_000 * factor, 6); // July–November, paid Aug–Dec
+    expect(annualBenefits(december, december, 2042)[0]).toBe(0); // January's benefit arrives in February 2043
+    expect(annualBenefits(december, december, 2043)[0]).toBeCloseTo(12 * 1_000 * factor, 6);
   });
 });
 

@@ -324,13 +324,13 @@ describe('two spouses', () => {
   test('a spousal top-up starting mid-year is prorated by the other spouse\'s birth month', () => {
     const hi = { birthYear: 1980, birthMonth: 4, claimAge: 67, pia: 3_000 }; // files 2047, April birthday
     const lo = { birthYear: 1982, birthMonth: 1, claimAge: 62, pia: 1_000 }; // own benefit since 2044
-    // 2047: lo's own benefit all 12 months; the top-up only for the 9 months from April (13 − 4).
+    // 2047: lo's own benefit all 12 months; the top-up from April, paid May–December: 8 months (12 − 4).
     //   own = 1,000 × (1 − 36×5/9% − 24×5/12%) = 1,000 × 0.70 = 700/month
     //   top-up = (1,500 − 1,000) × (1 − 24×25/36%) (lo is 65, 24 months early) = 500 × 0.8333 = 416.67/month
-    //   2047 = 700 × 12 + 416.67 × 9 = 8,400 + 3,750 = 12,150; hi's own first year = 3,000 × 9 = 27,000.
+    //   2047 = 700 × 12 + 416.67 × 8 = 8,400 + 3,333.33 = 11,733.33; hi's own first year = 3,000 × 8 = 24,000.
     const [hi2047, lo2047] = annualBenefits(hi, lo, 2047);
-    expect(lo2047).toBeCloseTo(12_150, 6);
-    expect(hi2047).toBeCloseTo(27_000, 6);
+    expect(lo2047).toBeCloseTo(11_733.33, 2);
+    expect(hi2047).toBeCloseTo(24_000, 6);
   });
 });
 
