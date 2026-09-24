@@ -192,6 +192,7 @@ const COLUMNS: { label: string; help?: string }[] = [
   { label: 'From 401(k)/IRA' },
   { label: 'From Roth' },
   { label: 'From HSA' },
+  { label: 'Reinvested', help: 'Money that came in this year but wasn’t needed for spending and taxes: the unspent part of a required withdrawal, or income above what the year needed. It goes into the brokerage account.' },
   { label: 'Moved to Roth', help: '401(k)/IRA money converted to Roth this year (you pay tax now). It can be withdrawn tax- and penalty-free 5 years later.' },
   { label: 'Roth available', help: 'Roth money you could take out at the start of the year without tax or penalty: what you put in, conversions at least 5 years old, and all of it once that person is 59½. Conversions only help an early retirement if they show up here before the calendar year their owner turns 60.' },
   { label: 'Required withdrawal', help: 'IRS-required minimum withdrawal from 401(k)/IRA (RMD), from age 75 (73 if born 1951–59). Anything not spent is reinvested.' },
@@ -230,6 +231,7 @@ export function DetailView({ plan, detail, loading, simpleNumber }: { plan: Plan
   const target = plan.assumptions.targetSuccess;
   const retireYear = detail.scenario.retireYear;
   const retired = detail.medianPath.filter((r) => !r.working);
+  const runsOut = retired.find((r) => r.shortfall > 1)?.year;
   const [zoom, setZoom] = useState(false);
   return (
     <div style={{ opacity: loading ? 0.6 : 1 }}>
@@ -332,7 +334,8 @@ export function DetailView({ plan, detail, loading, simpleNumber }: { plan: Plan
         <p className="text-2" style={{ marginTop: 4, marginBottom: 10 }}>
           One simulated market that stays close to the typical line in the first 10 years of retirement: where each year’s
           spending money comes from and the taxes paid, in today’s dollars. Money in (Social Security,
-          other income, the “From …” columns) equals spending plus taxes and penalty.
+          other income, the “From …” columns) equals spending, taxes and penalty plus “Reinvested”
+          {runsOut ? `, until savings run out in ${runsOut}` : ''}.
         </p>
         <div className="table-scroll">
           <table className="data">
@@ -346,6 +349,7 @@ export function DetailView({ plan, detail, loading, simpleNumber }: { plan: Plan
                   <td>{moneyShort(r.socialSecurity)}</td><td>{moneyShort(r.otherIncome)}</td>
                   <td>{moneyShort(r.withdrawals.cash)}</td><td>{moneyShort(r.withdrawals.taxable)}</td>
                   <td>{moneyShort(r.withdrawals.pretax)}</td><td>{moneyShort(r.withdrawals.roth)}</td><td>{moneyShort(r.withdrawals.hsa)}</td>
+                  <td>{moneyShort(r.reinvested)}</td>
                   <td>{moneyShort(r.conversions)}</td><td>{moneyShort(r.seasonedRoth)}</td><td>{moneyShort(r.rmd)}</td><td>{moneyShort(r.taxableIncome)}</td>
                   <td>{moneyShort(r.federalTax)}</td><td>{moneyShort(r.stateTax)}</td><td>{moneyShort(r.penaltyTax)}</td>
                   <td>{moneyShort(r.balances.total)}</td>

@@ -520,6 +520,7 @@ export function simulatePath(ctx: Context, paths: ReturnPaths, p: number, opts: 
           hsa: hsaMedical + d.hsaNonMedical,
         };
         rec.conversions = d.convert[0] + d.convert[1];
+        rec.reinvested = deposit;
         rec.rmd = d.rmd[0] + d.rmd[1];
         rec.penaltyWithdrawals = penaltyAmt;
         rec.ordinaryIncome = tax.ordinary + tax.taxableSocialSecurity;
@@ -584,6 +585,7 @@ function blankRecord(ctx: Context, t: number, working: boolean): YearRecord {
     otherIncome: 0,
     withdrawals: { cash: 0, taxable: 0, roth: 0, pretax: 0, hsa: 0 },
     conversions: 0,
+    reinvested: 0,
     seasonedRoth: 0,
     rmd: 0,
     penaltyWithdrawals: 0,

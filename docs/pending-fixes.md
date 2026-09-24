@@ -119,15 +119,6 @@ None pending.
 
 ## P3: polish and rare edges
 
-### 26. Detail-view caption on money in and out (clarity)
-
-- **Problem:** the year-by-year table says money in equals spending plus taxes and penalty. In a year with an RMD
-  that isn't all spent, "From 401(k)/IRA" includes the reinvested surplus, so the two sides differ.
-- **Where:** the caption above the year-by-year table (`src/ui/Results.tsx:334`) and the `withdrawals.pretax`
-  record in `src/engine/simulate.ts` (RMDs are taken in full; what spending doesn't need goes back to the
-  brokerage account, as the "Required withdrawal" column's help says).
-- **Change:** record the reinvested RMD surplus separately (or subtract it from "From 401(k)/IRA") and say where it went.
-
 ### 29. Stronger detail-view and income-stacking tests (tests)
 
 - **Problem:** the D73 test checks only the first retired year, so the 10-year window could shrink unnoticed; the

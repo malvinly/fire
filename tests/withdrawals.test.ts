@@ -3,7 +3,8 @@ import { describe, expect, test } from 'vitest';
 import { buildContext } from '../src/engine/context';
 import { constantPath } from '../src/engine/returns';
 import { simulatePath } from '../src/engine/simulate';
-import { ctxFor, simplePlan, START } from './helpers';
+import type { YearRecord } from '../src/engine/types';
+import { ctxFor, noYields, simplePlan, START } from './helpers';
 
 function earlyRetiree(age: number) {
   const plan = simplePlan({ years: 96 - age + 1, spending: 40_000, roth: 0 });
@@ -88,6 +89,50 @@ describe('required minimum distributions', () => {
       expect(ctx.rmdDivisor[0][t - 1]).toBe(0);
       expect(ctx.rmdDivisor[0][t]).toBe(divisor);
     }
+  });
+
+  // The year-by-year table's caption: money in = spending + taxes and penalty + reinvested. The brokerage yields
+  // are off so the year's tax doesn't depend on how much is reinvested: the tax loop is then exact and the identity
+  // holds to the cent (with them on, to within the loop's 50-cent tolerance).
+  const moneyIn = (r: YearRecord) => {
+    const w = r.withdrawals;
+    return r.socialSecurity + r.otherIncome + w.cash + w.taxable + w.pretax + w.roth + w.hsa;
+  };
+  const moneyOut = (r: YearRecord) => r.spending + r.federalTax + r.stateTax + r.penaltyTax + r.reinvested!;
+
+  test('an RMD larger than the year needs is taken in full and the unspent part recorded as reinvested', () => {
+    const plan = earlyRetiree(75); // born 1951: RMDs from 73
+    plan.you.balances.pretax = 2_000_000;
+    plan.assumptions.stateTaxRate = 0.05;
+    const ctx = noYields(ctxFor(plan));
+    const r = simulatePath(ctx, constantPath(ctx.len, 0.03), 0, { record: true, stopIdx: 1 }).records![0];
+    expect(r.rmd).toBeCloseTo(2_000_000 / 24.6, 6);
+    expect(r.withdrawals.pretax).toBeCloseTo(r.rmd, 6); // "From 401(k)/IRA" is what was withdrawn and taxed
+    expect(r.federalTax).toBeGreaterThan(0);
+    expect(r.stateTax).toBeGreaterThan(0);
+    expect(r.reinvested).toBeGreaterThan(20_000);
+    expect(r.reinvested).toBeCloseTo(r.rmd - (r.spending + r.federalTax + r.stateTax), 2);
+    expect(moneyIn(r)).toBeCloseTo(moneyOut(r), 2);
+  });
+
+  test('income beyond the year\'s need (Social Security and a pension above spending) is recorded as reinvested', () => {
+    const plan = earlyRetiree(70); // born 1956: no RMD yet
+    plan.household.traditionalSpending = 20_000;
+    for (const p of [plan.you, plan.spouse]) p.socialSecurity = { mode: 'manual', earnings: [], manualPia: 3_000, claimAge: 67 };
+    plan.datedItems = [{
+      id: 'pension', label: 'Pension', direction: 'income', amount: 40_000, frequency: 'ongoing',
+      start: { kind: 'year', year: START }, fixedDollars: false, taxable: true,
+    }];
+    plan.assumptions.stateTaxRate = 0.05;
+    const ctx = noYields(ctxFor(plan));
+    const r = simulatePath(ctx, constantPath(ctx.len, 0.03), 0, { record: true, stopIdx: 1 }).records![0];
+    expect(r.rmd).toBe(0);
+    expect(r.socialSecurity).toBeGreaterThan(60_000);
+    expect(r.otherIncome).toBe(40_000);
+    expect(r.federalTax).toBeGreaterThan(0);
+    expect(r.reinvested).toBeGreaterThan(60_000);
+    expect(r.reinvested).toBeCloseTo(r.socialSecurity + r.otherIncome - (r.spending + r.federalTax + r.stateTax), 2);
+    expect(moneyIn(r)).toBeCloseTo(moneyOut(r), 2);
   });
 });
 

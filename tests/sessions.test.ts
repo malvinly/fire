@@ -1,9 +1,13 @@
 // Loading session files and the browser draft (D62, D65).
 import { describe, expect, test } from 'vitest';
 import { DEFAULT_ASSUMPTIONS, examplePlan } from '../src/engine/defaults';
+import { constantPath } from '../src/engine/returns';
+import { simulatePath } from '../src/engine/simulate';
 import { planProblems } from '../src/engine/validate';
 import type { Detail } from '../src/engine/solve';
+import { moneyShort } from '../src/ui/format';
 import { detailMatches, detailSelection, makeSession, parseSession } from '../src/ui/sessions';
+import { ctxFor, simplePlan, START } from './helpers';
 
 function sessionText(edit: (plan: Record<string, unknown>) => void = () => {}): string {
   const s = JSON.parse(JSON.stringify(makeSession('test', examplePlan(2026), null)));
@@ -103,4 +107,23 @@ describe('the saved detail view of a stale session is shown only for the choice 
     expect(detailMatches(null, 'traditional', 2040)).toBe(false);
     expect(detailMatches(saved('traditional', 2040, 2040), 'traditional', null)).toBe(false);
   });
+});
+
+test('detail saved before the “Reinvested” column existed still opens, and the column shows “—”', () => {
+  const ctx = ctxFor(simplePlan());
+  const medianPath = simulatePath(ctx, constantPath(ctx.len, 0), 0, { record: true, stopIdx: 2 }).records!;
+  for (const r of medianPath) delete r.reinvested;
+  const s = JSON.parse(sessionText());
+  s.results = {
+    calculatedAt: 'x', tiers: [],
+    detail: {
+      tier: 'traditional', scenario: { retireYear: START, stopContributingYear: START, baseSpending: 40_000 },
+      success: { combined: 1, bootstrap: 1, historical: 1 }, penaltyRate: 0, years: [START, START + 1],
+      bands: { p50: [], p25: [], p10: [] }, worstHistorical: [], historicalCount: 0, medianPath, p10Path: medianPath, pia: [0, 0],
+    },
+  };
+  const loaded = parseSession(JSON.stringify(s)).results!.detail!.medianPath;
+  expect(loaded).toHaveLength(2);
+  expect(loaded[0].reinvested).toBeUndefined();
+  expect(moneyShort(loaded[0].reinvested)).toBe('—');
 });
