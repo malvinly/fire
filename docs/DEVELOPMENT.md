@@ -62,7 +62,7 @@ docs/
   DEVELOPMENT.md         this file
   pending-fixes.md       planned bug fixes and accuracy changes, by priority
   pending-features.md    planned new features, by importance
-  pending-decisions.md   open questions blocking some planned work
+  pending-decisions.md   design choices made for the planned work
 ```
 
 Terminology: the UI says "simulated markets" and "real past markets"; the code says bootstrap and

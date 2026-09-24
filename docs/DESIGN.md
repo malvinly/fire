@@ -79,4 +79,4 @@ Planned work is tracked in three files, each ordered by priority:
 - [pending-fixes.md](pending-fixes.md): bug fixes and accuracy, clarity and robustness changes.
 - [pending-features.md](pending-features.md): new capabilities, such as scenario comparison, survivor
   modeling, state tax exemptions, Rule of 55 and replaying a chosen historical year.
-- [pending-decisions.md](pending-decisions.md): open questions to settle before some of the above.
+- [pending-decisions.md](pending-decisions.md): design choices already made for that work.

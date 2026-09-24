@@ -2,7 +2,7 @@
 
 Bug fixes and accuracy, clarity and robustness changes. None of these adds a capability; each makes the
 calculator more correct or harder to misread. New capabilities are in
-[pending-features.md](pending-features.md). Choices that must be settled first are in
+[pending-features.md](pending-features.md). Design choices already made for this work are in
 [pending-decisions.md](pending-decisions.md).
 
 Source: a five-reviewer audit of v1 (accuracy, planning completeness, competitive features, first-time-user
@@ -14,8 +14,10 @@ clarity, robustness). Numbers come from the v1 engine on the example plan unless
 Read [DESIGN.md](DESIGN.md) (what each result means) and skim [DECISIONS.md](DECISIONS.md) (the D-numbers
 cited below) first. [DEVELOPMENT.md](DEVELOPMENT.md) has the layout and scripts. Then:
 
-1. **Check for a blocking decision.** If an item names a [decision](pending-decisions.md), that decision
-   belongs to the maintainer. Ask; don't choose.
+1. **Follow the decisions.** If an item names a [decision](pending-decisions.md), it has already been
+   made; build what it says, and record it as a D-row in DECISIONS.md when the item lands. If the work
+   raises a new design question that the docs don't answer, it belongs to the maintainer. Ask; don't
+   choose.
 2. **Write a failing test first** where the item says how to test it. It goes in the matching file in
    `tests/`; `tests/helpers.ts` has plan builders and fixed-return helpers.
 3. **Make the change**, then run `npm run typecheck`, `npm run lint`, `npm test` and `npm run build`.
@@ -44,6 +46,30 @@ Items are ordered by criticality:
 - **P1**: materially changes a typical user's answer, or silently breaks on a plausible input.
 - **P2**: a wrong answer in a narrower case, or a noticeable clarity gap.
 - **P3**: polish and rare edge cases.
+
+## Where warnings go
+
+Decided in [decision 5](pending-decisions.md#5-precision-vs-hedging): **the result cards stay crisp**. They
+show the target numbers only, with no caveat text. Every caution goes in one new panel, **"Before you act on
+these numbers"**, placed directly below the cards and above "Try a different retirement year" (in
+`src/App.tsx`, between the `cards` div and that panel).
+
+- One short line per warning, and **only the lines that apply** to the current results.
+- Lines name the tier they apply to ("Traditional 2039 …", "Coast …").
+- Fixes 4, 6, 7, 13 (disclaimer), 18 and 19 (today's dollars) each add a line here. Fix 12's longer
+  explanation goes in the detail view instead.
+- Nothing new is added to `TierCard`.
+
+Example for the example plan:
+
+> **Before you act on these numbers**
+> - Traditional 2039 and Chubby 2043 assume you'll have about $2.70M and $3.30M by then. Re-run each year
+>   with your real balances.
+> - Traditional 2039 is borderline (90.2%); it could be a year later.
+> - In 19% of markets the Traditional plan pays a 10% penalty on early 401(k)/IRA withdrawals.
+> - Coast assumes you both keep working until 65 with pay covering all spending, and stopping saving
+>   includes giving up employer matches.
+> - All amounts are in today's dollars. These are estimates, not financial advice. *What this doesn't model →*
 
 ---
 
@@ -135,7 +161,7 @@ Items are ordered by criticality:
   drops by the pension amount. A non-taxable item leaves tax unchanged.
 - **Related:** D17, D29, D49.
 
-### 4. Reword "Your date already allows for bad markets while you save" (clarity)
+### 4. Replace "Your date already allows for bad markets while you save" (clarity)
 
 - **Problem:**
   - The earliest date is a probability seen from today: in 90% of futures the plan works if you retire
@@ -146,11 +172,13 @@ Items are ordered by criticality:
 - **Evidence:** Example plan, 2039. Arriving with the bad-market balance ($2.06M rather than the $2.70M
   needed) passes in only **~63%** of markets. That was measured with `evaluate(..., { retirementOnly: true })`
   from the projected 2039 account mix, scaled.
-- **Change:** use text like "If your savings in 2039 are below $2.70M, retiring then is below your 90%
-  target. Re-run this plan every year with your real balances."
+- **Change:**
+  - Remove the sentence from the card.
+  - Add a line to the [warnings panel](#where-warnings-go) for Traditional and Chubby: "{Tier} {year} assumes
+    you'll have about {Savings needed} by then. Re-run each year with your real balances."
 - **Related:** D54.
 
-### 5. Roth ladder help text (clarity)
+### 5. Roth ladder default and help text (accuracy / clarity)
 
 - **Problem:**
   - The help says conversions "build early-retirement access". They only do if they season (5 years)
@@ -164,22 +192,37 @@ Items are ordered by criticality:
     `src/engine/types.ts:117`.
   - Seasoning logic is `unseasoned` in `src/engine/simulate.ts:134`.
 - **Evidence:** at the 2039 retirement year:
-  - 12% fill (the default): penalty in 37.5% of markets, $74k left in a bad market.
-  - Off: 15.7% and $291k.
+
+  | Fill | Needed | Penalty rate | Left in a bad market |
+  |---|---|---|---|
+  | Off | $2.631M | 15.7% | $291k |
+  | 10% | $2.622M | 19.0% | $365k |
+  | 12% (default) | $2.695M | 37.5% | $74k |
+
 - **Change:**
+  - **Change the default fill from the 12% to the 10% bracket**
+    ([decision 3](pending-decisions.md#3-roth-conversion-default)): `bracketFill` in `DEFAULT_ASSUMPTIONS`
+    (`src/engine/defaults.ts:15`).
+    - Update D28/D29, which call 12% the "tax-efficient default".
+    - Bump `DATA_VERSIONS.engine`.
+    - Update any test that assumes 12%.
+    - This changes the example plan's results, so refresh the baseline in
+      [Reproducing the numbers](#reproducing-the-numbers).
   - Fix the help text.
   - Add a "Seasoned Roth available" value to `YearRecord`, filled when recording, and show it as a column.
-- **Not here:** the default setting is [decision 3](pending-decisions.md#3-roth-conversion-default).
-- **Related:** D14, D29, D30.
+  - Revisit the default once the survivor test ([feature 2](pending-features.md#2-what-if-one-of-you-dies-first))
+    exists.
+- **Related:** D14, D28, D29, D30.
 
 ---
 
 ## P1: materially changes answers or breaks on plausible input
 
-### 6. Show the early-withdrawal penalty rate on the card (clarity)
+### 6. Show the early-withdrawal penalty rate below the cards (clarity)
 
-- **Problem:** Plans that must pay the 10% early-withdrawal penalty still count as successes. The share of
-  markets where that happens appears only in the detail view.
+- **Problem:** Plans that must pay the 10% early-withdrawal penalty still count as successes (kept that
+  way by [decision 4](pending-decisions.md#4-penalty-paths-as-success)). The share of markets where it
+  happens appears only in the detail view.
 - **Where:**
   - `successRate` already returns `penaltyRate` (`src/engine/solve.ts:133`).
   - `solveTier` (`solve.ts:230`) calls it at the earliest year (~line 260) but drops the value.
@@ -188,11 +231,11 @@ Items are ordered by criticality:
 - **Evidence:** 37.5% at the example's headline Traditional date.
 - **Change:**
   - Carry `penaltyRate` into `TierResult`.
-  - When it is above ~5%, add a line to the card: "In X% of markets you'd pay a 10% early-withdrawal
-    penalty before 59½ (still counted as success). Rule of 55 / 72(t) aren't modeled."
+  - When it is above ~5%, add a line to the [warnings panel](#where-warnings-go): "In X% of markets the
+    {tier} plan pays a 10% penalty on early 401(k)/IRA withdrawals." Not on the card.
 - **Related:** [decision 4](pending-decisions.md#4-penalty-paths-as-success).
 
-### 7. Coast caveats on the card (clarity)
+### 7. Coast caveats (clarity)
 
 - **Problem:**
   - "You can stop saving now" depends on both jobs covering all spending until the coast age.
@@ -206,9 +249,9 @@ Items are ordered by criticality:
 - **Evidence:** the example Coast card shows "You can stop saving now", "Needed today $783K" and
   "4% rule check … $2.74M".
 - **Change:**
-  - Add a visible subline: "…if you both keep working until {coast age} and your pay covers all spending.
-    Includes giving up employer matches."
-  - For Coast, hide the 4% line or relabel it "needed at {coast age} (4% rule)".
+  - Add a line to the [warnings panel](#where-warnings-go): "Coast assumes you both keep working until
+    {coast age} with pay covering all spending, and stopping saving includes giving up employer matches."
+  - Remove the 4% line from the Coast card.
 
 ### 8. Tax brokerage dividends and interest yearly (accuracy)
 
@@ -295,15 +338,18 @@ Items are ordered by criticality:
 - **Problem:** a 90% badge alone reads as a guarantee, or as a 1-in-10 chance of going broke soon after
   retiring.
 - **Where:**
-  - `TierCard` (`src/ui/Results.tsx:51`).
+  - The detail view's savings chart panel (`DetailView`, `src/ui/Results.tsx:182`).
   - `SUCCESS_HELP` in `src/ui/helpText.ts`.
-  - Per-path `failYear` is in the `outcomes` returned by `successRate` (`src/engine/solve.ts:115–133`).
+  - Per-path `failYear` is in the `outcomes` returned by `successRate` (`src/engine/solve.ts:115–133`);
+    `detailFor` already has them for the chosen year.
 - **Evidence:** in the example plan, failures occur in retirement year 29 or later, leaving about $40k/yr of
   Social Security against about $110k of spending.
 - **Change:**
-  - In `solveTier`, compute the median failure year among failed paths at the earliest date.
-  - Show one line: "In about 1 in 10 markets savings run out, typically in retirement year N or later.
-    You'd then live on Social Security (~$X/yr) unless you cut spending earlier."
+  - In `detailFor`, compute the median failure year among failed paths for the chosen year.
+  - Show a short explanation next to the savings chart, which shows those bad markets. Not on the card, and
+    not in the warnings panel ([decision 5](pending-decisions.md#5-precision-vs-hedging)). For example: "In
+    about 1 in 10 markets savings run out, typically in retirement year N or later. You'd then live on
+    Social Security (~$X/yr) unless you cut spending earlier."
 
 ### 13. Disclose limitations in the app (clarity)
 
@@ -327,7 +373,8 @@ Items are ordered by criticality:
     - things deliberately left out: ACA premium subsidies, separate retirement years per spouse, flexible
       spending / guardrails, IRMAA, asset location and per-state tax rules.
   - Add a D13 row.
-  - Add a one-line disclaimer under the cards ("Estimates, not a guarantee or financial advice").
+  - Make the last line of the [warnings panel](#where-warnings-go) a disclaimer that links to the new group:
+    "These are estimates, not financial advice. *What this doesn't model →*"
   - Fix the lean-table wording.
 
 ### 14. Search limit for age-gap couples (accuracy)
@@ -384,12 +431,20 @@ Items are ordered by criticality:
     of tax unpaid. With realistic inputs it always converged.
   - Fees above 100% make balances negative. Negative trust-fund % gives negative Social Security.
   - The year picker past the plan end reports 100%.
-- **Change (proposed ranges):**
-  - balances, contributions and spending ≥ 0;
-  - fees 0–5%, state tax 0–15%, healthcare growth −5% to +10%, trust fund 0–100%;
-  - coast age above You's current age and below the plan end;
-  - year picker ≤ `endYear − 1`.
-  - Whether each is a warning or a clamp is [decision 6](pending-decisions.md#6-validation-strictness).
+- **Change:** block impossible values and warn on unusual ones
+  ([decision 6](pending-decisions.md#6-validation-strictness)).
+  - **Block** (the field won't accept the value, and says why):
+    - negative balances, contributions or spending. The message says to enter debts as a dated expense,
+      e.g. loan payments;
+    - fees and tax rates below 0% or above 100%;
+    - trust-fund percentage outside 0–100%;
+    - coast age at or below You's current age, or at or past the plan end;
+    - year picker past `endYear − 1`.
+  - **Warn but allow** (a message under the field, like the existing end-age warning):
+    - fees above 3%;
+    - state tax above 15%;
+    - healthcare growth above +10% or below 0% a year.
+  - Fix 9's `validatePlan()` should reject blocked values in loaded files too.
 
 ### 17. Social Security wage growth (accuracy)
 
@@ -407,9 +462,17 @@ Items are ordered by criticality:
   - Benefits come out ~22% low at age 40 and ~11% at 50.
   - Raising the example PIA from $2,500 to $3,000 (+20%) cuts the Traditional FIRE number from $2,695,200 to
     $2,563,300 (−4.9%). The retirement year is unchanged.
-- **Change:** multiply the benefit by (1 + g)^(birthYear + 60 − awiLatestYear), using the Trustees' g ≈ 1.1%.
-  Grow the taxable maximum the same way. Or keep the method and state the size of the effect in D24.
-- **Blocked by:** [decision 1](pending-decisions.md#1-which-way-to-correct).
+- **Change** ([decision 1](pending-decisions.md#1-which-way-to-correct)): make the growth rate a visible
+  setting whose default keeps today's behavior.
+  - Add an `ssWageGrowth` assumption: "Social Security wage growth above inflation", **default 0%**, in
+    "Assumptions (advanced)" ([decision 2](pending-decisions.md#2-where-new-settings-go)).
+  - Multiply the benefit by (1 + g)^(birthYear + 60 − awiLatestYear), and grow the taxable maximum the same
+    way. At g = 0 the results must be identical to today's.
+  - Add a How-this-works row and help text stating the size of the effect and the Trustees' intermediate
+    assumption (~1.1%) as a reference. Update D24 to replace "slightly" with the size.
+  - This adds an `Assumptions` field; see step 5 of [How to work on an item](#how-to-work-on-an-item).
+- **Test:** g = 0 reproduces today's benefits exactly. g = 1.1% raises a 40-year-old's benefit by about
+  (1.011)^20 ≈ 24%.
 
 ---
 
@@ -428,13 +491,15 @@ Items are ordered by criticality:
   | 4 | 2040 |
 
   At 2039 the simulated-market chance is 90.2%.
-- **Change:** when combined success at the earliest year is within ~1.5 points of the target, show
-  "borderline — could be a year later".
+- **Change:** when combined success at the earliest year is within ~1.5 points of the target, add a line to
+  the [warnings panel](#where-warnings-go): "{Tier} {year} is borderline ({success}); it could be a year
+  later." Not on the card.
 
-### 19. Card labels (clarity)
+### 19. Today's dollars and the Social Security label (clarity)
 
 - **Today's dollars:** the card figures (`src/ui/Results.tsx:83–120`) say "today's dollars" only in hover
-  help. Add "(today's $)" to the stat labels.
+  help. Say it once, in the last line of the [warnings panel](#where-warnings-go) ("All amounts are in
+  today's dollars."), rather than adding labels to the cards.
 - **Social Security in statement mode:** the detail label (`Results.tsx:201`) says "based on working until
   {year}". In statement mode the figure is exactly the entered `manualPia` (`src/engine/context.ts:88`), so
   it doesn't depend on that year. Use different text in manual mode.
@@ -507,7 +572,8 @@ Items are ordered by criticality:
 ## Reproducing the numbers
 
 "Example plan" means `examplePlan(2026)` from `src/engine/defaults.ts`: plan start 2026, 10,000 simulated
-markets, seed 20260924. Baseline results:
+markets, seed 20260924. Baseline results with the v1 defaults (12% bracket fill; fix 5 changes it to 10%,
+after which these numbers change):
 
 | Tier | Earliest year | FIRE number |
 |---|---|---|

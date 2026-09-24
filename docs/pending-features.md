@@ -1,8 +1,10 @@
 # Pending features
 
 New capabilities for the calculator. Bug fixes and accuracy changes are in
-[pending-fixes.md](pending-fixes.md). Choices that must be settled first are in
-[pending-decisions.md](pending-decisions.md).
+[pending-fixes.md](pending-fixes.md). Design choices already made for this work are in
+[pending-decisions.md](pending-decisions.md): where new settings go and what they default to
+([decision 2](pending-decisions.md#2-where-new-settings-go)), and keeping the result cards free of extra
+text ([decision 5](pending-decisions.md#5-precision-vs-hedging)).
 
 Each feature starts with a plain-language explanation of what it is and what you'd see in the app. The
 **For implementers** part at the end of each gives code locations and a first version to build. The
@@ -48,12 +50,13 @@ Two small additions for asking "what if?":
 
 1. Press Calculate. Under the cards, a new button: **Keep as baseline**.
 2. Change something, e.g. set the return adjustment to −1%, and press Calculate again.
-3. Each card now shows both answers:
+3. The cards show the new answers as usual. A one-line strip directly under them compares with the
+   baseline (the cards themselves stay unchanged, per decision 5):
 
-   > **Traditional FIRE: 2042** (baseline 2039, **+3 years**)
-   > Savings needed when you retire: $2.76M (baseline $2.70M, **+$60k**)
+   > **Compared with baseline:** Traditional 2042 (was 2039, **+3 years**; needs $2.76M, was $2.70M) ·
+   > Chubby 2046 (was 2043) · Coast unchanged
 
-4. **Clear baseline** removes the comparison.
+4. **Clear baseline** removes the strip.
 
 The return adjustment is a new field under **Assumptions (advanced)**: "Returns vs. history (± per year)",
 default 0%.
@@ -75,8 +78,8 @@ default 0%.
 - **Where:** results state in `src/App.tsx`; `TierCard` (`src/ui/Results.tsx:51`); `feeRate` is applied in
   `realYears` (`src/engine/returns.ts:38–42`).
 - **First version:**
-  - Store the current `TierResult`s when "Keep as baseline" is pressed; render the deltas in `TierCard`.
-    No engine work.
+  - Store the current `TierResult`s when "Keep as baseline" is pressed, and render the comparison strip
+    between the cards and the warnings panel, not inside `TierCard`. No engine work.
   - Add `returnAdjustment` to `Assumptions`, applied on the same code path as `feeRate`, with its own
     How-this-works row and help text.
   - Side-by-side comparison of saved session files comes later.
@@ -101,8 +104,9 @@ case where one spouse dies earlier, because three things change for the one left
 
 ### What you'd see
 
-A new optional setting under Social Security or People: **"Also test: {name} dies at age [__]"**. With it
-set, the results add a line, e.g.:
+A new optional setting under People: **"Also test: {name} dies at age [__]"**. It's blank (off) by
+default. When it's set, a line appears in the "Before you act on these numbers" panel below the cards
+(see [Where warnings go](pending-fixes.md#where-warnings-go)), e.g.:
 
 > If You dies at 75: chance the money lasts for Spouse **87%** (below your 90% target)
 
@@ -136,7 +140,10 @@ Blank means no survivor test, as today.
   - A plan field `survivor: { person, deathAge, spendingDrop }` (off by default).
   - From the year after the death: survivor gets the larger of the two benefits; single brackets apply;
     spending × (1 − `spendingDrop`, default ~25%); the deceased's healthcare line is removed.
-  - Report success under that scenario next to the normal one.
+  - Report success under that scenario as a line in the warnings panel below the cards.
+  - Once this exists, revisit the Roth conversion default
+    ([decision 3](pending-decisions.md#3-roth-conversion-default)); conversions pay off mostly in the
+    survivor case.
   - Simplification to record in a D-row: the survivor-benefit reductions for claiming early are ignored.
 - **Test:** with the setting off, results are identical to today. With it on, the survivor year uses
   single brackets and one benefit.
@@ -216,7 +223,8 @@ common legal ways around that for early retirees:
   penalty from the retirement year.
 - **72(t) (later):** an option to start fixed penalty-free IRA payments at retirement. The app computes
   the allowed amount and shows it in the year-by-year table.
-- The detail view's "Markets needing an early-withdrawal penalty" figure would drop accordingly.
+- Both default to off. The penalty line in the panel below the cards (fix 6) and the detail view's
+  "Markets needing an early-withdrawal penalty" figure would drop accordingly.
 
 ### Why it's worth doing
 
