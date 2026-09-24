@@ -37,6 +37,14 @@ export function fidelityDefaultSpending(plan: Plan): number {
   return Math.round(Math.max(0, plan.household.currentSpending - datedExpensesToday(plan)) * FIDELITY_SPENDING_FACTOR);
 }
 
+/** Chubby FIRE: keep today's lifestyle — no Fidelity 15% cut (D48). */
+export const CHUBBY_SPENDING_FACTOR = 1;
+
+/** Default for Chubby FIRE spending: 1.0 × (current spending − dated expenses paid today), same base as Traditional. */
+export function chubbyDefaultSpending(plan: Plan): number {
+  return Math.round(Math.max(0, plan.household.currentSpending - datedExpensesToday(plan)) * CHUBBY_SPENDING_FACTOR);
+}
+
 function person(name: string, birthYear: number): Person {
   return {
     name,
@@ -65,7 +73,7 @@ export function examplePlan(startYear = new Date().getFullYear()): Plan {
       cashContribution: 0,
       currentSpending: 90_000,
       traditionalSpending: Math.round(90_000 * FIDELITY_SPENDING_FACTOR), // = fidelityDefaultSpending (no dated items)
-      chubbySpending: null, // required input: Chubby FIRE is a personal number with no sensible default (D48)
+      chubbySpending: Math.round(90_000 * CHUBBY_SPENDING_FACTOR), // = chubbyDefaultSpending (no dated items) (D48)
       coastRetireAge: 65,
     },
     datedItems: [],

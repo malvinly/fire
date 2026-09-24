@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { LIMITS, TRUST_FUND_DEFAULT } from '../data/rules';
-import { DEFAULT_ASSUMPTIONS, datedExpensesToday, fidelityDefaultSpending } from '../engine/defaults';
+import { DEFAULT_ASSUMPTIONS, chubbyDefaultSpending, datedExpensesToday, fidelityDefaultSpending } from '../engine/defaults';
 import { parseEarnings } from '../engine/earnings';
 import { computePia } from '../engine/socialSecurity';
 import type { BracketFill, Person, PersonId, Plan } from '../engine/types';
@@ -115,7 +115,15 @@ export function InputsPanel({ plan, update }: { plan: Plan; update: Update }) {
         <NumberField label="Chubby FIRE: yearly retirement spending" help={HELP.chubbySpending} value={h.chubbySpending} allowEmpty
           onChange={(v) => update((d) => { d.household.chubbySpending = v; })}
           warn={h.chubbySpending ? null : 'Required for the Chubby FIRE result'}
-          hint="Your own number. Same exclusions as above." />
+          hint={
+            <>
+              Same exclusions as above.{' '}
+              <button className="link" onClick={() => update((d) => { d.household.chubbySpending = chubbyDefaultSpending(d); })}>
+                Use default ({money(chubbyDefaultSpending(plan))} = 1.0 × (current − {money(datedExpensesToday(plan))} dated items paid today))
+              </button>
+              {' '}Clear it to skip Chubby FIRE.
+            </>
+          } />
         <NumberField label={`Coast FIRE: ${plan.you.name}'s age when you both stop working`} help={HELP.coastAge} kind="int" value={h.coastRetireAge}
           onChange={(v) => update((d) => { d.household.coastRetireAge = v ?? 65; })}
           hint="Coast = stop contributing, keep working (paycheck covers spending) until this age." />

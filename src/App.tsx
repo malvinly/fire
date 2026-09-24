@@ -198,7 +198,7 @@ export default function App() {
                     t === 'chubby' && !results.plan.household.chubbySpending ? (
                       <div key={t} className="card">
                         <h2>{TIER_NAMES.chubby}</h2>
-                        <p className="text-2">Enter your Chubby FIRE spending under Spending, then recalculate.</p>
+                        <p className="text-2">Enter your Chubby FIRE spending under Spending (or use the default), then recalculate.</p>
                       </div>
                     ) : (
                       <TierCard key={t} r={results.tiers[t] ?? null} plan={results.plan} selected={selTier === t && results.done} onSelect={() => selectTier(t)} />
