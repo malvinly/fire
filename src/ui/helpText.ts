@@ -88,7 +88,7 @@ export const HELP = {
   endAge: 'Your money must not run out before the younger of you reaches this age. Fidelity uses 96. Higher is safer and pushes your dates later.',
   targetSuccess:
     'The share of simulated markets in which your money must last. 90% is Fidelity’s standard (it holds up in a “significantly below average” market). Higher is safer but means later dates and bigger numbers.',
-  stocks: 'Share of every invested account held in US stocks, reset to this mix each year (not your cash account). Default 70% (Fidelity).',
+  stocks: 'Share of every invested account held in stocks, US or international, reset to this mix each year (not your cash account). International funds such as VXUS are simulated as US stocks. Default 70% (Fidelity).',
   bonds: 'Share held in 10-year US Treasury bonds; the rest is cash. Default 25%.',
   fees: 'Average yearly fund cost plus any advisor fee. Each fund’s page lists its “expense ratio”; broad index funds are about 0.03–0.2%. Default 0.10%.',
   wageGrowth: 'How much faster than inflation your salary and contributions grow each year until you retire. Default 1.5% (Fidelity).',

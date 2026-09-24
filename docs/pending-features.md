@@ -93,9 +93,13 @@ of your stocks are international. For example, with 70% in stocks and a third of
     engine. Whether they can be kept as a baseline is a question for the maintainer, since the comparison
     would mix the model change with the input change.
   - Add `returnAdjustment` to `Assumptions`, applied on the same code path as `feeRate`, with its own
-    How-this-works row and help text (including the international-funds guidance above). The "Markets"
-    row under "What this doesn't model" (`describeAssumptions`, `src/engine/assumptions.ts`) should then
-    point to this setting.
+    How-this-works row and help text (including the international-funds guidance above).
+  - Two texts already say international funds are simulated as US stocks. Add to each that the new setting
+    is where to account for them, e.g. "…as US stocks; if you hold some, lower 'Returns vs. history'
+    (Assumptions, advanced)":
+    - the stocks field's help (`stocks` in `src/ui/helpText.ts`);
+    - the "Markets" row under "What this doesn't model" (`describeAssumptions`,
+      `src/engine/assumptions.ts`), which also says lower returns are "planned".
   - Side-by-side comparison of saved session files comes later.
 - **Test:** a return adjustment of −1% gives the same results as raising the fee by 1%.
 
