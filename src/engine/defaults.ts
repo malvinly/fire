@@ -37,10 +37,10 @@ export function fidelityDefaultSpending(plan: Plan): number {
   return Math.round(Math.max(0, plan.household.currentSpending - datedExpensesToday(plan)) * FIDELITY_SPENDING_FACTOR);
 }
 
-/** Chubby FIRE: keep today's lifestyle — no Fidelity 15% cut (D48). */
-export const CHUBBY_SPENDING_FACTOR = 1;
+/** Chubby FIRE: 20% more than today — between Traditional (0.85×) and Fat FIRE (D48). */
+export const CHUBBY_SPENDING_FACTOR = 1.2;
 
-/** Default for Chubby FIRE spending: 1.0 × (current spending − dated expenses paid today), same base as Traditional. */
+/** Default for Chubby FIRE spending: 1.2 × (current spending − dated expenses paid today), same base as Traditional. */
 export function chubbyDefaultSpending(plan: Plan): number {
   return Math.round(Math.max(0, plan.household.currentSpending - datedExpensesToday(plan)) * CHUBBY_SPENDING_FACTOR);
 }

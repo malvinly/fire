@@ -73,7 +73,7 @@ export function describeAssumptions(plan: Plan): AssumptionRow[] {
       why: `Default is ${FIDELITY_SPENDING_FACTOR} × (current spending − ${usd(datedExpensesToday(plan))} of dated items you already pay today) (Fidelity: ~15% less in retirement). Healthcare and dated items are added separately.`, source: fid, decision: 'D18' },
     { group: 'Work & spending', label: 'Chubby FIRE spending', value: plan.household.chubbySpending ? usd(plan.household.chubbySpending) : 'not set',
       status: plan.household.chubbySpending === chubbyDefaultSpending(plan) ? 'default' : 'changed',
-      why: `Default is ${CHUBBY_SPENDING_FACTOR.toFixed(1)} × (current spending − ${usd(datedExpensesToday(plan))} of dated items you already pay today): keep today's lifestyle, no Fidelity 15% cut. Healthcare and dated items are added separately.`, decision: 'D48' },
+      why: `Default is ${CHUBBY_SPENDING_FACTOR.toFixed(1)} × (current spending − ${usd(datedExpensesToday(plan))} of dated items you already pay today): a step up from today's lifestyle, between Traditional and Fat FIRE. Healthcare and dated items are added separately.`, decision: 'D48' },
     { group: 'Work & spending', label: 'Coast FIRE: stop working at', value: `your age ${plan.household.coastRetireAge}`, status: st(plan.household.coastRetireAge === 65),
       why: 'Coast = stop contributing now, keep working (paycheck covers spending) until this age, then Traditional spending.' },
     { group: 'Work & spending', label: 'While working', value: 'Paycheck covers all spending', status: 'fixed',

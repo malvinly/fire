@@ -40,7 +40,7 @@ export const HELP = {
     'Everything your household spends in a year, including mortgage and any healthcare you pay yourself; leave out savings and taxes taken from your paycheck. A year of bank/card statements or a budgeting app is the easiest source. On its own it doesn’t change results — it feeds the “Use Fidelity default” button.',
   traditionalSpending:
     'What you expect to spend per year once retired, in today’s dollars and before taxes (the model adds taxes). Leave out healthcare and dated items — they’re added on top. Coast FIRE also uses this after you stop working. If unsure, use the Fidelity default button.',
-  chubbySpending: 'A more comfortable retirement budget, with the same rules as Traditional. Default keeps today’s lifestyle: 1.0 × current spending instead of Fidelity’s 0.85 ×. Clear it to skip the Chubby result.',
+  chubbySpending: 'A more comfortable retirement budget, with the same rules as Traditional. Default is a step up from today: 1.2 × current spending, vs Fidelity’s 0.85 × for Traditional. Clear it to skip the Chubby result.',
   coastAge:
     'If you stopped saving now, the age at which you’d both finally stop working. Until then your paychecks cover all spending; after that, Traditional spending applies. Default 65.',
 

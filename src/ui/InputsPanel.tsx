@@ -119,7 +119,7 @@ export function InputsPanel({ plan, update }: { plan: Plan; update: Update }) {
             <>
               Same exclusions as above.{' '}
               <button className="link" onClick={() => update((d) => { d.household.chubbySpending = chubbyDefaultSpending(d); })}>
-                Use default ({money(chubbyDefaultSpending(plan))} = 1.0 × (current − {money(datedExpensesToday(plan))} dated items paid today))
+                Use default ({money(chubbyDefaultSpending(plan))} = 1.2 × (current − {money(datedExpensesToday(plan))} dated items paid today))
               </button>
               {' '}Clear it to skip Chubby FIRE.
             </>

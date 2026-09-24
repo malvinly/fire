@@ -7,7 +7,7 @@ It answers three questions, each at a confidence level you choose (default **90%
 | FIRE type | Question it answers |
 |---|---|
 | **Traditional FIRE** | What's the earliest year we can both stop working, and how much do we need then? |
-| **Chubby FIRE** | Same, at a higher spending level (default: today's spending, without the 15% cut). |
+| **Chubby FIRE** | Same, at a higher spending level (default: 1.2 × today's spending). |
 | **Coast FIRE** | Can we stop saving now and keep working (paycheck covers spending) until 65? What's the earliest year we could stop saving? |
 
 Every answer must pass **two** tests: 10,000 **simulated markets** built from real US market history

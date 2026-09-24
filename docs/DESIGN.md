@@ -28,7 +28,7 @@ Key research points:
 3. **Returns** — block bootstrap (main) + every historical window (cross-check); **stricter of the two**.
    US data only in v1. Real (today's) dollars throughout.
 4. **FIRE types** — Traditional (default spending = current × 0.85), Chubby (a higher spending level; default
-   spending = current × 1.0), Coast (stop contributing now; work until a chosen age, default 65; then
+   spending = current × 1.2), Coast (stop contributing now; work until a chosen age, default 65; then
    Traditional spending).
 5. **Household** — two people, each with their own age, salary, accounts and Social Security, sharing one
    retirement year.
