@@ -85,9 +85,9 @@ examples in `tests/tax.test.ts`, which hard-code the brackets, deduction and 0% 
 
 **6. Reference test vs. FI Calc** (`tests/historical.test.ts`)
 - Open https://ficalc.app with its defaults ($1,000,000, $40,000 constant-dollar inflation-adjusted,
-  30 years, 80% stocks / 15% bonds / 5% cash). Record the success count (e.g. "121 out of 125"). Update
-  the comment and the expected failure count. The test allows ±2 windows; if the difference is larger,
-  investigate before changing the tolerance.
+  30 years, 80% stocks / 15% bonds / 5% cash). Record the success count (e.g. "121 out of 125") in the
+  `FICALC` constant and its checked date. The test compares failed windows and allows ±2; if the
+  difference is larger, investigate before changing the tolerance.
 
 **7. Text that states data values** — update by hand, then grep for the old numbers to catch leftovers:
 - `src/engine/assumptions.ts` (row texts, `DATA_VERSIONS.trusteesReport`). The other `DATA_VERSIONS`

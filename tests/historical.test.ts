@@ -13,18 +13,24 @@ function historicalSuccess(alloc: { stocks: number; bonds: number; cash: number 
   return { rate: ok / paths.n, n: paths.n, ok };
 }
 
+/**
+ * FI Calc reference (ficalc.app defaults: $1M, $40k constant real spending, 30 years, 80/15/5), checked
+ * 2026-09-24 with data through 2024. Refresh both numbers from ficalc.app on each data update.
+ */
+const FICALC = { succeeded: 121, windows: 125 };
+
 describe('historical rolling windows', () => {
   test('market data covers 1871 through at least 2025', () => {
     expect(MARKET.firstYear).toBe(1871);
     expect(MARKET.lastYear).toBeGreaterThanOrEqual(2025);
   });
 
-  test('matches FI Calc: $1M, $40k constant real spending, 30 years, 80/15/5 → 96.8% (121/125)', () => {
-    // FI Calc (ficalc.app defaults, checked 2026-09-24) reports 121 of 125 windows (data through 2024).
-    // We have one more window; allow a difference of up to two windows for bond/cash data differences.
+  test(`matches FI Calc's failed-window count (${FICALC.succeeded} of ${FICALC.windows} succeed)`, () => {
+    // Our data may run a year or two further than FI Calc's, adding windows; compare failures, allowing two
+    // windows for bond/cash data differences.
     const r = historicalSuccess({ stocks: 0.8, bonds: 0.15, cash: 0.05 }, 0);
     expect(r.n).toBe(MARKET.lastYear - 30 - 1871 + 2);
-    expect(Math.abs(r.n - r.ok - 4)).toBeLessThanOrEqual(2);
+    expect(Math.abs(r.n - r.ok - (FICALC.windows - FICALC.succeeded))).toBeLessThanOrEqual(2);
   });
 
   test('famous bad start years fail a 30-year 5% withdrawal', () => {

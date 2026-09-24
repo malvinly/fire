@@ -207,6 +207,62 @@ describe('Roth ladder and early access', () => {
     expect(rec.penaltyWithdrawals).toBeCloseTo(40_000 / 0.9, 0);
   });
 
+  test('before 59½, over three years: penalized pre-tax before Roth, conversions used up oldest-first (D27, D53)', () => {
+    const plan = retiree(50); // $40k spending, no fill, no state tax
+    plan.datedItems = [
+      { id: 'g', label: 'gift', direction: 'income', amount: 40_000, frequency: 'oneTime', start: { kind: 'year', year: START + 4 }, fixedDollars: false },
+    ];
+    const ctx = ctxFor(plan);
+    const s = initialState(ctx);
+    s.pretax[0] = 20_000;
+    s.roth[0] = 100_000;
+    s.rothPrincipal[0] = 60_000; // two conversions (plan years 0 and 2) of 30,000; 40,000 is earnings
+    s.conversions[0][0] = 30_000;
+    s.conversions[0][2] = 30_000;
+    const path = constantPath(ctx.len, 0);
+    const run = (stopIdx: number) => simulatePath(ctx, path, 0, { startIdx: 3, startState: s, record: true, stopIdx });
+    // The engine's tax loop stops within $0.50, so amounts are checked to the dollar.
+    const [y3, y4, y5] = run(6).records!;
+    // Year 3: both conversions are unseasoned. Penalized pre-tax comes first: all 20,000 (below the 32,200
+    // deduction, so no income tax; 2,000 penalty). Then unseasoned principal R, penalty only:
+    //   20,000 + R = 40,000 + 0.1 × (20,000 + R) → 0.9 R = 22,000 → R = 24,444.44; penalty 4,444.44.
+    expect(y3.withdrawals.pretax).toBeCloseTo(20_000, 6);
+    expect(y3.withdrawals.roth).toBeCloseTo(24_444.44, 0);
+    expect(y3.federalTax).toBe(0);
+    expect(y3.penaltyTax).toBeCloseTo(4_444.44, 0);
+    // Withdrawn conversions leave the history oldest-first: year 0's 30,000 → 5,555.56; year 2's stays 30,000.
+    const after3 = run(4).state.conversions[0];
+    expect(after3[0]).toBeCloseTo(5_555.56, 0);
+    expect(after3[2]).toBeCloseTo(30_000, 6);
+    // Year 4: the 40,000 gift pays for the year; nothing is withdrawn.
+    expect(y4.withdrawals.roth).toBe(0);
+    // Year 5: year 0's conversion is now 5 years old, so its 5,555.56 is free of tax and penalty. Year 2's
+    // 30,000 is still unseasoned (10% penalty), then earnings E (income tax + penalty):
+    //   5,555.56 + 30,000 + E = 40,000 + 0.1 × (30,000 + E) → 0.9 E = 7,444.44 → E = 8,271.60
+    //   (below the deduction: no income tax). Penalized 38,271.60; penalty 3,827.16.
+    //   (Within $1: year 3's rounding carries over.)
+    expect(Math.abs(y5.penaltyWithdrawals - 38_271.6)).toBeLessThan(1);
+    expect(Math.abs(y5.withdrawals.roth - 43_827.16)).toBeLessThan(1);
+    expect(Math.abs(y5.penaltyTax - 3_827.16)).toBeLessThan(1);
+    expect(y5.federalTax).toBe(0);
+  });
+
+  test('Roth earnings withdrawn before 59½ pay income tax and the 10% penalty', () => {
+    const plan = retiree(50);
+    plan.household.traditionalSpending = 60_000;
+    const ctx = ctxFor(plan);
+    const s = initialState(ctx);
+    s.roth[0] = 200_000; // no principal: every dollar is earnings
+    const rec = simulatePath(ctx, constantPath(ctx.len, 0), 0, { startState: s, record: true, stopIdx: 1 }).records![0];
+    // (Checked to the dollar: the engine's tax loop stops within $0.50.)
+    // E = 60,000 + fed + 0.1 E, with taxable income E − 32,200 in the 12% bracket:
+    //   fed = 2,480 + 0.12 × (E − 32,200 − 24,800) = 0.12 E − 4,360
+    //   → 0.78 E = 55,640 → E = 71,333.33; fed = 4,200; penalty = 7,133.33.
+    expect(rec.withdrawals.roth).toBeCloseTo(71_333.33, 0);
+    expect(rec.federalTax).toBeCloseTo(4_200, 0);
+    expect(rec.penaltyTax).toBeCloseTo(7_133.33, 0);
+  });
+
   test('after 59½, pre-tax is spent before Roth (D28)', () => {
     const plan = retiree(62);
     plan.you.balances.pretax = 500_000;
@@ -253,6 +309,18 @@ describe('two spouses', () => {
     expect(annualBenefits(hi, lo, 2045)[1]).toBeCloseTo(12 * 1_000 * ownClaimFactor(1982, 62), 6);
     const full = 12 * (1_000 * ownClaimFactor(1982, 62) + 500 * spousalClaimFactor(1982, 65));
     expect(annualBenefits(hi, lo, 2048)[1]).toBeCloseTo(full, 6);
+  });
+
+  test('a spousal top-up starting mid-year is prorated by the other spouse\'s birth month', () => {
+    const hi = { birthYear: 1980, birthMonth: 4, claimAge: 67, pia: 3_000 }; // files 2047, April birthday
+    const lo = { birthYear: 1982, birthMonth: 1, claimAge: 62, pia: 1_000 }; // own benefit since 2044
+    // 2047: lo's own benefit all 12 months; the top-up only for the 9 months from April (13 − 4).
+    //   own = 1,000 × (1 − 36×5/9% − 24×5/12%) = 1,000 × 0.70 = 700/month
+    //   top-up = (1,500 − 1,000) × (1 − 24×25/36%) (lo is 65, 24 months early) = 500 × 0.8333 = 416.67/month
+    //   2047 = 700 × 12 + 416.67 × 9 = 8,400 + 3,750 = 12,150; hi's own first year = 3,000 × 9 = 27,000.
+    const [hi2047, lo2047] = annualBenefits(hi, lo, 2047);
+    expect(lo2047).toBeCloseTo(12_150, 6);
+    expect(hi2047).toBeCloseTo(27_000, 6);
   });
 });
 
