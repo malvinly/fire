@@ -3,7 +3,7 @@ import { describe, expect, test } from 'vitest';
 import { DEFAULT_ASSUMPTIONS, chubbyDefaultSpending, examplePlan, searchPathsFor, fidelityDefaultSpending, untouchedSections } from '../src/engine/defaults';
 
 describe('default spending', () => {
-  test('Roth conversions fill the 10% bracket by default (decision 3, D29)', () => {
+  test('Roth conversions fill the 10% bracket by default (D29)', () => {
     expect(DEFAULT_ASSUMPTIONS.bracketFill).toBe('10');
   });
 

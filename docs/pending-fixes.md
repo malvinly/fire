@@ -2,8 +2,8 @@
 
 Bug fixes and accuracy, clarity and robustness changes. None of these adds a capability; each makes the
 calculator more correct or harder to misread. New capabilities are in
-[pending-features.md](pending-features.md). Design choices already made for this work are in
-[pending-decisions.md](pending-decisions.md).
+[pending-features.md](pending-features.md). The rules for correcting the model and adding settings are D81 in
+[DECISIONS.md](DECISIONS.md).
 
 The 24 fixes from the five-reviewer audit of v1 (accuracy, planning completeness, competitive features,
 first-time-user clarity, robustness) have all landed; their decisions are D63–D80 in
@@ -15,17 +15,16 @@ first-time-user clarity, robustness) have all landed; their decisions are D63–
 Read [DESIGN.md](DESIGN.md) (what each result means) and skim [DECISIONS.md](DECISIONS.md) (the D-numbers
 cited below) first. [DEVELOPMENT.md](DEVELOPMENT.md) has the layout and scripts. Then:
 
-1. **Follow the decisions.** If an item names a [decision](pending-decisions.md), it has already been
-   made; build what it says, and record it as a D-row in DECISIONS.md when the item lands. If the work
-   raises a new design question that the docs don't answer, it belongs to the maintainer. Ask; don't
-   choose.
+1. **Follow the recorded decisions.** The D-rows an item cites are settled; D81 says which way to correct an
+   error and where a new setting goes and what it defaults to, and D67 where warnings go. If the work raises a
+   new design question that the docs don't answer, it belongs to the maintainer. Ask; don't choose.
 2. **Write a failing test first** where the item says how to test it. It goes in the matching file in
    `tests/`; `tests/helpers.ts` has plan builders and fixed-return helpers.
 3. **Make the change**, then run `npm run typecheck`, `npm run lint`, `npm test` and `npm run build`.
 4. **Update the records:**
    - If results change for the same inputs, bump `DATA_VERSIONS.engine` in `src/engine/assumptions.ts`
      (D59) so saved sessions are flagged for recalculation.
-   - Record any judgement call as a new D-number in DECISIONS.md (the next free number is **D81**). Update
+   - Record any judgement call as a new D-number in DECISIONS.md (the next free number is **D82**). Update
      an existing D-row if its behavior changes, and update the "Which way the assumptions lean" table.
    - If the change affects an assumption shown to users, update its row in `describeAssumptions` in
      `src/engine/assumptions.ts` (the "How this works" page) and its help text in `src/ui/helpText.ts`.
@@ -50,7 +49,7 @@ Items are ordered by criticality:
 
 ## Where warnings go
 
-Decided in [decision 5](pending-decisions.md#5-precision-vs-hedging) (D67): **the result cards stay crisp**.
+Decided in D67: **the result cards stay crisp**.
 They show the target numbers only, with no caveat text. Every caution goes in the **"Before you act on these
 numbers"** panel directly below the cards and above "Try a different retirement year". Its lines are built by
 `beforeYouAct` in `src/ui/warnings.ts`.

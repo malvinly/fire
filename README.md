@@ -81,7 +81,10 @@ Notes:
   contributions, **Calculate**. Each file holds your inputs, every assumption used, the data versions,
   and a results summary. Old results are never silently recomputed — a banner tells you if the app's
   data is newer than a session's results.
-- **Try a different retirement year** — below the cards, change the year to see your chance of success,
+- **Before you act on these numbers** — directly below the cards, one line for each caution that applies:
+  the balance each date assumes you'll have, borderline dates, how often a plan pays the early-withdrawal
+  penalty, and what Coast assumes.
+- **Try a different retirement year** — below that, change the year to see your chance of success,
   your savings over time in typical and bad markets, what's in each account, the worst years to have
   started, and a year-by-year table of withdrawals and taxes.
 - **How this works** — generated from the plan on screen: every assumption, whether it's a default or
@@ -100,9 +103,9 @@ Market history, tax brackets and Social Security rules change every year. See
 
 ## Limitations (v1)
 
-Both spouses assumed alive through the plan (no survivor modeling); no ACA subsidies or IRMAA; US market
-data only; flat state tax; no 72(t)/Rule of 55; no flexible-spending (guardrail) rules; no session
-comparison view. The app's **How this works** page lists these under "What this doesn't model". See
+Both spouses assumed alive through the plan (no survivor modeling) and retiring in the same year; no ACA
+subsidies or IRMAA; US market data only; flat state tax; no 72(t)/Rule of 55; no flexible-spending
+(guardrail) rules; no session comparison view. The app's **How this works** page lists these under "What this doesn't model". See
 [docs/pending-features.md](docs/pending-features.md) for planned work.
 
 This is a personal planning tool, not financial advice.

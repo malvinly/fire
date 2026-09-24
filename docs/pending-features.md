@@ -1,10 +1,10 @@
 # Pending features
 
 New capabilities for the calculator. Bug fixes and accuracy changes are in
-[pending-fixes.md](pending-fixes.md). Design choices already made for this work are in
-[pending-decisions.md](pending-decisions.md): where new settings go and what they default to
-([decision 2](pending-decisions.md#2-where-new-settings-go)), and keeping the result cards free of extra
-text ([decision 5](pending-decisions.md#5-precision-vs-hedging)).
+[pending-fixes.md](pending-fixes.md). Design choices already made for this work are D-rows in
+[DECISIONS.md](DECISIONS.md): where new settings go and what they default to (D81; each feature below names
+its placement and default), and keeping the result cards free of extra text (D67). A new design question that
+the docs don't answer belongs to the maintainer: ask, don't choose.
 
 Each feature starts with a plain-language explanation of what it is and what you'd see in the app. The
 **For implementers** part at the end of each gives code locations and a first version to build. The
@@ -54,7 +54,7 @@ Two small additions for asking "what if?":
 1. Press Calculate. Under the cards, a new button: **Keep as baseline**.
 2. Change something, e.g. set the return adjustment to −1%, and press Calculate again.
 3. The cards show the new answers as usual. A one-line strip directly under them compares with the
-   baseline (the cards themselves stay unchanged, per decision 5):
+   baseline (the cards themselves stay unchanged, per D67):
 
    > **Compared with baseline:** Traditional 2042 (was 2039, **+3 years**; needs $2.76M, was $2.70M) ·
    > Chubby 2046 (was 2043) · Coast unchanged
@@ -144,8 +144,8 @@ Blank means no survivor test, as today.
   - From the year after the death: survivor gets the larger of the two benefits; single brackets apply;
     spending × (1 − `spendingDrop`, default ~25%); the deceased's healthcare line is removed.
   - Report success under that scenario as a line in the warnings panel below the cards.
-  - Once this exists, revisit the Roth conversion default
-    ([decision 3](pending-decisions.md#3-roth-conversion-default)); conversions pay off mostly in the
+  - Once this exists, revisit the Roth conversion default (10% since the v1 audit, D29); conversions pay off
+    mostly in the
     survivor case.
   - Simplification to record in a D-row: the survivor-benefit reductions for claiming early are ignored.
 - **Test:** with the setting off, results are identical to today. With it on, the survivor year uses
@@ -231,8 +231,8 @@ common legal ways around that for early retirees:
 
 ### Why it's worth doing
 
-- In the example, "You" retires at exactly 55. At the default settings **37.5%** of simulated markets pay
-  the 10% penalty at some point before 60. With Rule of 55, many of those penalties wouldn't be real.
+- In the example, "You" retires at exactly 55. At the default settings **26.9%** of simulated markets pay
+  the 10% penalty at some point before 60 (37.5% in v1, before the 10% fill default). With Rule of 55, many of those penalties wouldn't be real.
 - The app counts penalty years as success, so the date may not move much. But the penalty cost is real
   money, and it shrinks the cushion in bad markets.
 
@@ -253,7 +253,7 @@ common legal ways around that for early retirees:
     it as the last employer's 401(k).
   - 72(t) later: it needs the IRS payment calculation (amortization method) and a locked yearly withdrawal.
 - **Test:** retiring at 55 with the flag set gives no penalty on that person's pre-tax withdrawals.
-- **Related:** fix 6; [decision 4](pending-decisions.md#4-penalty-paths-as-success).
+- **Related:** D68 (penalty paths count as successes; the panel shows how often).
 
 ---
 

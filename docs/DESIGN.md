@@ -23,8 +23,9 @@ Key research points:
 
 1. **Engine** — year-by-year simulation; FIRE numbers are solved outputs. 25× shown as a sanity check in the detail view.
 2. **Success** — money never runs out before the *younger* spouse reaches the end age (default 96,
-   editable). Target 90% (editable). Results show Fidelity's three market conditions as 50th/25th/10th
-   percentile bands.
+   editable). Target 90% (editable). A market that survives only by paying the early-withdrawal penalty
+   still counts, and the results say how often that happens (D68). Results show Fidelity's three market
+   conditions as 50th/25th/10th percentile bands.
 3. **Returns** — block bootstrap (main) + every historical window (cross-check); **stricter of the two**.
    US data only in v1. Real (today's) dollars throughout.
 4. **FIRE types** — Traditional (default spending = 0.85 × current), Chubby (a higher spending level; default
@@ -47,10 +48,15 @@ Key research points:
 11. **App** — local TypeScript/React web app; engine UI-free in Web Workers; historical data bundled
     and refreshed yearly by script.
 12. **Sessions** — one JSON file per session in a chosen folder; Save / Save as new; stale-data notice.
-13. **Results** — headline is the earliest retirement date per FIRE type; an adjustable "retire at" date
-    below drives the charts and tables.
+13. **Results** — headline is the earliest retirement date per FIRE type, with target numbers only on the
+    cards; every caution goes in a "Before you act on these numbers" panel directly below them (D67). An
+    adjustable "retire at" date below drives the charts and tables.
 14. **Transparency** — generated "How this works" page listing every assumption with source.
 15. **Testing** — deterministic, historical vs. FI Calc, Social Security vs. SSA, taxes, properties.
+16. **Changing the model** — errors that flatter results are fixed outright; errors that hurt them are fixed
+    behind a setting that defaults to today's behavior. New settings sit where they belong (People or the
+    item for personal facts, Assumptions for economic ones), and an untouched one never makes a plan look
+    better (D81).
 
 ## How each result is defined
 
@@ -70,14 +76,18 @@ Key research points:
   age and passing. **Coast number** — smallest portfolio *today* that passes if contributions stop
   today.
 - **Success today** — retire (or stop contributing) this year.
-- **Detail view** — for a chosen FIRE type and year: bands, penalty-withdrawal rate, the "significantly
-  below average" path's account balances, worst historical start years, and the median path's tax table.
+- **Detail view** — for a chosen FIRE type and year: bands, penalty-withdrawal rate, what happens in the
+  markets that fail (D74), the 4% rule check (Traditional and Chubby), the "significantly below average"
+  path's account balances, worst historical start years, and a year-by-year table for the typical path. The
+  typical and bad paths are the ones closest to their bands over the first 10 retired years (D73).
 
 ## Planned changes
 
-Planned work is tracked in three files, each ordered by priority:
+Planned work is tracked in two files, each ordered by priority:
 
 - [pending-fixes.md](pending-fixes.md): bug fixes and accuracy, clarity and robustness changes.
 - [pending-features.md](pending-features.md): new capabilities, such as scenario comparison, survivor
   modeling, state tax exemptions, Rule of 55 and replaying a chosen historical year.
-- [pending-decisions.md](pending-decisions.md): design choices already made for that work.
+
+Design choices already made for that work are D-rows in [DECISIONS.md](DECISIONS.md) (D81 for new
+settings, D67 for warnings).
