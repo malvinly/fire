@@ -106,7 +106,7 @@ export function describeAssumptions(plan: Plan): AssumptionRow[] {
 
     // Taxes & accounts
     { group: 'Taxes & accounts', label: 'Federal tax', value: `${RULES_YEAR} married filing jointly, standard deduction ${usd(FEDERAL.standardDeduction)}`, status: 'fixed',
-      why: 'Brackets, 0/15/20% capital gains, tax on part of Social Security, and the 3.8% extra tax on investment income for high earners. While working, only the extra tax that Social Security or RMDs add on top of wages is counted (D49).', source: { label: 'IRS 2026 inflation adjustments', url: 'https://www.irs.gov/newsroom/irs-releases-tax-inflation-adjustments-for-tax-year-2026-including-amendments-from-the-one-big-beautiful-bill' }, decision: 'D32' },
+      why: 'Brackets, 0/15/20% capital gains, tax on part of Social Security, and the 3.8% extra tax on investment income for high earners. While working, only the extra tax that Social Security, RMDs, taxed dated income and investment income add on top of wages is counted (D49, D66, D70).', source: { label: 'IRS 2026 inflation adjustments', url: 'https://www.irs.gov/newsroom/irs-releases-tax-inflation-adjustments-for-tax-year-2026-including-amendments-from-the-one-big-beautiful-bill' }, decision: 'D32' },
     { group: 'Taxes & accounts', label: 'State tax', value: pct(a.stateTaxRate), status: st(a.stateTaxRate === d.stateTaxRate),
       why: 'Flat rate on taxable income excluding Social Security. Use the rate of the state you expect to retire in (0% for no-income-tax states).', decision: 'D33' },
     { group: 'Taxes & accounts', label: 'Brokerage and cash income', value: `Taxed every year: dividends ${pct(TAXABLE_YIELDS.stockDividends, 0)} of stocks, interest ${pct(TAXABLE_YIELDS.bondInterest, 0)} of bonds, T-bill interest on cash`, status: 'fixed',
@@ -119,5 +119,28 @@ export function describeAssumptions(plan: Plan): AssumptionRow[] {
       why: 'Surplus RMD money is reinvested in the taxable account.', decision: 'D31' },
     { group: 'Taxes & accounts', label: 'Contribution limits', value: `401(k) ${usd(LIMITS.employee401k)}, IRA ${usd(LIMITS.ira)}, HSA family ${usd(LIMITS.hsaFamily)}`, status: 'fixed',
       why: 'Contributions are capped at these limits every year (catch-ups from 50, HSA from 55); money above a limit is not saved elsewhere. The limits stay flat in today’s dollars.', decision: 'D15' },
+
+    // Limitations (D75)
+    { group: LIMITS_GROUP, label: 'Both of you alive to the end', value: 'Assumed; a survivor test is planned', status: 'fixed',
+      why: 'If one of you dies first, the household loses the smaller Social Security check and files as single, with narrower tax brackets, while spending usually falls by less. Assuming both live leans optimistic.', decision: 'D13' },
+    { group: LIMITS_GROUP, label: 'Separate retirement years', value: 'Not modeled', status: 'fixed',
+      why: 'Both of you stop working in the same year.', decision: 'D13' },
+    { group: LIMITS_GROUP, label: 'Rule of 55 and 72(t)', value: 'Not modeled yet (planned)', status: 'fixed',
+      why: 'Taking 401(k)/IRA money before 59½ always pays the 10% penalty here, even where these IRS rules could avoid it (leans cautious).', decision: 'D27' },
+    { group: LIMITS_GROUP, label: 'State tax details', value: 'One flat rate', status: 'fixed',
+      why: 'No state exemptions for retirement income (planned) and no state-by-state rules. Social Security is never taxed by the state.', decision: 'D33' },
+    { group: LIMITS_GROUP, label: 'Medicare income surcharges (IRMAA)', value: 'Not modeled', status: 'fixed',
+      why: 'Higher-income retirees pay more for Medicare; the model doesn’t charge it (optimistic for large withdrawals or conversions).', decision: 'D21' },
+    { group: LIMITS_GROUP, label: 'Flexible spending', value: 'Not modeled', status: 'fixed',
+      why: 'Spending never adjusts to markets: no cuts in bad years (as many retirees would make) and no raises in good ones.' },
+    { group: LIMITS_GROUP, label: 'Where each investment is held', value: 'Same mix in every account', status: 'fixed',
+      why: 'Holding bonds in retirement accounts and stocks in the brokerage account could lower taxes a little.', decision: 'D8' },
+    { group: LIMITS_GROUP, label: 'Markets', value: `US history ${MARKET.firstYear}–${MARKET.lastYear} only`, status: 'fixed',
+      why: 'US markets were among the best in the world over this period. Assuming lower returns than history, and comparing with a saved baseline, are planned.', decision: 'D10' },
+    { group: LIMITS_GROUP, label: 'Also planned', value: 'Replay one historical year; full year-by-year table and CSV; upside on the chart', status: 'fixed',
+      why: 'Features not built yet; they add views, not changes to the results above.' },
   ];
 }
+
+/** The "How this works" group listing what the model leaves out; the warnings panel links to it (D75). */
+export const LIMITS_GROUP = 'What this doesn’t model';

@@ -1,12 +1,18 @@
-import { Fragment } from 'react';
+import { Fragment, useEffect } from 'react';
 import { DATA_VERSIONS, describeAssumptions } from '../engine/assumptions';
 import { MARKET } from '../engine/returns';
 import type { Plan } from '../engine/types';
 
 
-export function HowItWorks({ plan }: { plan: Plan }) {
+const groupId = (g: string) => `group-${g.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`;
+
+/** `focusGroup`: a group to scroll to on opening (the warnings panel links to the limitations). */
+export function HowItWorks({ plan, focusGroup }: { plan: Plan; focusGroup?: string | null }) {
   const rows = describeAssumptions(plan);
   const groups = [...new Set(rows.map((r) => r.group))];
+  useEffect(() => {
+    if (focusGroup) document.getElementById(groupId(focusGroup))?.scrollIntoView({ block: 'start' });
+  }, [focusGroup]);
   return (
     <div className="page">
       <div style={{ display: 'grid', gap: 12, marginBottom: 20 }}>
@@ -32,7 +38,7 @@ export function HowItWorks({ plan }: { plan: Plan }) {
         <tbody>
           {groups.map((g) => (
             <Fragment key={g}>
-              <tr className="group"><td colSpan={5}>{g}</td></tr>
+              <tr className="group" id={groupId(g)}><td colSpan={5}>{g}</td></tr>
               {rows.filter((r) => r.group === g).map((r) => (
                 <tr key={r.label}>
                   <td>{r.label}</td>

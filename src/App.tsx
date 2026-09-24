@@ -5,6 +5,7 @@ import { fieldProblems, planProblems } from './engine/validate';
 import type { Detail, Tier, TierResult } from './engine/solve';
 import { MARKET } from './engine/returns';
 import type { Plan } from './engine/types';
+import { LIMITS_GROUP } from './engine/assumptions';
 import { HowItWorks } from './ui/HowItWorks';
 import { Icon, TIER_ICONS } from './ui/icons';
 import { InputsPanel } from './ui/InputsPanel';
@@ -55,6 +56,8 @@ export default function App() {
   const [plan, setPlan] = useState<Plan>(() => draft?.plan ?? examplePlan());
   const [meta, setMeta] = useState<SessionMeta | null>(() => draft?.meta ?? null);
   const [tab, setTab] = useState<'plan' | 'how'>('plan');
+  // A "How this works" group to scroll to when opening that tab from a link.
+  const [howFocus, setHowFocus] = useState<string | null>(null);
   const [results, setResults] = useState<Results | null>(null);
   const [selTier, setSelTier] = useState<Tier>('traditional');
   const [selYear, setSelYear] = useState<number | null>(null);
@@ -194,7 +197,7 @@ export default function App() {
         <h1><img src="./favicon.svg" alt="" width={20} height={20} />FIRE Planner</h1>
         <nav className="tabs" role="tablist">
           <button role="tab" aria-selected={tab === 'plan'} onClick={() => setTab('plan')}>Plan</button>
-          <button role="tab" aria-selected={tab === 'how'} onClick={() => setTab('how')}>How this works</button>
+          <button role="tab" aria-selected={tab === 'how'} onClick={() => { setHowFocus(null); setTab('how'); }}>How this works</button>
         </nav>
         <span className="spacer" />
         <span className="text-2">
@@ -207,7 +210,7 @@ export default function App() {
       </header>
 
       {tab === 'how' ? (
-        <main className="main"><HowItWorks plan={plan} /></main>
+        <main className="main"><HowItWorks plan={plan} focusGroup={howFocus} /></main>
       ) : (
         <main className="main">
           <aside className="inputs" aria-label="Inputs">
@@ -270,7 +273,9 @@ export default function App() {
                   )}
                 </div>
 
-                {results.done && <BeforeYouAct lines={beforeYouAct(results.plan, results.tiers)} />}
+                {results.done && (
+                  <BeforeYouAct lines={beforeYouAct(results.plan, results.tiers)} onLimits={() => { setHowFocus(LIMITS_GROUP); setTab('how'); }} />
+                )}
 
                 {results.done && selResult && selYear !== null && (
                   <div className="panel">

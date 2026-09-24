@@ -83,32 +83,6 @@ Example for the example plan:
 
 ## P2: narrower wrong answers, clarity gaps
 
-### 13. Disclose limitations in the app (clarity)
-
-- **Problem:**
-  - "How this works" lists only the ACA limitation. There is no not-advice disclaimer anywhere in the UI.
-  - Several limitations are documented only for developers:
-    - one retirement year for both spouses, both alive throughout (D13);
-    - no Rule of 55 / 72(t);
-    - flat state tax;
-    - US-only data.
-  - The DECISIONS "Which way the assumptions lean" table gives the wrong reason for D13. Survivor modeling
-    leans optimistic because of two Social Security checks and joint tax brackets, not because "spending
-    never drops" (that part leans conservative).
-- **Where:**
-  - `describeAssumptions` in `src/engine/assumptions.ts` (rows such as line 94), rendered by
-    `src/ui/HowItWorks.tsx`.
-  - `docs/DECISIONS.md:117`.
-- **Change:**
-  - Add a "What this doesn't model" group. It should cover:
-    - the features not yet built (see [pending-features.md](pending-features.md));
-    - things deliberately left out: ACA premium subsidies, separate retirement years per spouse, flexible
-      spending / guardrails, IRMAA, asset location and per-state tax rules.
-  - Add a D13 row.
-  - Make the last line of the [warnings panel](#where-warnings-go) a disclaimer that links to the new group:
-    "These are estimates, not financial advice. *What this doesn't model →*"
-  - Fix the lean-table wording.
-
 ### 14. Search limit for age-gap couples (accuracy)
 
 - **Problem:** the earliest-date search stops at the *first* person's age 75 (D43). The result therefore

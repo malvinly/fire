@@ -8,6 +8,8 @@ import { moneyShort, percent } from './format';
 export interface WarningLine {
   key: string;
   text: string;
+  /** Ends the line with a link to the "What this doesn't model" group of How this works (D75). */
+  link?: 'limits';
 }
 
 /** Share of markets paying the early-withdrawal penalty above which the panel says so (D68). */
@@ -54,5 +56,8 @@ export function beforeYouAct(plan: Plan, tiers: Partial<Record<Tier, TierResult>
         (matches ? ', and that stopping saving includes giving up employer matches.' : '.'),
     });
   }
+
+  // Always last (D75).
+  lines.push({ key: 'disclaimer', text: 'These are estimates, not financial advice.', link: 'limits' });
   return lines;
 }

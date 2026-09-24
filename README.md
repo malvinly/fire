@@ -102,7 +102,8 @@ Market history, tax brackets and Social Security rules change every year. See
 
 Both spouses assumed alive through the plan (no survivor modeling); no ACA subsidies or IRMAA; US market
 data only; flat state tax; no 72(t)/Rule of 55; no flexible-spending (guardrail) rules; no session
-comparison view. See [docs/pending-features.md](docs/pending-features.md) for planned work.
+comparison view. The app's **How this works** page lists these under "What this doesn't model". See
+[docs/pending-features.md](docs/pending-features.md) for planned work.
 
 This is a personal planning tool, not financial advice.
 

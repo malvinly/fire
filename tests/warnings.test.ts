@@ -44,6 +44,15 @@ describe('Coast assumptions (fix 7)', () => {
   });
 });
 
+describe('last line (fix 13)', () => {
+  test('the panel always ends with the disclaimer, linking to what the model leaves out', () => {
+    const lines = beforeYouAct(examplePlan(2026), { traditional: tier('traditional', 2039, 2_627_800) });
+    const last = lines[lines.length - 1];
+    expect(last.text).toContain('These are estimates, not financial advice.');
+    expect(last.link).toBe('limits');
+  });
+});
+
 describe('savings needed by the earliest date (fix 4)', () => {
   test('Traditional and Chubby share one line naming each year and amount', () => {
     const lines = beforeYouAct(examplePlan(2026), {

@@ -128,13 +128,18 @@ export function TierCard({ r, plan, selected, onSelect }: { r: TierResult | null
 }
 
 /** Cautions about the results, directly below the cards so they are read before acting (D67). */
-export function BeforeYouAct({ lines }: { lines: WarningLine[] }) {
+export function BeforeYouAct({ lines, onLimits }: { lines: WarningLine[]; onLimits: () => void }) {
   if (!lines.length) return null;
   return (
     <div className="panel warnings">
       <h2 className="with-icon"><Icon name="alert" />Before you act on these numbers</h2>
       <ul>
-        {lines.map((l) => <li key={l.key}>{l.text}</li>)}
+        {lines.map((l) => (
+          <li key={l.key}>
+            {l.text}
+            {l.link === 'limits' && <> <button className="link" onClick={onLimits}>What this doesn’t model →</button></>}
+          </li>
+        ))}
       </ul>
     </div>
   );
