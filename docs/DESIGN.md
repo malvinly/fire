@@ -81,13 +81,26 @@ Key research points:
   path's account balances, worst historical start years, and a year-by-year table for the typical path. The
   typical and bad paths are the ones closest to their bands over the first 10 retired years (D73).
 
+## Checked and correct in v1
+
+What the five-reviewer audit of v1 verified. Its fixes and the later ones are D63–D87 in
+[DECISIONS.md](DECISIONS.md).
+
+- **Arithmetic:** lump-sum and annuity growth match closed form to the cent; timing is consistently start of
+  year (D7); fixed-dollar items are deflated correctly.
+- **Taxes:** federal brackets, LTCG stacking, Social Security taxation (Pub 915), NIIT, and the 10%/20%
+  penalties.
+- **Accounts:** Roth ordering and 5-year seasoning; RMD ages and divisors.
+- **Social Security:** claiming adjustments, spousal benefit, trust-fund interpolation.
+- **Simulation:** bootstrap design (stocks, bonds, cash and inflation from the same year kept together);
+  success is monotone in retirement year.
+- **Historical benchmark:** 4% over 30 years succeeds in 97.6% of windows at 75/25, consistent with FI Calc.
+- **Numeric robustness:** no float drift over 111-year horizons; divide-by-zero is guarded; every solver
+  loop terminates.
+
 ## Planned changes
 
-Planned work is tracked in two files, each ordered by priority:
-
-- [pending-fixes.md](pending-fixes.md): bug fixes and accuracy, clarity and robustness changes.
-- [pending-features.md](pending-features.md): new capabilities, such as scenario comparison, survivor
-  modeling, state tax exemptions, Rule of 55 and replaying a chosen historical year.
-
-Design choices already made for that work are D-rows in [DECISIONS.md](DECISIONS.md) (D81 for new
-settings, D67 for warnings).
+Planned work is in [pending-features.md](pending-features.md), ordered by importance: new capabilities such
+as scenario comparison, survivor modeling, state tax exemptions, Rule of 55 and replaying a chosen historical
+year. Design choices already made for that work are D-rows in [DECISIONS.md](DECISIONS.md) (D81 for new
+settings, D67 for warnings). How to make a change is in [DEVELOPMENT.md](DEVELOPMENT.md#making-a-change).

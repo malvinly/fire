@@ -27,9 +27,37 @@ The dev server runs at http://localhost:5391 and reloads as you edit.
 | `npm run lint` | oxlint |
 | `npm run data:build` | Rebuild market data (add `-- --refresh` to re-download the spreadsheets) |
 
-Before committing: `npm run typecheck`, `npm run lint`, `npm test`, `npm run build`. If the change alters
-results for the same inputs, bump `DATA_VERSIONS.engine` in `src/engine/assumptions.ts` so saved sessions
-are flagged for recalculation (D59).
+## Making a change
+
+Read [DESIGN.md](DESIGN.md) (what each result means) and skim [DECISIONS.md](DECISIONS.md) (the D-numbers
+code comments cite) first. Planned work is in [pending-features.md](pending-features.md). Then:
+
+1. **Follow the recorded decisions.** D-rows are settled; D81 says which way to correct an error and where a
+   new setting goes and what it defaults to, and D67 where warnings go. If the work raises a new design
+   question that the docs don't answer, it belongs to the maintainer. Ask; don't choose.
+2. **Write a failing test first.** It goes in the matching file in `tests/`; `tests/helpers.ts` has plan
+   builders and fixed-return helpers. Logic that decides what the screen shows goes in plain functions so it
+   can be unit-tested; React wiring is checked in the browser (D87).
+3. **Make the change**, then run `npm run typecheck`, `npm run lint`, `npm test` and `npm run build` (lint
+   has 8 older warnings; add none). For a UI change, check it in the browser: `.claude/launch.json` has
+   `fire-dev` (the dev server on port 5391) and `fire-built` (the `dist/` preview on 4391). Commit each change
+   once its checks pass.
+4. **Update the records:**
+   - If results change for the same inputs, bump `DATA_VERSIONS.engine` in `src/engine/assumptions.ts`
+     (D59) so saved sessions are flagged for recalculation, and refresh
+     [Reproducing the numbers](#reproducing-the-numbers).
+   - Record any judgement call as a new D-number in DECISIONS.md (the next free number is **D88**). Update
+     an existing D-row if its behavior changes, and update the "Which way the assumptions lean" table.
+   - If the change affects an assumption shown to users, update its row in `describeAssumptions` in
+     `src/engine/assumptions.ts` (the "How this works" page) and its help text in `src/ui/helpText.ts`.
+   - Remove a finished item from pending-features.md.
+5. **Adding a field to `Plan`** (`src/engine/types.ts`) needs care. Session files (`schemaVersion: 1`,
+   `src/ui/sessions.ts`) and the browser draft (`loadDraft` in `src/App.tsx`) are loaded as saved. A new
+   assumption gets its default from `DEFAULT_ASSUMPTIONS` automatically (`migratePlan` in
+   `src/engine/migrate.ts`, D65); any other new field needs a line there, and a check in
+   `src/engine/validate.ts` (D71).
+6. **Docs rules:** keep docs in neutral voice with no personal financial details. Commit messages carry no
+   AI attribution.
 
 ## Project layout
 
@@ -63,7 +91,6 @@ docs/
   DECISIONS.md           every judgement call (D-numbers), where to change it
   UPDATE_DATA_PROMPT.md  copy-paste prompt for an LLM to refresh the data
   DEVELOPMENT.md         this file
-  pending-fixes.md       planned bug fixes and accuracy changes, by priority
   pending-features.md    planned new features, by importance
 ```
 
@@ -90,6 +117,64 @@ Layered so each kind of mistake has a test that can catch it:
 8. **Loading and the UI's logic** (`tests/sessions.test.ts`, `tests/warnings.test.ts`, `tests/format.test.ts`,
    `tests/client.test.ts`) — damaged files rejected and old ones migrated, the warnings panel's lines, field
    parsing and limits, and superseded worker requests cancelled.
+
+## Reproducing the numbers
+
+"Example plan" means `examplePlan(2026)` from `src/engine/defaults.ts`: plan start 2026, 10,000 simulated
+markets, seed 20260924. Current results (engine version 6, 10% bracket-fill default):
+
+| Tier | Earliest year | FIRE number | Success at that year | Penalty rate at that year |
+|---|---|---|---|---|
+| Traditional | 2040 | $2,517,100 | 93.6% | 8.8% |
+| Chubby | 2043 | $3,278,500 | 91.8% | 0% |
+| Coast | stop saving now | $803,900 needed today | 92.3% | 0% |
+
+Engine 4 (before D82) gave Traditional 2039 / $2,630,700 (90.3%, 26.9% penalty rate), Chubby 2043 /
+$3,274,700 (91.9%) and Coast $803,000 (92.4%). Taxing bond interest at each market's own 10-year yield (D82) moved
+Traditional's date, but only just: 2039 still passes on all 10,000 markets (90.2%, 27.4% penalty rate) and now
+fails on the 2,000-market search subset, so the earliest date is 2040 (D5). The lower penalty rate and FIRE number
+come from the later date, not from the tax change. Chubby's number rose $3,800 and Coast's $900.
+
+v1 (engine 3, 12% fill) gave Traditional 2039 / $2,695,200 (37.5% penalty rate), Chubby 2043 / $3,297,400
+and Coast $783,000. The main moves: the 10% fill default (D29) lowered Traditional's number and penalty rate; deflating
+basis and Roth principal (D63) and taxing dividends and interest yearly (D70) pushed them back up, and D70
+raised Coast's number by about 3%.
+
+Probes are easiest as a throwaway Vitest file **outside the repo**, run with the repo's dependencies:
+
+```ts
+// <scratch>/probe.test.ts
+import { test } from 'vitest';
+import { examplePlan } from 'C:/code/github/fire/src/engine/defaults';
+import { makeEngine, solveTier, detailFor } from 'C:/code/github/fire/src/engine/solve';
+
+test('probe', () => {
+  const plan = examplePlan(2026);
+  // plan.assumptions.bracketFill = '10';   // change inputs here
+  const e = makeEngine(plan);
+  const r = solveTier(e, 'traditional');
+  const d = detailFor(e, 'traditional', 2040);
+  console.log(r.earliest?.year, r.fireNumber, d.success, d.penaltyRate);
+});
+```
+
+```ts
+// <scratch>/vitest.config.mts
+export default { test: { include: ['*.test.ts'], testTimeout: 600000 }, server: { fs: { strict: false } } };
+```
+
+Run it with `npx --prefix C:/code/github/fire vitest run --root <scratch> --reporter=verbose`. One
+`solveTier` takes about 7 s at 10k markets; `detailFor` takes about 0.7 s.
+
+The "Before you act on these numbers" panel (D67) for the example plan:
+
+> **Before you act on these numbers**
+> - Traditional 2040 and Chubby 2043 assume you'll have about $2.52M and $3.28M by then. Re-run each year
+>   with your real balances.
+> - In 9% of markets the Traditional plan pays a 10% penalty on early 401(k)/IRA withdrawals.
+> - Coast assumes you both keep working until 2049 (You 65) with pay covering all spending, and that stopping
+>   saving includes giving up employer matches.
+> - All amounts are in today's dollars. These are estimates, not financial advice. *What this doesn't model →*
 
 ## Yearly data update
 

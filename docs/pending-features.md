@@ -1,16 +1,15 @@
 # Pending features
 
-New capabilities for the calculator. Bug fixes and accuracy changes are in
-[pending-fixes.md](pending-fixes.md). Design choices already made for this work are D-rows in
+New capabilities for the calculator. Design choices already made for this work are D-rows in
 [DECISIONS.md](DECISIONS.md): where new settings go and what they default to (D81; each feature below names
 its placement and default), and keeping the result cards free of extra text (D67). A new design question that
 the docs don't answer belongs to the maintainer: ask, don't choose.
 
 Each feature starts with a plain-language explanation of what it is and what you'd see in the app. The
 **For implementers** part at the end of each gives code locations and a first version to build. The
-workflow for any change is in pending-fixes.md: [How to work on an item](pending-fixes.md#how-to-work-on-an-item)
+workflow for any change is in DEVELOPMENT.md: [Making a change](DEVELOPMENT.md#making-a-change)
 (tests, engine version, D-numbers, adding `Plan` fields safely) and
-[Reproducing the numbers](pending-fixes.md#reproducing-the-numbers). Line numbers are as of commit `8aecdce`;
+[Reproducing the numbers](DEVELOPMENT.md#reproducing-the-numbers). Line numbers are as of commit `8aecdce`;
 if they have moved, search for the function name given. The v1 audit's fixes, cited below as "fix N", have all
 landed (D63–D80 in DECISIONS.md).
 
@@ -110,7 +109,7 @@ case where one spouse dies earlier, because three things change for the one left
 
 A new optional setting under People: **"Also test: {name} dies at age [__]"**. It's blank (off) by
 default. When it's set, a line appears in the "Before you act on these numbers" panel below the cards
-(see [Where warnings go](pending-fixes.md#where-warnings-go)), e.g.:
+(D67 in [DECISIONS.md](DECISIONS.md)), e.g.:
 
 > If You dies at 75: chance the money lasts for Spouse **87%** (below your 90% target)
 
