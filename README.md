@@ -108,3 +108,5 @@ This is a personal planning tool, not financial advice.
 [MIT](LICENSE)
 
 Favicon: "Fire" from [Fluent Emoji](https://github.com/microsoft/fluentui-emoji), © Microsoft Corporation, MIT License.
+
+Section and card icons from [Lucide](https://lucide.dev), © Lucide Contributors, ISC License.

@@ -107,6 +107,10 @@ details.section { border-bottom: 1px solid var(--border); padding: 8px 0; }
 details.section > summary { cursor: pointer; font-weight: 600; padding: 6px 0; list-style: none; display: flex; align-items: center; gap: 8px; }
 details.section > summary::before { content: '▸'; color: var(--muted); transition: transform 0.15s; }
 details.section[open] > summary::before { transform: rotate(90deg); }
+.icon-line { width: 16px; height: 16px; flex: none; color: var(--text-2); }
+.with-icon { display: flex; align-items: center; gap: 8px; }
+.btn.with-icon { display: inline-flex; gap: 5px; }
+.btn .icon-line { width: 14px; height: 14px; color: inherit; }
 .section-body { display: grid; gap: 10px; padding: 6px 0 10px; }
 .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .field { display: grid; gap: 3px; }
@@ -131,11 +135,12 @@ details.section[open] > summary::before { transform: rotate(90deg); }
 /* ---- Results ---- */
 .banner { padding: 10px 14px; border-radius: var(--radius); margin-bottom: 16px; border: 1px solid var(--border); background: var(--surface); display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
 .banner.warn { border-color: var(--warning); }
-.banner .icon { font-weight: 700; }
+.banner .icon-line { color: var(--warning); width: 18px; height: 18px; }
 .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px; margin-bottom: 20px; }
 .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; display: grid; gap: 10px; align-content: start; }
 .card.selected { outline: 2px solid var(--accent); outline-offset: -1px; }
 .card-head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+.card-head h2 { flex: none; } /* keep "Traditional FIRE" on one line; the kicker wraps instead */
 .card .kicker { font-size: 12px; color: var(--muted); }
 .hero { font-size: 30px; font-weight: 600; letter-spacing: -0.01em; }
 .hero small { font-size: 14px; font-weight: 400; color: var(--text-2); }

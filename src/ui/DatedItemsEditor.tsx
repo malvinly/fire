@@ -1,6 +1,7 @@
 import type { DatedItem, DatedTiming, Plan } from '../engine/types';
 import { Help, NumberField, SelectField, TextField } from './fields';
 import { HELP } from './helpText';
+import { Icon } from './icons';
 
 type Update = (fn: (draft: Plan) => void) => void;
 
@@ -35,8 +36,8 @@ export function DatedItemsEditor({ plan, update }: { plan: Plan; update: Update 
         <div key={it.id} className="item">
           <div className="item-head">
             <TextField label="Name" help={HELP.itemLabel} value={it.label} onChange={(v) => edit(it.id, (x) => { x.label = v; })} />
-            <button className="btn small" aria-label={`Remove ${it.label}`} onClick={() => update((d) => { d.datedItems = d.datedItems.filter((x) => x.id !== it.id); })}>
-              Remove
+            <button className="btn small with-icon" aria-label={`Remove ${it.label}`} onClick={() => update((d) => { d.datedItems = d.datedItems.filter((x) => x.id !== it.id); })}>
+              <Icon name="trash" />Remove
             </button>
           </div>
           <div className="row">

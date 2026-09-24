@@ -4,6 +4,7 @@ import type { Detail, Success, Tier, TierResult } from '../engine/solve';
 import type { Plan } from '../engine/types';
 import { accountLegend, AccountsChart, BAND_LABELS, BandsChart, useTheme, type Marker } from './charts';
 import { Help } from './fields';
+import { Icon, TIER_ICONS } from './icons';
 import { money, moneyShort, percent } from './format';
 import { METHODS_HELP, SUCCESS_HELP } from './helpText';
 
@@ -64,7 +65,7 @@ export function TierCard({ r, plan, selected, onSelect }: { r: TierResult | null
     <div className={`card${selected ? ' selected' : ''}`} role="button" tabIndex={0} onClick={onSelect}
       onKeyDown={(e) => e.target === e.currentTarget && (e.key === 'Enter' || e.key === ' ') && onSelect()} aria-pressed={selected}>
       <div className="card-head">
-        <h2><Help text={tierHelp(r.tier, plan)}>{TIER_NAMES[r.tier]}</Help></h2>
+        <h2 className="with-icon"><Icon name={TIER_ICONS[r.tier]} /><Help text={tierHelp(r.tier, plan)}>{TIER_NAMES[r.tier]}</Help></h2>
         <span className="kicker">{money(r.spending)}/yr{extras}</span>
       </div>
       <div>

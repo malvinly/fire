@@ -3,6 +3,7 @@ import { examplePlan } from './engine/defaults';
 import type { Detail, Tier, TierResult } from './engine/solve';
 import type { Plan } from './engine/types';
 import { HowItWorks } from './ui/HowItWorks';
+import { Icon, TIER_ICONS } from './ui/icons';
 import { InputsPanel } from './ui/InputsPanel';
 import { DetailView, TIER_NAMES, TierCard } from './ui/Results';
 import { SessionsDialog, type SessionMeta } from './ui/SessionsDialog';
@@ -162,23 +163,23 @@ export default function App() {
             <InputsPanel plan={plan} update={update} />
           </aside>
           <section className="results" aria-label="Results">
-            {error && <div className="banner warn"><span className="icon">!</span> {error}</div>}
+            {error && <div className="banner warn"><Icon name="alert" /> {error}</div>}
             {plan.startYear < thisYear && (
               <div className="banner warn">
-                <span className="icon">!</span> This plan starts in {plan.startYear}. For a yearly checkup, move it to {thisYear} and
+                <Icon name="alert" /> This plan starts in {plan.startYear}. For a yearly checkup, move it to {thisYear} and
                 update balances, salaries and contributions to today's numbers.
                 <button className="btn small" onClick={() => update((d) => { d.startYear = thisYear; })}>Start plan in {thisYear}</button>
               </div>
             )}
             {staleData && (
               <div className="banner warn">
-                <span className="icon">!</span> These results used older market and tax data than the app now has. Recalculate to update.
+                <Icon name="alert" /> These results used older market and tax data than the app now has. Recalculate to update.
                 <button className="btn small" onClick={calculate}>Recalculate</button>
               </div>
             )}
             {inputsChanged && results?.done && (
               <div className="banner warn">
-                <span className="icon">!</span> Inputs changed since these results were calculated.
+                <Icon name="alert" /> Inputs changed since these results were calculated.
                 <button className="btn small primary" onClick={calculate}>Recalculate</button>
               </div>
             )}
@@ -197,7 +198,7 @@ export default function App() {
                   {tierOrder.map((t) =>
                     t === 'chubby' && !results.plan.household.chubbySpending ? (
                       <div key={t} className="card">
-                        <h2>{TIER_NAMES.chubby}</h2>
+                        <h2 className="with-icon"><Icon name={TIER_ICONS.chubby} />{TIER_NAMES.chubby}</h2>
                         <p className="text-2">Enter your Chubby FIRE spending under Spending (or use the default), then recalculate.</p>
                       </div>
                     ) : (

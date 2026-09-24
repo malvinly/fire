@@ -26,7 +26,7 @@ export function InputsPanel({ plan, update }: { plan: Plan; update: Update }) {
 
   return (
     <div>
-      <Section title="People" open>
+      <Section title="People" icon="users" open>
         <div className="grid2">
           {PEOPLE.map((id) => (
             <div key={id} className="person-col section-body">
@@ -43,7 +43,7 @@ export function InputsPanel({ plan, update }: { plan: Plan; update: Update }) {
           hint="Balances below are as of the start of this year." />
       </Section>
 
-      <Section title="Balances">
+      <Section title="Balances" icon="wallet">
         <div className="grid2">
           {PEOPLE.map((id) => (
             <div key={id} className="section-body">
@@ -67,7 +67,7 @@ export function InputsPanel({ plan, update }: { plan: Plan; update: Update }) {
         </div>
       </Section>
 
-      <Section title="Yearly contributions">
+      <Section title="Yearly contributions" icon="piggyBank">
         <div className="grid2">
           {PEOPLE.map((id) => {
             const p = plan[id];
@@ -98,7 +98,7 @@ export function InputsPanel({ plan, update }: { plan: Plan; update: Update }) {
         </p>
       </Section>
 
-      <Section title="Spending" open>
+      <Section title="Spending" icon="receipt" open>
         <NumberField label="Current yearly spending (today)" help={HELP.currentSpending} value={h.currentSpending} onChange={(v) => update((d) => { d.household.currentSpending = v ?? 0; })}
           hint="Everything you spend today, including mortgage and any healthcare you pay yourself." />
         <NumberField label="Traditional FIRE: yearly retirement spending" help={HELP.traditionalSpending} value={h.traditionalSpending}
@@ -129,7 +129,7 @@ export function InputsPanel({ plan, update }: { plan: Plan; update: Update }) {
           hint="Coast = stop contributing, keep working (paycheck covers spending) until this age." />
       </Section>
 
-      <Section title="Healthcare">
+      <Section title="Healthcare" icon="heartPulse">
         <div className="grid2">
           {PEOPLE.map((id) => (
             <div key={id} className="section-body">
@@ -146,17 +146,17 @@ export function InputsPanel({ plan, update }: { plan: Plan; update: Update }) {
         <p className="muted">Charged only in years you're retired. Grows {percent(a.healthcareInflation, 1)}/yr above inflation.</p>
       </Section>
 
-      <Section title="Social Security">
+      <Section title="Social Security" icon="landmark">
         {PEOPLE.map((id) => (
           <SocialSecurityInputs key={id} id={id} person={plan[id]} update={update} />
         ))}
       </Section>
 
-      <Section title="Dated items (mortgage, car, home sale…)">
+      <Section title="Dated items (mortgage, car, home sale…)" icon="calendarClock">
         <DatedItemsEditor plan={plan} update={update} />
       </Section>
 
-      <Section title="Assumptions (advanced)">
+      <Section title="Assumptions (advanced)" icon="sliders">
         <div className="grid2">
           <NumberField label="Plan until the younger of you is age" help={HELP.endAge} kind="int" value={a.endAge} onChange={(v) => update((d) => { d.assumptions.endAge = v ?? 96; })}
             warn={Math.max(plan.you.birthYear, plan.spouse.birthYear) + a.endAge <= plan.startYear ? "Must be above the younger spouse's current age" : null} />

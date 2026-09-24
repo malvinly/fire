@@ -1,4 +1,5 @@
 import { useId, useRef, useState, type ReactNode } from 'react';
+import { Icon, type IconName } from './icons';
 
 /**
  * "?" help next to a label. Shows on hover or keyboard focus of the label, positioned in the viewport so it
@@ -131,10 +132,10 @@ export function TextField({ label, value, onChange, help }: { label: string; val
   );
 }
 
-export function Section({ title, open, children }: { title: string; open?: boolean; children: ReactNode }) {
+export function Section({ title, icon, open, children }: { title: string; icon?: IconName; open?: boolean; children: ReactNode }) {
   return (
     <details className="section" open={open}>
-      <summary>{title}</summary>
+      <summary>{icon && <Icon name={icon} />}{title}</summary>
       <div className="section-body">{children}</div>
     </details>
   );
