@@ -2,7 +2,7 @@
 // then that year's real return applies. All amounts are today's (real) dollars.
 
 import { FEDERAL } from '../data/rules';
-import type { Context } from './context';
+import { TAXABLE_YIELDS, type Context } from './context';
 import type { ReturnPaths } from './returns';
 import { bracketRoom, computeTax } from './tax';
 import type { PathOutcome, YearRecord } from './types';
@@ -254,24 +254,43 @@ function penalizedAmount(d: Draws): number {
 }
 
 /**
+ * A path's income rates for one year (D70): `dividends` and `brokerageInterest` are shares of the brokerage
+ * balance, `tbill` the nominal T-bill rate the cash account earns.
+ */
+interface IncomeRates {
+  dividends: number;
+  brokerageInterest: number;
+  tbill: number;
+}
+
+/**
+ * Sets `r` to year `pi` of `paths`: the market's own January dividend yield and 10-year yield, but never below the
+ * fixed yields (D82), and its T-bill rate for the cash share and the cash account.
+ */
+function setIncomeRates(ctx: Context, paths: ReturnPaths, pi: number, r: IncomeRates) {
+  const y = ctx.yields;
+  r.tbill = Math.max(0, (1 + paths.cash[pi]) * (1 + paths.inflation[pi]) - 1);
+  r.dividends = y.stocks * Math.max(TAXABLE_YIELDS.stockDividends, paths.dividendYield[pi]);
+  r.brokerageInterest = y.bonds * Math.max(TAXABLE_YIELDS.bondInterest, paths.bondYield[pi]) + y.cash * r.tbill;
+}
+
+/**
  * Yearly income on the money invested this year (D70): brokerage dividends (taxed like long-term gains), and
  * interest from the brokerage account's bonds and cash share and from the cash account (ordinary income).
- * `tbill` is the path's nominal T-bill rate for the year.
  */
-function investmentIncome(ctx: Context, taxable: number, cash: number, tbill: number) {
-  const y = ctx.yields;
+function investmentIncome(taxable: number, cash: number, r: IncomeRates) {
   const invested = Math.max(0, taxable);
-  const dividends = invested * y.dividends;
-  const brokerageInterest = invested * (y.bondInterest + y.cashShare * tbill);
-  return { dividends, brokerageInterest, interest: brokerageInterest + Math.max(0, cash) * tbill };
+  const dividends = invested * r.dividends;
+  const brokerageInterest = invested * r.brokerageInterest;
+  return { dividends, brokerageInterest, interest: brokerageInterest + Math.max(0, cash) * r.tbill };
 }
 
 /**
  * Tax for a retired year given the withdrawals in `d`. `otherOrdinary`: ordinary income that isn't a withdrawal
  * (taxed dated income, D66). Investment income is earned on what stays invested after the withdrawals (D7, D70).
  */
-function taxOf(ctx: Context, t: number, d: Draws, s: State, ss: number, priceLevel: number, otherOrdinary: number, tbill: number) {
-  const inv = investmentIncome(ctx, s.taxable - d.taxable + d.rmdSurplus + d.surplus, s.cash - d.cash, tbill);
+function taxOf(ctx: Context, t: number, d: Draws, s: State, ss: number, priceLevel: number, otherOrdinary: number, rates: IncomeRates) {
+  const inv = investmentIncome(s.taxable - d.taxable + d.rmdSurplus + d.surplus, s.cash - d.cash, rates);
   const ordinary = otherOrdinary + inv.interest +
     d.rmd[0] + d.rmd[1] + d.fill[0] + d.fill[1] + d.pretaxExtra[0] + d.pretaxExtra[1] +
     d.pretaxPenalty[0] + d.pretaxPenalty[1] + d.rothPenaltyEarnings[0] + d.rothPenaltyEarnings[1] + d.hsaNonMedical;
@@ -296,6 +315,7 @@ export function simulatePath(ctx: Context, paths: ReturnPaths, p: number, opts: 
   const s = opts.startState ? cloneState(opts.startState) : initialState(ctx);
   const records: YearRecord[] | undefined = opts.record ? [] : undefined;
   const d = emptyDraws();
+  const rates: IncomeRates = { dividends: 0, brokerageInterest: 0, tbill: 0 };
   let priceLevel = opts.initialPriceLevel ?? 1;
   if (opts.initialPriceLevel === undefined) {
     if (shift !== 0 && startIdx > 0) throw new Error('initialPriceLevel is required when pathShift is used');
@@ -310,7 +330,7 @@ export function simulatePath(ctx: Context, paths: ReturnPaths, p: number, opts: 
     const pi = p * paths.len + (t - shift);
     const r = paths.portfolio[pi];
     const rc = paths.cash[pi];
-    const tbill = Math.max(0, (1 + rc) * (1 + paths.inflation[pi]) - 1);
+    setIncomeRates(ctx, paths, pi, rates);
     const ss = ctx.socialSecurity[t];
     const rmd0 = ctx.rmdDivisor[0][t] > 0 ? s.pretax[0] / ctx.rmdDivisor[0][t] : 0;
     const rmd1 = ctx.rmdDivisor[1][t] > 0 ? s.pretax[1] / ctx.rmdDivisor[1][t] : 0;
@@ -409,7 +429,7 @@ export function simulatePath(ctx: Context, paths: ReturnPaths, p: number, opts: 
       }
       // Brokerage and cash income on what stays invested this year (D70), taxed on top of everything above. The
       // paycheck already covers spending (D16), so the tax comes out of the accounts and the rest is reinvested.
-      const inv = investmentIncome(ctx, s.taxable, s.cash, tbill);
+      const inv = investmentIncome(s.taxable, s.cash, rates);
       let invFederal = 0;
       let invState = 0;
       if (inv.dividends + inv.interest > 0) {
@@ -457,7 +477,7 @@ export function simulatePath(ctx: Context, paths: ReturnPaths, p: number, opts: 
         // Bracket room ignores this year's capital gains (they stack above ordinary income, D39).
         // The fill room counts all ordinary income that isn't a withdrawal (keep in step with taxOf). Investment
         // income is estimated on the start-of-year balances here (it depends on this year's withdrawals).
-        const interest = investmentIncome(ctx, s.taxable, s.cash, tbill).interest;
+        const interest = investmentIncome(s.taxable, s.cash, rates).interest;
         let room = bracketRoom(ctx.fillTop, rmd0 + rmd1 + taxedIn + interest, 0, ss, ctx.over65Count[t], priceLevel);
         for (const i of order) {
           d.fillTarget[i] = Math.max(0, Math.min(room, s.pretax[i] - d.rmd[i]));
@@ -467,10 +487,10 @@ export function simulatePath(ctx: Context, paths: ReturnPaths, p: number, opts: 
 
       // Taxes are part of the need, and withdrawals change taxes: iterate to a fixed point.
       planDraws(ctx, s, t, baseNeed, hsaMedical, order, d);
-      let tax = taxOf(ctx, t, d, s, ss, priceLevel, taxedIn, tbill);
+      let tax = taxOf(ctx, t, d, s, ss, priceLevel, taxedIn, rates);
       for (let iter = 0; iter < 20; iter++) {
         planDraws(ctx, s, t, baseNeed + tax.total, hsaMedical, order, d);
-        const next = taxOf(ctx, t, d, s, ss, priceLevel, taxedIn, tbill);
+        const next = taxOf(ctx, t, d, s, ss, priceLevel, taxedIn, rates);
         const converged = Math.abs(next.total - tax.total) < 0.5;
         tax = next;
         if (converged) break;

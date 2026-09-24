@@ -7,9 +7,10 @@ import { bracketTop } from './tax';
 import type { DatedItem, DatedTiming, Person, Plan, Scenario } from './types';
 
 /**
- * Yearly income paid out by the brokerage account, as a share of the money in each asset class (D70): stock
- * dividends (qualified, taxed like long-term gains) and bond interest (ordinary income). The cash share of the
- * mix, and the cash account, pay the path's own T-bill rate.
+ * The lowest yearly income paid out by the brokerage account, as a share of the money in each asset class (D70):
+ * stock dividends (qualified, taxed like long-term gains) and bond interest (ordinary income). Each market pays
+ * its own January dividend yield and 10-year yield when higher (D82). The cash share of the mix, and the cash
+ * account, pay the path's own T-bill rate.
  */
 export const TAXABLE_YIELDS = { stockDividends: 0.02, bondInterest: 0.04 };
 
@@ -59,11 +60,10 @@ export interface Context {
   hsaPenalty: Uint8Array;
   fillTop: number; // 0 = no bracket fill
   /**
-   * Brokerage income for the plan's asset mix (D70): `dividends` and `bondInterest` are yearly shares of the
-   * brokerage balance (yield × that asset's share of the mix); `cashShare` is the cash share of the mix, which
-   * earns the path's T-bill rate. The cash account's interest doesn't depend on these.
+   * The shares of the brokerage balance that earn dividends (`stocks`), bond interest (`bonds`) and the T-bill
+   * rate (`cash`) each year, at that year's yields (D70, D82). The cash account's interest doesn't depend on these.
    */
-  yields: { dividends: number; bondInterest: number; cashShare: number };
+  yields: { stocks: number; bonds: number; cash: number };
   pia: [number, number];
 }
 
@@ -156,11 +156,7 @@ export function buildContext(plan: Plan, scenario: Scenario): Context {
     rmdDivisor: [f64(), f64()],
     hsaPenalty: new Uint8Array(len),
     fillTop: a.bracketFill === 'none' ? 0 : bracketTop(a.bracketFill),
-    yields: {
-      dividends: a.allocation.stocks * TAXABLE_YIELDS.stockDividends,
-      bondInterest: a.allocation.bonds * TAXABLE_YIELDS.bondInterest,
-      cashShare: a.allocation.cash,
-    },
+    yields: { ...a.allocation },
     pia: [0, 0],
   };
 

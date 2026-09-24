@@ -27,7 +27,7 @@ cited below) first. [DEVELOPMENT.md](DEVELOPMENT.md) has the layout and scripts.
 4. **Update the records:**
    - If results change for the same inputs, bump `DATA_VERSIONS.engine` in `src/engine/assumptions.ts`
      (D59) so saved sessions are flagged for recalculation.
-   - Record any judgement call as a new D-number in DECISIONS.md (the next free number is **D82**). Update
+   - Record any judgement call as a new D-number in DECISIONS.md (the next free number is **D86**). Update
      an existing D-row if its behavior changes, and update the "Which way the assumptions lean" table.
    - If the change affects an assumption shown to users, update its row in `describeAssumptions` in
      `src/engine/assumptions.ts` (the "How this works" page) and its help text in `src/ui/helpText.ts`.
@@ -66,10 +66,9 @@ numbers"** panel directly below the cards and above "Try a different retirement 
 The panel for the example plan today:
 
 > **Before you act on these numbers**
-> - Traditional 2039 and Chubby 2043 assume you'll have about $2.63M and $3.27M by then. Re-run each year
+> - Traditional 2040 and Chubby 2043 assume you'll have about $2.52M and $3.28M by then. Re-run each year
 >   with your real balances.
-> - Traditional 2039 is borderline (90.3%); it could be a year later.
-> - In 27% of markets the Traditional plan pays a 10% penalty on early 401(k)/IRA withdrawals.
+> - In 10% of markets the Traditional plan pays a 10% penalty on early 401(k)/IRA withdrawals.
 > - Coast assumes you both keep working until 2049 (You 65) with pay covering all spending, and that stopping
 >   saving includes giving up employer matches.
 > - All amounts are in today's dollars. These are estimates, not financial advice. *What this doesn't model →*
@@ -89,20 +88,6 @@ None pending.
 ---
 
 ## P2: narrower wrong answers, clarity gaps
-
-### 25. Bond interest at each market's own yield (accuracy)
-
-- **Problem:** D70 taxes brokerage bond interest at a fixed 4% of the bond share, while the cash share uses each
-  market's own T-bill rate. In high-rate stretches (1966–1981 starts, 10-year yields about 5–15%), which often
-  decide a 90% answer, bond interest is under-taxed; in the low-rate 1940s it is over-taxed. The fixed 2% dividend
-  yield has the same issue, more weakly (history's dividend yields ran 4–6% for long periods).
-- **Where:** `TAXABLE_YIELDS` in `src/engine/context.ts`; `investmentIncome` in `src/engine/simulate.ts`;
-  `scripts/build-market-data.ts` already reads Shiller's January GS10 yield (column 6, `shillerJanuaries`) but
-  doesn't keep it in `src/data/market.json`; the dividend column (D, column 2) isn't read yet.
-- **Change:** keep the January 10-year yield (and optionally the dividend yield) per year in `market.json`, carry it
-  through `ReturnPaths` like `cash`, and use it in `investmentIncome`. Needs `npm run data:build` (network).
-- **Test:** a path with a 10% bond yield taxes 10% of the bond share as interest.
-- **Source:** adversarial review of the fixes (devil's advocate).
 
 ### 30. Saving a stale session marks it current (clarity)
 
@@ -140,13 +125,19 @@ None pending.
 ## Reproducing the numbers
 
 "Example plan" means `examplePlan(2026)` from `src/engine/defaults.ts`: plan start 2026, 10,000 simulated
-markets, seed 20260924. Baseline results after all 24 fixes (engine version 4, 10% bracket-fill default):
+markets, seed 20260924. Baseline results after fix 25 (engine version 5, 10% bracket-fill default):
 
 | Tier | Earliest year | FIRE number | Success at that year | Penalty rate at that year |
 |---|---|---|---|---|
-| Traditional | 2039 | $2,630,700 | 90.3% | 26.9% |
-| Chubby | 2043 | $3,274,700 | 91.9% | 0% |
-| Coast | stop saving now | $803,000 needed today | 92.4% | 0% |
+| Traditional | 2040 | $2,517,100 | 93.3% | 10.1% |
+| Chubby | 2043 | $3,278,500 | 91.5% | 0% |
+| Coast | stop saving now | $816,300 needed today | 92.1% | 0% |
+
+Engine 4 (before fix 25) gave Traditional 2039 / $2,630,700 (90.3%, 26.9% penalty rate), Chubby 2043 /
+$3,274,700 (91.9%) and Coast $803,000 (92.4%). Taxing bond interest at each market's own 10-year yield (D82) moved
+Traditional a year later: 2039 now passes at exactly 90.0% on all 10,000 markets but not on the 2,000-market search
+subset (D5). The dividend yields account for almost all of Coast's rise. Chubby's 91.5% is exactly the D78
+borderline cut-off, so the panel has no borderline line.
 
 v1 (engine 3, 12% fill) gave Traditional 2039 / $2,695,200 (37.5% penalty rate), Chubby 2043 / $3,297,400
 and Coast $783,000. The main moves: the 10% fill (fix 5) lowered Traditional's number and penalty rate; deflating

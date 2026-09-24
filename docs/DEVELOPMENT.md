@@ -47,7 +47,7 @@ src/
     migrate.ts     fills fields missing from older session files and drafts
     validate.ts    checks loaded plans and inputs before a calculation
   data/
-    market.json    generated annual returns (committed)
+    market.json    generated annual returns and January yields (committed)
     rules.ts       tax brackets, SSA constants, RMD table (update yearly)
   worker/          Web Worker pool that runs the engine off the main thread
   ui/              React components, charts, session files, input help text (helpText.ts), the warnings

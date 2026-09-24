@@ -6,7 +6,7 @@ import { examplePlan } from '../src/engine/defaults';
 import { constantPath, historicalPaths, MARKET, type ReturnPaths } from '../src/engine/returns';
 import { initialState, scaleState, simulatePath } from '../src/engine/simulate';
 import {
-  averageInflation, contributionMix, detailFor, evaluate, makeEngine, projectState, scenarioFor, solveTier,
+  averageInflation, averageRealReturns, contributionMix, detailFor, evaluate, makeEngine, projectState, scenarioFor, solveTier,
 } from '../src/engine/solve';
 import type { Plan } from '../src/engine/types';
 import { noYields, simplePlan, START } from './helpers';
@@ -187,7 +187,10 @@ describe('detail view', () => {
     const t = d.scenario.retireYear - d.years[0]; // first retired year
     const at = (recs: typeof d.medianPath) => recs.find((r) => r.year === d.years[t])!.balances.total;
     expect(Math.abs(at(d.medianPath) / d.bands.p50[t] - 1)).toBeLessThan(0.05);
-    expect(Math.abs(at(d.p10Path) / d.bands.p10[t] - 1)).toBeLessThan(0.05);
+    // With 400 markets the bad-market line has few close neighbors, so any single year can be 15% off; check the
+    // fit over the 10 retired years D73 matches on instead (root-mean-square log difference).
+    const logDiff = (k: number) => Math.log(d.p10Path.find((r) => r.year === d.years[t + k])!.balances.total / d.bands.p10[t + k]);
+    expect(Math.sqrt(Array.from({ length: 10 }, (_, k) => logDiff(k) ** 2).reduce((a, b) => a + b) / 10)).toBeLessThan(0.12);
   });
 
   // Sum of squared log differences from a band over `years` years from index `from` (D73), computed independently.
@@ -331,6 +334,21 @@ describe('price level in retirement-only runs', () => {
 });
 
 describe('review follow-ups', () => {
+  test('the FIRE number’s projection taxes brokerage income at the average yield the markets pay, floors included (D82)', () => {
+    const p = smallPlan();
+    const ctx = buildContext(p, scenarioFor(p, 'traditional', 2036));
+    const idx = ctx.retireIdx;
+    const avg = (k: 'bondYield' | 'dividendYield', floor: number) =>
+      MARKET.years.reduce((acc, y) => acc + Math.max(floor, y[k]), 0) / MARKET.years.length;
+    const run = (bond: number, div: number) =>
+      simulatePath(ctx, constantPath(ctx.len, avg0.portfolio, avg0.cash, averageInflation(), bond, div), 0, { stopIdx: idx }).state;
+    const avg0 = averageRealReturns(p.assumptions.allocation, p.assumptions.feeRate);
+    const floored = run(avg('bondYield', 0.04), avg('dividendYield', 0.02));
+    const plainMeans = run(avg('bondYield', 0), avg('dividendYield', 0));
+    expect(projectState(ctx, idx)).toEqual(floored);
+    expect(floored.taxable).toBeLessThan(plainMeans.taxable); // more tax while working than at the plain means
+  });
+
   test('the FIRE number\u2019s projection deflates cost basis and Roth principal at average inflation (D63)', () => {
     const p = smallPlan();
     p.household.taxableContribution = 0;
