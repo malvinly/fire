@@ -5,7 +5,8 @@ Everything needed to change, test or maintain the FIRE Planner. For using it, se
 
 ## Setup
 
-Requires Node 22+ (developed on Node 24).
+Requires Node 22.18+ (Vite and Vitest need 22.12+, and `npm run data:build` runs the `.ts` script directly,
+which Node does without flags from 22.18; Vitest doesn't support 23 or 25). Developed on Node 24.
 
 ```bash
 npm install
@@ -63,12 +64,17 @@ code comments cite) first. Planned work is in [pending-features.md](pending-feat
 
 ```
 src/
+  App.tsx        page layout, Calculate, banners, year picker, browser draft (loadDraft)
+  main.tsx       entry point
+  index.css      styles
   engine/        UI-free calculation engine (pure TypeScript, unit-tested)
+    types.ts       Plan, assumption and result types
     simulate.ts    one market path, year by year
     solve.ts       success rates, earliest dates, FIRE numbers, detail view
     context.ts     per-scenario precomputation (Social Security, healthcare, dated items…)
     tax.ts         federal/state tax, Social Security taxation, bracket-fill room
     socialSecurity.ts  PIA from earnings, claiming adjustments, spousal, trust-fund cut
+    earnings.ts    reads an SSA earnings record (XML statement or pasted table)
     returns.ts     historical windows and block bootstrap
     assumptions.ts the "How this works" content
     defaults.ts    default assumptions and the example plan
@@ -77,12 +83,16 @@ src/
   data/
     market.json    generated annual returns and January 10-year yields (committed)
     rules.ts       tax brackets, SSA constants, RMD table (update yearly)
-  worker/          Web Worker pool that runs the engine off the main thread
-  ui/              React components, charts, session files, input help text (helpText.ts), the warnings
-                   panel's lines (warnings.ts)
+  worker/          engine workers off the main thread: one per FIRE type, one for the detail view (D80)
+  ui/              React components, charts, session files, input help text (helpText.ts), field and year
+                   parsing (format.ts), the warnings panel's lines (warnings.ts)
 public/
   Start FIRE Planner.cmd  double-click launcher, copied into dist/ by the build
   serve.ps1               tiny localhost-only static server (Windows PowerShell, no Node) used by the launcher
+  favicon.svg             app icon
+index.html
+data/raw/          downloaded spreadsheets for the data script (not committed, D12)
+.claude/launch.json  preview servers: fire-dev (5391) and fire-built (4391)
 scripts/
   build-market-data.ts   rebuilds src/data/market.json from Shiller + Damodaran
 tests/             Vitest suites (see below)
@@ -110,13 +120,20 @@ Layered so each kind of mistake has a test that can catch it:
 4. **Taxes** (`tests/tax.test.ts`) — hand-worked 2026 MFJ examples incl. Social Security taxation and NIIT.
 5. **Account rules** (`tests/withdrawals.test.ts`, `tests/paths.test.ts`) — 59½ boundary, Roth-ladder
    5-year rule, penalties, RMDs, HSA, two spouses of different ages, Social Security in the simulation,
-   healthcare phases, gains/basis, and an after-tax cash-flow identity (withdrawals + income = spending + taxes).
+   healthcare phases, gains/basis, an after-tax cash-flow identity (withdrawals + income = spending + taxes),
+   yearly tax on brokerage and cash income with bond interest at each market's 10-year yield (D70, D82), and
+   money reinvested in retired years (D83).
 6. **Headline numbers** (`tests/solve.test.ts`) — the FIRE number, earliest date and Coast number pass at
    the value shown and fail just below it; stricter-of-two; percentile bands; worst-years ordering.
 7. **Properties** (`tests/properties.test.ts`) — more spending never helps, more savings never delays FIRE.
 8. **Loading and the UI's logic** (`tests/sessions.test.ts`, `tests/warnings.test.ts`, `tests/format.test.ts`,
-   `tests/client.test.ts`) — damaged files rejected and old ones migrated, the warnings panel's lines, field
-   parsing and limits, and superseded worker requests cancelled.
+   `tests/client.test.ts`) — damaged files rejected and old ones migrated, a stale session's saved detail shown
+   only for its own FIRE type and year (D85) and its versions kept when saved (D86), the warnings panel's
+   lines, field parsing and limits, the year picker's typed text (D84), and superseded worker requests
+   cancelled (D80).
+9. **Defaults and earnings records** (`tests/defaults.test.ts`, `tests/earnings.test.ts`) — the 10%
+   bracket-fill default (D29), default spending levels (D18, D57), the quick-search sample (D5), sections still
+   holding example numbers (D64), and SSA earnings read from the XML statement or pasted rows (including CSV).
 
 ## Reproducing the numbers
 
@@ -186,5 +203,6 @@ rebuild your permanent copy (see the README).
 ## Privacy
 
 Session files hold your financial details. `.gitignore` blocks them (files named `YYYY-MM-DD *.json`,
-`sessions/`, `fire-sessions/`), SSA statements (`*.xml`, `*.pdf`), spreadsheets/CSVs, `.env` files and
-local Claude settings. Keep your sessions folder outside the repository anyway.
+`sessions/`, `fire-sessions/`), SSA statements (`*.xml`, `*.pdf`), spreadsheets/CSVs, `.env` files,
+local Claude settings, and anything in `private/` or named `*.private.*`. Keep your sessions folder outside
+the repository anyway.

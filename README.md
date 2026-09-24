@@ -35,7 +35,7 @@ All three are left out on purpose; they don't match the kind of plan this tool i
 
 ## Start it
 
-Requires [Node.js](https://nodejs.org/) 22 or newer.
+Requires [Node.js](https://nodejs.org/) 22.18 or newer.
 
 ```bash
 npm install
@@ -79,14 +79,16 @@ Notes:
   session; *Save as new* makes a copy. Next year: open last year's session, *Save as new*
   ("2027 checkup"), click the banner's **Start plan in 2027**, update balances, salaries and
   contributions, **Calculate**. Each file holds your inputs, every assumption used, the data versions,
-  and a results summary. Old results are never silently recomputed — a banner tells you if the app's
-  data is newer than a session's results.
+  and a results summary. Old results are never silently recomputed: a banner tells you if the app's data
+  or calculator is newer than a session's results. Until you press **Recalculate**, only the saved details
+  are shown, and saving again keeps the session marked as out of date.
 - **Before you act on these numbers** — directly below the cards, one line for each caution that applies:
   the balance each date assumes you'll have, borderline dates, how often a plan pays the early-withdrawal
   penalty, and what Coast assumes.
-- **Try a different retirement year** — below that, change the year to see your chance of success,
-  your savings over time in typical and bad markets, what's in each account, the worst years to have
-  started, and a year-by-year table of withdrawals and taxes.
+- **Try a different retirement year** — below that, pick a FIRE type and a year (type it or use − / +) to
+  see your chance of success, your savings over time in typical and bad markets, what's in each account in
+  a bad market, the worst years to have started, and a year-by-year table of where each year's money comes
+  from, the taxes paid and what is reinvested.
 - **How this works** — generated from the plan on screen: every assumption, whether it's a default or
   yours, why, and the source.
 

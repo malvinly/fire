@@ -1,4 +1,4 @@
-// Tax, Social Security and RMD rules. Refresh once a year (see README "Yearly update").
+// Tax, Social Security and RMD rules. Refresh once a year (see docs/UPDATE_DATA_PROMPT.md).
 // Dollar amounts are for RULES_YEAR and are treated as constant in real terms unless marked "not indexed".
 
 export const RULES_YEAR = 2026;

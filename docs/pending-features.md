@@ -9,12 +9,12 @@ Each feature starts with a plain-language explanation of what it is and what you
 **For implementers** part at the end of each gives code locations and a first version to build. The
 workflow for any change is in DEVELOPMENT.md: [Making a change](DEVELOPMENT.md#making-a-change)
 (tests, engine version, D-numbers, adding `Plan` fields safely) and
-[Reproducing the numbers](DEVELOPMENT.md#reproducing-the-numbers). Line numbers are as of commit `8aecdce`;
-if they have moved, search for the function name given. The v1 audit's fixes, cited below as "fix N", have all
-landed (D63–D80 in DECISIONS.md).
+[Reproducing the numbers](DEVELOPMENT.md#reproducing-the-numbers). Line numbers were checked at engine
+version 6; if they have moved, search for the name given. The v1 audit's fixes and the later ones have all
+landed (D63–D87 in DECISIONS.md).
 
 Features are ordered by **importance**: how much each changes a typical user's answer. Numbers come from the
-current engine (version 4) on the example plan unless marked *estimate* or *v1*. Example screen text is illustrative; the final
+current engine (version 6) on the example plan unless marked *estimate* or *v1*. Example screen text is illustrative; the final
 wording is up to whoever builds it.
 
 **Any feature that adds a `Plan` or `Assumptions` field** must fill in that field's default for older
@@ -55,8 +55,8 @@ Two small additions for asking "what if?":
 3. The cards show the new answers as usual. A one-line strip directly under them compares with the
    baseline (the cards themselves stay unchanged, per D67):
 
-   > **Compared with baseline:** Traditional 2042 (was 2039, **+3 years**; needs $2.72M, was $2.63M) ·
-   > Chubby 2046 (was 2043) · Coast unchanged
+   > **Compared with baseline:** Traditional 2042 (was 2040, **+2 years**; needs $2.72M, was $2.52M) ·
+   > Chubby 2046 (was 2043) · Coast stop saving in 2030 (was now; needs $1.13M today, was $804k)
 
 4. **Clear baseline** removes the strip.
 
@@ -66,8 +66,9 @@ default 0%.
 ### Why it's worth doing
 
 - It's the quickest way to see which inputs matter for *your* plan, and how sensitive the date is.
-- Measured (raising the fee by 1%, which is the same thing): the example's Traditional date moves from 2039
-  to 2042 and its number from $2.63M to $2.72M.
+- Measured (raising the fee by 1%, which is the same thing): the example's Traditional date moves from 2040
+  to 2042 and its number from $2.52M to $2.72M; Chubby moves from 2043 to 2046, and Coast from stopping now
+  to 2030.
 - ProjectionLab and Engaging Data make this kind of comparison easy. Here it takes pen and paper.
 
 ### Today
@@ -78,11 +79,17 @@ default 0%.
 
 ### For implementers
 
-- **Where:** results state in `src/App.tsx`; `TierCard` (`src/ui/Results.tsx:69`); `feeRate` is applied in
-  `realYears` (`src/engine/returns.ts:38–42`).
+- **Where:** results state in `src/App.tsx`; `TierCard` (`src/ui/Results.tsx:69`). `feeRate` is subtracted
+  in `realYears` (`src/engine/returns.ts:46`, used by the simulated and historical markets) and in
+  `averageRealReturns` (`src/engine/solve.ts:232`, the FIRE number's projection in `projectState`). The fee
+  leaves each market's 10-year yield (`bondYield`, D82) alone, so bond interest is taxed the same; whether
+  lower returns should also mean lower taxed yields is a question for the maintainer.
 - **First version:**
   - Store the current `TierResult`s when "Keep as baseline" is pressed, and render the comparison strip
     between the cards and the warnings panel, not inside `TierCard`. No engine work.
+  - Results from a stale saved session (the recalculate banner, D59/D85) came from older data or an older
+    engine. Whether they can be kept as a baseline is a question for the maintainer, since the comparison
+    would mix the model change with the input change.
   - Add `returnAdjustment` to `Assumptions`, applied on the same code path as `feeRate`, with its own
     How-this-works row and help text.
   - Side-by-side comparison of saved session files comes later.
@@ -136,8 +143,10 @@ Blank means no survivor test, as today.
 - **Where:**
   - Social Security: `annualBenefits` (`src/engine/socialSecurity.ts:70`).
   - The panel line: `beforeYouAct` (`src/ui/warnings.ts`), tested in `tests/warnings.test.ts`.
-  - Tax: `computeTax` (`src/engine/tax.ts`); `FEDERAL` in `src/data/rules.ts` has joint brackets only, so
-    single brackets and the single standard deduction must be added. Also add them to
+  - Tax: `computeTax` (`src/engine/tax.ts`). `FEDERAL` in `src/data/rules.ts` is joint-only. Single filers
+    also need their own brackets, standard deduction, extra deduction at 65+, Social Security taxation
+    thresholds ($25k/$34k), 0%/15% capital-gains thresholds and NIIT threshold ($200k). The bracket-fill top
+    (`ctx.fillTop`, `bracketTop`) must switch to the single bracket too. Add them all to
     `docs/UPDATE_DATA_PROMPT.md` so they're refreshed yearly.
   - Spending and healthcare: `buildContext` (`src/engine/context.ts`).
 - **First version:**
@@ -184,8 +193,9 @@ Improved help text also says: use your *effective* state rate, not your top brac
 
 ### Why it's worth doing
 
-- *Estimate:* in the example, about $5k a year of state tax falls on withdrawals and conversions. For
-  someone in an exempt state, that's roughly $140k less portfolio needed at a 3.5% withdrawal rate.
+- *Estimate:* in the example's typical market, about $3k a year of state tax falls on withdrawals and
+  conversions in the first ten retired years, more later as required withdrawals grow. For someone in an
+  exempt state, that's roughly $90k less portfolio needed at a 3.5% withdrawal rate.
 - The error leans conservative, so it matters only for people in those states.
 
 ### Today
@@ -198,7 +208,8 @@ Security is already excluded.
 - **Where:** `computeTax` (`src/engine/tax.ts:65`); `stateTax` help (`src/ui/helpText.ts:96`); D33.
 - **First version:**
   - Add a `stateRetirementRate` assumption, defaulting to the same value as `stateTaxRate`. Apply it to
-    pre-tax withdrawals, RMDs and conversions, and keep the flat rate for gains and other income.
+    pre-tax withdrawals, RMDs and conversions, and keep the flat rate for gains and other income, including
+    brokerage interest (`TaxInput.interest`, D70/D82).
   - `computeTax` needs the pre-tax portion passed separately from other ordinary income.
   - Help text now, whether or not the field ships.
 - **Test:** with the retirement rate at 0%, state tax falls only on the gains portion.
@@ -232,8 +243,10 @@ common legal ways around that for early retirees:
 
 ### Why it's worth doing
 
-- In the example, "You" retires at exactly 55. At the default settings **26.9%** of simulated markets pay
-  the 10% penalty at some point before 60 (37.5% in v1, before the 10% fill default). With Rule of 55, many of those penalties wouldn't be real.
+- In the example, "You" retires at 56 and "Spouse" at 54 (2040). At the default settings **8.8%** of
+  simulated markets pay the 10% penalty at some point before 60 (26.9% with engine 4's 2039 date, 37.5% in
+  v1). Rule of 55 for You alone would remove almost all of them: about 0.1% in a rough check. Spouse retires
+  at 54, too young for the rule.
 - The app counts penalty years as success, so the date may not move much. But the penalty cost is real
   money, and it shrinks the cushion in bad markets.
 
@@ -245,8 +258,11 @@ common legal ways around that for early retirees:
 
 ### For implementers
 
-- **Where:** `ctx.access[i][t] = age >= 60 ? 1 : 0` (`src/engine/context.ts:191`), read in `planDraws`
-  (`src/engine/simulate.ts:188`).
+- **Where:** `ctx.access[i][t] = age >= 60 ? 1 : 0` (`src/engine/context.ts:194`), read in `planDraws`
+  (`src/engine/simulate.ts:190`) for pre-tax money (bracket fill, withdrawals, penalty withdrawals) and in
+  `rothAvailable` (:171) and the early-Roth step for Roth money. Rule of 55 covers only the 401(k), so it
+  needs its own pre-tax flag rather than setting `ctx.access`, which would also make Roth earnings
+  penalty-free.
 - **First version (Rule of 55 only):**
   - A per-person `ruleOf55: boolean`. When set and the retirement year's age is ≥ 55, grant access to that
     person's pre-tax balance from the retirement year.
@@ -272,7 +288,7 @@ Besides simulated markets, the app replays your plan through every real stretch 
 Experienced FIRE users judge a plan by asking "would I have survived retiring into 1966?"
 
 Today the app shows only the five worst replays, as a list. Each row gives the market year retirement
-began ("Retiring into", fix 20), but you can't open a replay to see what happened year by year, and you can't
+began ("Retiring into", D47), but you can't open a replay to see what happened year by year, and you can't
 pick a year that isn't among the worst five.
 
 ### What you'd see
@@ -283,7 +299,7 @@ In the detail view:
 - Choosing a year (or clicking a row of the worst-years list) fills the year-by-year table and the account
   chart with that exact replay: balances, withdrawals, taxes and conversions for each year.
 
-> Retiring into 1966: money lasts until age 91 (runs out in 2078).
+> Retiring into 1966: money lasts through 2082, with $9.3M left in today's dollars.
 
 ### Why it's worth doing
 
@@ -292,23 +308,28 @@ plan copes with a bad decade. FI Calc and cFIREsim both offer it.
 
 ### Today
 
-A fixed list of the 5 worst start years; rows aren't clickable. The "Retiring into" column (fix 20, D47)
-shows the market year retirement began, which this builds on.
+A fixed list of the 5 worst start years; rows aren't clickable. The "Retiring into" column (D47) shows
+the market year retirement began, which this builds on.
 
 ### For implementers
 
-- **Where:** `detailFor` builds `worstHistorical` (`src/engine/solve.ts:383`).
+- **Where:** `detailFor` (`src/engine/solve.ts:352`) builds `worstHistorical` (:392).
   `simulatePath(ctx, e.hist, pathIndex, { record: true })` gives year-by-year records for one historical
-  path. The worst-years table is at `src/ui/Results.tsx:305`, the year-by-year table at `:338`, and
-  `AccountsChart` in `src/ui/charts.tsx:151`. The detail request goes through `src/worker/client.ts` (its own
-  worker, D80).
+  path. The worst-years table is at `src/ui/Results.tsx:301`, the year-by-year table at `:333`, and
+  `AccountsChart` in `src/ui/charts.tsx:151`. The detail request goes through `src/worker/client.ts`, whose
+  single detail worker is replaced by any newer request (D80), so a replay sent there cancels a pending
+  detail request and vice versa. Use `YearInput` (`src/ui/fields.tsx:125`, D84) for the year box. A stale
+  session is never recalculated (D85): no replay requests while the recalculate banner is up, and
+  `detailArea` (`src/ui/sessions.ts:113`) needs a case for it. Keep that logic in plain, unit-tested
+  functions (D87).
 - **First version:**
   - A worker request `{ type: 'replay', plan, tier, year, marketYear }` that returns records for that
     historical path.
   - Show them in the existing table and `AccountsChart`.
   - Map market year to path index: `marketYear − (retireYear − plan.startYear)` is the whole-plan start
     year (D47).
-- **Test:** replaying the worst-years row's start year reproduces its reported failure year.
+- **Test:** replaying a worst-years row's start year reproduces its outcome, lowest savings and ending
+  savings (in the example at 2039, start year 1962 runs out in 2065).
 
 ---
 
@@ -349,13 +370,18 @@ A typical-market, retired-years-only table; no export of any kind.
 
 ### For implementers
 
-- **Where:** `DetailView` (`src/ui/Results.tsx:228`, rows filtered at `:232`, `COLUMNS` at `:184`);
-  `detail.medianPath` and `detail.p10Path` are both already computed.
+- **Where:** `DetailView` (`src/ui/Results.tsx:229`, rows filtered at `:233`, `COLUMNS` at `:184`);
+  `detail.medianPath` and `detail.p10Path` are both already computed. The CSV includes Reinvested (D83);
+  `reinvested` is missing in sessions saved before it existed, so leave the cell blank there, as the table
+  shows "—", not 0. Working years record Reinvested as 0 and have no wages or contributions columns, so the
+  caption's money-in = money-out identity doesn't hold for them; the caption needs a working-years version.
+  A stale session's saved detail already holds both `medianPath` and `p10Path`, so the toggle and export
+  work without recalculating (D85).
 - **First version:**
   - A path toggle and a "working years" checkbox on the existing table.
   - A client-side CSV builder over the visible `YearRecord[]`, downloaded via a Blob link.
   - CSV files are already git-ignored (DEVELOPMENT.md → Privacy); session data never leaves the browser.
-- **Depends on:** fix 11, now landed (D73: "typical" and "bad" follow the markets closest to those lines).
+- **Depends on:** D73, now landed ("typical" and "bad" follow the markets closest to those lines).
 
 ---
 
@@ -370,7 +396,7 @@ The "savings over time" chart has three lines:
 - **significantly below average** (10th percentile: only 1 in 10 markets do worse).
 
 That shows how bad things can get, but not how *good* they can get. In the example, the typical ending
-balance is about **$14.2M** in today's dollars, far more than needed, and nothing on screen says how likely
+balance is about **$15.7M** in today's dollars, far more than needed, and nothing on screen says how likely
 that is.
 
 ### What you'd see
@@ -378,7 +404,7 @@ that is.
 - Two more lines, hidden until you turn them on: **above average** (75th) and **well above average** (90th).
 - A one-line summary under the chart:
 
-  > At age 96: 1 in 10 markets end below $106k · half end above $14.2M · 1 in 10 end above $X.
+  > At age 96: 1 in 10 markets end below $1.3M · half end above $15.7M · 1 in 10 end above $57M.
 
 ### Why it's worth doing
 
@@ -391,7 +417,10 @@ Only the 50th, 25th and 10th percentile lines.
 
 ### For implementers
 
-- **Where:** `bands` in `detailFor` (`src/engine/solve.ts:350`); `BandsChart` (`src/ui/charts.tsx:107`).
+- **Where:** `bands` in `detailFor` (`src/engine/solve.ts:359`); `BandsChart` (`src/ui/charts.tsx:107`);
+  `BAND_LABELS` (:35). Detail views saved in session files have only `p50`/`p25`/`p10`, and a stale session
+  shows its saved detail (D85). So `resultsReadable` (`src/ui/sessions.ts:68`) must not require the new
+  bands, and the chart and summary must work without them.
 - **First version:** add `p75` and `p90` to `bands`; draw them behind the existing zoom toggle; add the
   ending-balance summary from the final column.
 
@@ -413,14 +442,18 @@ the simulated markets from a wider set of countries, making the answer more caut
 
 ### For implementers
 
-Needs a free multi-country dataset with stocks, bonds, bills and inflation. The Jordà-Schularick-Taylor
-Macrohistory Database is one candidate. It would come in through `scripts/build-market-data.ts` and
-`market.json`, with the bootstrap in `src/engine/returns.ts` sampling from it.
+Needs a free multi-country dataset with stocks, bonds, bills, inflation and a long-term government bond
+yield for each year, since bond interest is taxed at each market's own yield (`bondYield`, D82). The
+Jordà-Schularick-Taylor Macrohistory Database has all five. It would come in through
+`scripts/build-market-data.ts` and `market.json`. `bootstrapPaths` and `historicalPaths` already accept a
+`years` list, but `averageInflation`, `averageBondInterestRate` and `averageRealReturns`
+(`src/engine/solve.ts`, used by `projectState`, the retirement-only runs' starting price level (D51) and the failure summary) read `MARKET.years` directly and
+would need the chosen dataset too.
 
 **Watch the page's size.** `src/data/market.json` (22 kB of US data) is bundled into the main page, not just the
 engine's worker, because the UI imports `MARKET` from `src/engine/returns.ts` for its first and last year
 (`App.tsx`, `helpText.ts`, `HowItWorks.tsx`, `assumptions.ts`). A multi-country dataset could be many times
 larger and would land there too. The build warns above 750 kB (`chunkSizeWarningLimit` in `vite.config.ts`;
-the main file was 507 kB after the v1 audit's fixes). Keep the new data out of the main page: export the year
+the main file was 511 kB at engine 6). Keep the new data out of the main page: export the year
 range as a small separate constant for the UI so only the worker loads the full data, and check the build
 output. Don't just raise the limit.
