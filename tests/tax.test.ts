@@ -34,6 +34,12 @@ describe('federal income tax', () => {
     expect(r.federal - withoutGains.federal).toBeCloseTo(expectedGainsTax, 6);
   });
 
+  test('NIIT also applies to interest income (D70)', () => {
+    const r = computeTax({ ...base, ordinary: 300_000, interest: 50_000 }); // 50,000 of the 300,000 is interest
+    const wagesOnly = computeTax({ ...base, ordinary: 300_000 });
+    expect(r.federal - wagesOnly.federal).toBeCloseTo(0.038 * 50_000, 6);
+  });
+
   test('state tax is a flat rate on federal-style taxable income, excluding Social Security', () => {
     const r = computeTax({ ...base, ordinary: 52_200, socialSecurity: 40_000, stateRate: 0.05 });
     expect(r.state).toBeCloseTo(0.05 * 20_000, 6);

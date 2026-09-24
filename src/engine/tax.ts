@@ -3,8 +3,10 @@ import { FEDERAL } from '../data/rules';
 export interface TaxInput {
   /** Ordinary income excluding Social Security: pre-tax withdrawals, conversions, RMDs. */
   ordinary: number;
-  /** Realized long-term capital gains. */
+  /** Realized long-term capital gains and qualified dividends. */
   ltcg: number;
+  /** Interest income, already included in `ordinary`, that also counts toward the 3.8% NIIT (D70). */
+  interest?: number;
   /** Total Social Security benefits received. */
   socialSecurity: number;
   /** Number of spouses aged 65+. */
@@ -64,7 +66,7 @@ export function computeTax(i: TaxInput): TaxResult {
   // Deduction left over after ordinary income reduces gains.
   const gainsTaxable = Math.max(0, i.ltcg - Math.max(0, ded - i.ordinary - taxableSS));
   const agi = i.ordinary + taxableSS + i.ltcg;
-  const niit = FEDERAL.niitRate * Math.max(0, Math.min(i.ltcg, agi - FEDERAL.niitThreshold / i.priceLevel));
+  const niit = FEDERAL.niitRate * Math.max(0, Math.min(i.ltcg + (i.interest ?? 0), agi - FEDERAL.niitThreshold / i.priceLevel));
   const federal = ordinaryTax(ordinaryTaxable) + gainsTax(ordinaryTaxable, gainsTaxable) + niit;
   // State: flat rate on federal taxable income, Social Security excluded (D33).
   const state = i.stateRate * Math.max(0, i.ordinary + i.ltcg - ded);

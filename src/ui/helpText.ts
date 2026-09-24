@@ -28,10 +28,10 @@ export const HELP = {
     'The part of your Roth balance you put in yourself (not growth). You can take it out anytime without tax or penalty. Add up your Roth IRA contributions over the years (your broker or Form 5498 shows them), plus Roth conversions done 5+ years ago. If unsure, enter 0 — the cautious choice.',
   hsaBalance: 'Your current HSA balance. The model pays healthcare costs from the HSA first.',
   taxable:
-    'Regular (non-retirement) investment accounts: brokerage, mutual funds, vested company stock. Invested with the same stock/bond mix as everything else.',
+    'Regular (non-retirement) investment accounts: brokerage, mutual funds, vested company stock. Invested with the same stock/bond mix as everything else. Its dividends and interest are taxed every year.',
   taxableBasis:
     'What you originally paid for those investments; only growth above it is taxed when you sell. Your broker’s positions page shows it as “cost basis” or “total cost”. If unsure: the full balance ignores tax on gains (a bit optimistic); 0 taxes everything (pessimistic).',
-  cash: 'Checking, savings, money market and CDs. Earns short-term Treasury rates (not stock returns) and is spent first when you retire.',
+  cash: 'Checking, savings, money market and CDs. Earns short-term Treasury rates (not stock returns), taxed every year, and is spent first when you retire.',
 
   // Contributions (per person)
   pretaxContribution:

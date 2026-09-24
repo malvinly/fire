@@ -1,4 +1,4 @@
-import { buildContext } from '../src/engine/context';
+import { buildContext, type Context } from '../src/engine/context';
 import { examplePlan } from '../src/engine/defaults';
 import type { Plan, Scenario } from '../src/engine/types';
 
@@ -43,4 +43,13 @@ export function retiredNow(plan: Plan): Scenario {
 
 export function ctxFor(plan: Plan, scenario: Scenario = retiredNow(plan)) {
   return buildContext(plan, scenario);
+}
+
+/**
+ * Switches off the brokerage account's dividends and interest (D70) for tests of other hand arithmetic. The cash
+ * account still earns the path's T-bill rate (zero on a 0%-return, 0%-inflation path).
+ */
+export function noYields(ctx: Context): Context {
+  ctx.yields = { dividends: 0, bondInterest: 0, cashShare: 0 };
+  return ctx;
 }

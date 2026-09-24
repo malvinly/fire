@@ -1,13 +1,13 @@
 // Engine behavior with realistic inputs: taxes that must be paid, two spouses of different ages,
 // Social Security, healthcare phases, gains, the Roth ladder's 5-year rule, and working-year income.
 import { describe, expect, test } from 'vitest';
-import { buildContext } from '../src/engine/context';
+import { buildContext, TAXABLE_YIELDS } from '../src/engine/context';
 import { constantPath } from '../src/engine/returns';
 import { initialState, simulatePath, totalBalance } from '../src/engine/simulate';
 import { annualBenefits, ownClaimFactor, payableShare, spousalClaimFactor } from '../src/engine/socialSecurity';
 import { FEDERAL, LIMITS } from '../src/data/rules';
 import type { Plan } from '../src/engine/types';
-import { ctxFor, simplePlan, START } from './helpers';
+import { ctxFor, noYields, simplePlan, START } from './helpers';
 
 function retiree(ageYou: number, ageSpouse = ageYou) {
   const plan = simplePlan({ roth: 0 });
@@ -33,8 +33,8 @@ describe('money conservation', () => {
    *   total(t) = total(t−1) − (spending + federal + state + penalty − Social Security − other income).
    * Per-account balances (per person for pre-tax and Roth) never go negative.
    */
-  function expectConserved(plan: Plan, years: number) {
-    const ctx = ctxFor(plan);
+  function expectConserved(plan: Plan, years: number, withoutYields = false) {
+    const ctx = withoutYields ? noYields(ctxFor(plan)) : ctxFor(plan);
     const path = constantPath(ctx.len, 0, 0, 0);
     const recs = simulatePath(ctx, path, 0, { record: true }).records!;
     let prev = totalBalance(initialState(ctx));
@@ -67,7 +67,7 @@ describe('money conservation', () => {
   });
 
   test('a Roth ladder over ten years: conversions, penalized pre-tax, then seasoned conversions', () => {
-    const recs = expectConserved(ladderPlan(), 12);
+    const recs = expectConserved(ladderPlan(), 12, true);
     // Each year's pre-tax draw is exactly the 133k fill (100,800 + 32,200), never more: in the penalized
     // years part of it is spent instead of converted (D52), so income stays inside the 12% bracket.
     const fill = FEDERAL.ordinaryBrackets[1][0] + FEDERAL.standardDeduction;
@@ -126,7 +126,7 @@ describe('after-tax cash flow', () => {
     const plan = retiree(62);
     plan.household.taxable = 100_000;
     plan.household.taxableBasis = 50_000;
-    const ctx = ctxFor(plan);
+    const ctx = noYields(ctxFor(plan));
     const res = simulatePath(ctx, constantPath(ctx.len, 0), 0, { record: true, stopIdx: 1 });
     const sold = res.records![0].withdrawals.taxable;
     expect(res.records![0].capitalGains).toBeCloseTo(sold / 2, 6);
@@ -159,7 +159,7 @@ describe('Roth ladder and early access', () => {
   });
 
   test('ladder-year taxes match hand arithmetic: a 12% fill year, then a penalized year', () => {
-    const ctx = ctxFor(ladderPlan());
+    const ctx = noYields(ctxFor(ladderPlan()));
     const recs = simulatePath(ctx, constantPath(ctx.len, 0), 0, { record: true }).records!;
     const [[top10, r10], [top12, r12]] = FEDERAL.ordinaryBrackets; // 24,800 @10%, 100,800 @12%
     const penalty = FEDERAL.earlyWithdrawalPenalty;
@@ -364,7 +364,7 @@ describe('Social Security in the simulation', () => {
     plan.you.socialSecurity = { mode: 'manual', earnings: [], manualPia: 2_000, claimAge: 70 };
     plan.assumptions.endAge = 96;
     plan.assumptions.stateTaxRate = 0.05;
-    const ctx = buildContext(plan, { stopContributingYear: START + 3, retireYear: START + 3, baseSpending: 40_000 });
+    const ctx = noYields(buildContext(plan, { stopContributingYear: START + 3, retireYear: START + 3, baseSpending: 40_000 }));
     const rec = simulatePath(ctx, constantPath(ctx.len, 0), 0, { record: true }).records![0];
     expect(rec.working).toBe(true);
     // Hand arithmetic for 2026 (you 76, born 1950 so RMDs from 72; spouse 55, no income):
@@ -445,11 +445,71 @@ describe('taxed dated income (D66)', () => {
     plan.you.salary = 150_000; // taxable wages 117,800: the 22% bracket
     plan.assumptions.stateTaxRate = 0.05;
     plan.datedItems = [{ ...pension(true), frequency: 'oneTime', amount: 30_000, start: { kind: 'year', year: START + 1 } }];
-    const ctx = buildContext(plan, { stopContributingYear: START + 3, retireYear: START + 3, baseSpending: 0 });
+    const ctx = noYields(buildContext(plan, { stopContributingYear: START + 3, retireYear: START + 3, baseSpending: 0 }));
     const rec = simulatePath(ctx, constantPath(ctx.len, 0), 0, { record: true }).records![1];
     expect(rec.federalTax).toBeCloseTo(0.22 * 30_000, 0);
     expect(rec.stateTax).toBeCloseTo(0.05 * 30_000, 0);
     expect(rec.balances.taxable).toBeCloseTo(30_000 * (1 - 0.22 - 0.05), 0);
+  });
+});
+
+describe('yearly tax on brokerage and cash income (D70)', () => {
+  const [div, bond] = [TAXABLE_YIELDS.stockDividends, TAXABLE_YIELDS.bondInterest]; // 2%, 4%
+  function allIn(plan: Plan, asset: 'stocks' | 'bonds') {
+    plan.assumptions.allocation = { stocks: asset === 'stocks' ? 1 : 0, bonds: asset === 'bonds' ? 1 : 0, cash: 0 };
+    return plan;
+  }
+
+  test('retired: bond interest is ordinary income paid from withdrawals; the interest is reinvested at full basis', () => {
+    const plan = allIn(retiree(62), 'bonds');
+    plan.household.traditionalSpending = 0;
+    plan.assumptions.stateTaxRate = 0.05;
+    plan.household.taxable = plan.household.taxableBasis = 1_000_000;
+    const ctx = ctxFor(plan);
+    const res = simulatePath(ctx, constantPath(ctx.len, bond, 0, 0), 0, { record: true, stopIdx: 1 });
+    const rec = res.records![0];
+    // The tax W is sold from taxable (no gain); interest is earned on what stays invested:
+    //   W = (10% + 5%) × (4% × (1,000,000 − W) − 32,200) → W = 1,170 / 1.006 = 1,163.02
+    const w = 1_170 / 1.006;
+    expect(rec.withdrawals.taxable).toBeCloseTo(w, 0);
+    expect(rec.ordinaryIncome).toBeCloseTo(bond * (1_000_000 - w), 0);
+    expect(rec.federalTax).toBeCloseTo(0.1 * (bond * (1_000_000 - w) - 32_200), 0);
+    // A 4% total return that is all interest leaves no unrealized gain.
+    expect(res.state.taxableBasis).toBeCloseTo(res.state.taxable, 0);
+  });
+
+  test('retired: stock dividends are taxed like long-term gains', () => {
+    const plan = allIn(retiree(62), 'stocks');
+    plan.household.traditionalSpending = 0;
+    plan.household.taxable = plan.household.taxableBasis = 500_000;
+    const ctx = ctxFor(plan);
+    const rec = simulatePath(ctx, constantPath(ctx.len, 0), 0, { record: true, stopIdx: 1 }).records![0];
+    expect(rec.capitalGains).toBeCloseTo(div * 500_000, 6);
+    expect(rec.ordinaryIncome).toBe(0);
+    expect(rec.federalTax).toBe(0); // 10,000 of gains inside the deduction
+  });
+
+  test('cash interest follows the nominal T-bill rate of each market and is ordinary income', () => {
+    const plan = retiree(62);
+    plan.household.traditionalSpending = 0;
+    plan.household.cash = 100_000;
+    const ctx = ctxFor(plan);
+    const rec = simulatePath(ctx, constantPath(ctx.len, 0, 0.01, 0.02), 0, { record: true, stopIdx: 1 }).records![0];
+    expect(rec.ordinaryIncome).toBeCloseTo(100_000 * (1.01 * 1.02 - 1), 6);
+  });
+
+  test('working: the tax on interest, stacked on wages, comes out of the account; the rest is reinvested', () => {
+    const plan = allIn(retiree(45), 'bonds');
+    plan.you.salary = 150_000; // taxable wages 117,800: 22% bracket
+    plan.assumptions.stateTaxRate = 0.05;
+    plan.household.taxable = plan.household.taxableBasis = 100_000;
+    const ctx = buildContext(plan, { stopContributingYear: START + 3, retireYear: START + 3, baseSpending: 0 });
+    const res = simulatePath(ctx, constantPath(ctx.len, 0), 0, { record: true, stopIdx: 1 });
+    const rec = res.records![0];
+    expect(rec.federalTax).toBeCloseTo(0.22 * 4_000, 6);
+    expect(rec.stateTax).toBeCloseTo(0.05 * 4_000, 6);
+    expect(rec.balances.taxable).toBeCloseTo(100_000 - 1_080, 6);
+    expect(res.state.taxableBasis).toBeCloseTo(100_000 + 4_000 - 1_080, 6); // interest reinvested net of its tax
   });
 });
 
@@ -471,7 +531,7 @@ describe('dated items and contributions', () => {
       item('hoa', 'expense', 5_000, 'ongoing', START + 2), // starts later: not in today's budget
       { ...item('sale', 'income', 30_000, 'oneTime', START + 2), taxable: false }, // a home sale: not income
     ];
-    const ctx = buildContext(plan, { stopContributingYear: START + 3, retireYear: START + 3, baseSpending: 0 });
+    const ctx = noYields(buildContext(plan, { stopContributingYear: START + 3, retireYear: START + 3, baseSpending: 0 }));
     expect([...ctx.realOut.slice(0, 4)]).toEqual([0, 50_000, 5_000, 25_000]);
     expect(ctx.realIn[2]).toBe(30_000);
     const recs = simulatePath(ctx, constantPath(ctx.len, 0), 0, { record: true }).records!;

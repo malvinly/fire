@@ -4,6 +4,7 @@
 
 import { FEDERAL, LIMITS, RULES_YEAR, SOCIAL_SECURITY, rmdStartAge } from '../data/rules';
 import { CHUBBY_SPENDING_FACTOR, DEFAULT_ASSUMPTIONS, EXAMPLE_CLAIM_AGE, FIDELITY_SPENDING_FACTOR, chubbyDefaultSpending, datedExpensesToday, fidelityDefaultSpending } from './defaults';
+import { TAXABLE_YIELDS } from './context';
 import { MARKET } from './returns';
 import type { Plan } from './types';
 
@@ -108,6 +109,8 @@ export function describeAssumptions(plan: Plan): AssumptionRow[] {
       why: 'Brackets, 0/15/20% capital gains, tax on part of Social Security, and the 3.8% extra tax on investment income for high earners. While working, only the extra tax that Social Security or RMDs add on top of wages is counted (D49).', source: { label: 'IRS 2026 inflation adjustments', url: 'https://www.irs.gov/newsroom/irs-releases-tax-inflation-adjustments-for-tax-year-2026-including-amendments-from-the-one-big-beautiful-bill' }, decision: 'D32' },
     { group: 'Taxes & accounts', label: 'State tax', value: pct(a.stateTaxRate), status: st(a.stateTaxRate === d.stateTaxRate),
       why: 'Flat rate on taxable income excluding Social Security. Use the rate of the state you expect to retire in (0% for no-income-tax states).', decision: 'D33' },
+    { group: 'Taxes & accounts', label: 'Brokerage and cash income', value: `Taxed every year: dividends ${pct(TAXABLE_YIELDS.stockDividends, 0)} of stocks, interest ${pct(TAXABLE_YIELDS.bondInterest, 0)} of bonds, T-bill interest on cash`, status: 'fixed',
+      why: 'Dividends are taxed like long-term gains and interest as ordinary income, each year, and then reinvested. While you work, the tax comes out of those accounts; in retirement it is part of the year’s tax bill.', decision: 'D34, D70' },
     { group: 'Taxes & accounts', label: 'Yearly Roth conversions', value: a.bracketFill === 'none' ? 'Off' : `Fill the ${a.bracketFill}% bracket every retired year`, status: st(a.bracketFill === d.bracketFill),
       why: 'Pre-tax money up to the top of this bracket is withdrawn; what you don\'t spend is converted to Roth and usable after 5 years. It helps an early retirement only if it becomes usable before its owner turns 60 (the older spouse\'s money goes first). The 10% default did better than 12% or Off on the example plan.', decision: 'D29' },
     { group: 'Taxes & accounts', label: 'Before 59½', value: 'cash → brokerage → Roth contributions → Roth conversions 5+ years old → 401(k)/IRA with 10% penalty', status: 'fixed',

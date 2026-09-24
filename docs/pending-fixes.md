@@ -79,27 +79,6 @@ Example for the example plan:
 
 ## P1: materially changes answers or breaks on plausible input
 
-### 8. Tax brokerage dividends and interest yearly (accuracy)
-
-- **Problem:**
-  - The taxable account grows untaxed until sold (D34), justified as "most dividends fall in the 0% LTCG
-    band". That doesn't hold:
-    - the default 12% fill pushes investment income out of the 0% band (D39 says so);
-    - wages do too while working;
-    - interest from the bond and cash shares is ordinary income and never qualifies for 0%.
-  - The cash account's interest is also untaxed.
-- **Where:** `src/engine/simulate.ts` growth step (~lines 440–443) and D34.
-- **Evidence:** *Estimate.* Assuming a 2.16% yield for 70/25/5, taxed at 24% while working and 18% retired,
-  retirement came one year later in 3 of 4 test plans (example Traditional 2039 → 2040).
-- **Change:**
-  - Before growth, compute a yearly yield on the taxable and cash balances: qualified dividends taxed as
-    gains, interest as ordinary income. Add it to basis when reinvested.
-  - While working, the paycheck pays the tax (as in D49). In retirement, add it to that year's income for
-    `taxOf`.
-  - The yield assumptions per asset class need a D-row.
-  - Minimum version: correct D34's reasoning and state the size of the effect.
-- **Related:** D34, D39, D49, [decision 1](pending-decisions.md#1-which-way-to-correct).
-
 ### 9. Validate session files and the local draft (robustness)
 
 - **Problem:**

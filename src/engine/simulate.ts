@@ -225,14 +225,32 @@ function penalizedAmount(d: Draws): number {
     d.rothPenaltyEarnings[0] + d.rothPenaltyEarnings[1];
 }
 
-/** `otherOrdinary`: ordinary income that isn't a withdrawal (taxed dated income, D66). */
-function taxOf(ctx: Context, t: number, d: Draws, ss: number, priceLevel: number, otherOrdinary: number) {
-  const ordinary = otherOrdinary +
+/**
+ * Yearly income on the money invested this year (D70): brokerage dividends (taxed like long-term gains), and
+ * interest from the brokerage account's bonds and cash share and from the cash account (ordinary income).
+ * `tbill` is the path's nominal T-bill rate for the year.
+ */
+function investmentIncome(ctx: Context, taxable: number, cash: number, tbill: number) {
+  const y = ctx.yields;
+  const invested = Math.max(0, taxable);
+  const dividends = invested * y.dividends;
+  const brokerageInterest = invested * (y.bondInterest + y.cashShare * tbill);
+  return { dividends, brokerageInterest, interest: brokerageInterest + Math.max(0, cash) * tbill };
+}
+
+/**
+ * Tax for a retired year given the withdrawals in `d`. `otherOrdinary`: ordinary income that isn't a withdrawal
+ * (taxed dated income, D66). Investment income is earned on what stays invested after the withdrawals (D7, D70).
+ */
+function taxOf(ctx: Context, t: number, d: Draws, s: State, ss: number, priceLevel: number, otherOrdinary: number, tbill: number) {
+  const inv = investmentIncome(ctx, s.taxable - d.taxable + d.rmdSurplus + d.surplus, s.cash - d.cash, tbill);
+  const ordinary = otherOrdinary + inv.interest +
     d.rmd[0] + d.rmd[1] + d.fill[0] + d.fill[1] + d.pretaxExtra[0] + d.pretaxExtra[1] +
     d.pretaxPenalty[0] + d.pretaxPenalty[1] + d.rothPenaltyEarnings[0] + d.rothPenaltyEarnings[1] + d.hsaNonMedical;
   const tax = computeTax({
     ordinary,
-    ltcg: d.gain,
+    ltcg: d.gain + inv.dividends,
+    interest: inv.interest,
     socialSecurity: ss,
     over65: ctx.over65Count[t],
     priceLevel,
@@ -240,7 +258,7 @@ function taxOf(ctx: Context, t: number, d: Draws, ss: number, priceLevel: number
   });
   const penalty =
     FEDERAL.earlyWithdrawalPenalty * penalizedAmount(d) + (ctx.hsaPenalty[t] ? FEDERAL.hsaNonMedicalPenalty * d.hsaNonMedical : 0);
-  return { ...tax, penalty, ordinary, total: tax.federal + tax.state + penalty };
+  return { ...tax, penalty, ordinary, inv, total: tax.federal + tax.state + penalty };
 }
 
 export function simulatePath(ctx: Context, paths: ReturnPaths, p: number, opts: SimOptions = {}): SimResult {
@@ -264,6 +282,7 @@ export function simulatePath(ctx: Context, paths: ReturnPaths, p: number, opts: 
     const pi = p * paths.len + (t - shift);
     const r = paths.portfolio[pi];
     const rc = paths.cash[pi];
+    const tbill = Math.max(0, (1 + rc) * (1 + paths.inflation[pi]) - 1);
     const ss = ctx.socialSecurity[t];
     const rmd0 = ctx.rmdDivisor[0][t] > 0 ? s.pretax[0] / ctx.rmdDivisor[0][t] : 0;
     const rmd1 = ctx.rmdDivisor[1][t] > 0 ? s.pretax[1] / ctx.rmdDivisor[1][t] : 0;
@@ -356,6 +375,25 @@ export function simulatePath(ctx: Context, paths: ReturnPaths, p: number, opts: 
         }
         if (short > 1 && failYear === null) failYear = ctx.years[t];
       }
+      // Brokerage and cash income on what stays invested this year (D70), taxed on top of everything above. The
+      // paycheck already covers spending (D16), so the tax comes out of the accounts and the rest is reinvested.
+      const inv = investmentIncome(ctx, s.taxable, s.cash, tbill);
+      let invFederal = 0;
+      let invState = 0;
+      if (inv.dividends + inv.interest > 0) {
+        const base = { socialSecurity: ss, over65: ctx.over65Count[t], priceLevel, stateRate: ctx.plan.assumptions.stateTaxRate };
+        const ordinary = ctx.wages[t] + rmd0 + rmd1 + taxedIn;
+        const before = computeTax({ ...base, ordinary, ltcg: gain });
+        const after = computeTax({ ...base, ordinary: ordinary + inv.interest, ltcg: gain + inv.dividends, interest: inv.interest });
+        invFederal = after.federal - before.federal;
+        invState = after.state - before.state;
+        // Each account pays the tax on its own income; the brokerage reinvests the rest at full basis.
+        const brokerageIncome = inv.dividends + inv.brokerageInterest;
+        const fromTaxable = ((invFederal + invState) * brokerageIncome) / (inv.dividends + inv.interest);
+        s.taxable -= fromTaxable;
+        s.cash -= Math.min(s.cash, invFederal + invState - fromTaxable);
+        s.taxableBasis += Math.max(0, brokerageIncome - fromTaxable);
+      }
       if (records) {
         rec = blankRecord(ctx, t, true);
         rec.seasonedRoth = seasonedRoth;
@@ -365,9 +403,9 @@ export function simulatePath(ctx: Context, paths: ReturnPaths, p: number, opts: 
         rec.rmd = rmd0 + rmd1;
         rec.withdrawals.cash = fromCash;
         rec.withdrawals.taxable = fromTaxable;
-        rec.capitalGains = gain;
-        rec.federalTax = extraFederal + datedFederal + gainsFederal;
-        rec.stateTax = extraState + datedState + gainsState;
+        rec.capitalGains = gain + inv.dividends;
+        rec.federalTax = extraFederal + datedFederal + gainsFederal + invFederal;
+        rec.stateTax = extraState + datedState + gainsState + invState;
         rec.shortfall = short;
       }
     } else {
@@ -383,7 +421,9 @@ export function simulatePath(ctx: Context, paths: ReturnPaths, p: number, opts: 
       d.fillTarget[0] = d.fillTarget[1] = 0;
       if (ctx.fillTop > 0) {
         // Bracket room ignores this year's capital gains (they stack above ordinary income, D39).
-        let room = bracketRoom(ctx.fillTop, rmd0 + rmd1 + taxedIn, 0, ss, ctx.over65Count[t], priceLevel);
+        // Investment income is estimated on the start-of-year balances here (it depends on this year's withdrawals).
+        const interest = investmentIncome(ctx, s.taxable, s.cash, tbill).interest;
+        let room = bracketRoom(ctx.fillTop, rmd0 + rmd1 + taxedIn + interest, 0, ss, ctx.over65Count[t], priceLevel);
         for (const i of order) {
           d.fillTarget[i] = Math.max(0, Math.min(room, s.pretax[i] - d.rmd[i]));
           room -= d.fillTarget[i];
@@ -392,10 +432,10 @@ export function simulatePath(ctx: Context, paths: ReturnPaths, p: number, opts: 
 
       // Taxes are part of the need, and withdrawals change taxes: iterate to a fixed point.
       planDraws(ctx, s, t, baseNeed, hsaMedical, order, d);
-      let tax = taxOf(ctx, t, d, ss, priceLevel, taxedIn);
+      let tax = taxOf(ctx, t, d, s, ss, priceLevel, taxedIn, tbill);
       for (let iter = 0; iter < 20; iter++) {
         planDraws(ctx, s, t, baseNeed + tax.total, hsaMedical, order, d);
-        const next = taxOf(ctx, t, d, ss, priceLevel, taxedIn);
+        const next = taxOf(ctx, t, d, s, ss, priceLevel, taxedIn, tbill);
         const converged = Math.abs(next.total - tax.total) < 0.5;
         tax = next;
         if (converged) break;
@@ -420,7 +460,8 @@ export function simulatePath(ctx: Context, paths: ReturnPaths, p: number, opts: 
       s.hsa -= hsaMedical + d.hsaNonMedical;
       const deposit = d.rmdSurplus + d.surplus;
       s.taxable += deposit;
-      s.taxableBasis += deposit;
+      // Deposits, and this year's brokerage dividends and interest (reinvested; their tax was part of the need), D70.
+      s.taxableBasis += deposit + tax.inv.dividends + tax.inv.brokerageInterest;
 
       const penaltyAmt = penalizedAmount(d);
       if (penaltyAmt > 1) usedPenalty = true;
@@ -446,7 +487,7 @@ export function simulatePath(ctx: Context, paths: ReturnPaths, p: number, opts: 
         rec.rmd = d.rmd[0] + d.rmd[1];
         rec.penaltyWithdrawals = penaltyAmt;
         rec.ordinaryIncome = tax.ordinary + tax.taxableSocialSecurity;
-        rec.capitalGains = d.gain;
+        rec.capitalGains = d.gain + tax.inv.dividends;
         rec.taxableIncome = tax.taxableIncome;
         rec.federalTax = tax.federal;
         rec.stateTax = tax.state;

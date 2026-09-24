@@ -6,6 +6,13 @@ import { annualBenefits, computePia, payableShare } from './socialSecurity';
 import { bracketTop } from './tax';
 import type { DatedItem, DatedTiming, Person, Plan, Scenario } from './types';
 
+/**
+ * Yearly income paid out by the brokerage account, as a share of the money in each asset class (D70): stock
+ * dividends (qualified, taxed like long-term gains) and bond interest (ordinary income). The cash share of the
+ * mix, and the cash account, pay the path's own T-bill rate.
+ */
+export const TAXABLE_YIELDS = { stockDividends: 0.02, bondInterest: 0.04 };
+
 export interface Context {
   plan: Plan;
   scenario: Scenario;
@@ -51,6 +58,8 @@ export interface Context {
   /** 1 when the younger spouse is under 65 (HSA non-medical penalty, D41). */
   hsaPenalty: Uint8Array;
   fillTop: number; // 0 = no bracket fill
+  /** Brokerage yields for the plan's asset mix (D70): shares of the brokerage balance per year. */
+  yields: { dividends: number; bondInterest: number; cashShare: number };
   pia: [number, number];
 }
 
@@ -128,6 +137,11 @@ export function buildContext(plan: Plan, scenario: Scenario): Context {
     rmdDivisor: [f64(), f64()],
     hsaPenalty: new Uint8Array(len),
     fillTop: a.bracketFill === 'none' ? 0 : bracketTop(a.bracketFill),
+    yields: {
+      dividends: a.allocation.stocks * TAXABLE_YIELDS.stockDividends,
+      bondInterest: a.allocation.bonds * TAXABLE_YIELDS.bondInterest,
+      cashShare: a.allocation.cash,
+    },
     pia: [0, 0],
   };
 

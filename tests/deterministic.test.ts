@@ -3,7 +3,7 @@ import { describe, expect, test } from 'vitest';
 import { constantPath } from '../src/engine/returns';
 import { buildContext } from '../src/engine/context';
 import { initialState, simulatePath } from '../src/engine/simulate';
-import { ctxFor, simplePlan, START } from './helpers';
+import { ctxFor, noYields, simplePlan, START } from './helpers';
 
 describe('cash flow with constant returns', () => {
   test('spending r/(1+r) of the portfolio lasts forever with start-of-year withdrawals', () => {
@@ -95,7 +95,7 @@ describe('amounts fixed in nominal dollars are deflated each year (D63)', () => 
   test('a sale after 20 years realizes the true gain share: 1 − 100,000 / (265,330 × 1.806) = 79.1%', () => {
     const plan = simplePlan({ roth: 0 });
     plan.household.taxable = plan.household.taxableBasis = 100_000;
-    const ctx = buildContext(plan, { stopContributingYear: START + 20, retireYear: START + 20, baseSpending: 40_000 });
+    const ctx = noYields(buildContext(plan, { stopContributingYear: START + 20, retireYear: START + 20, baseSpending: 40_000 }));
     const rec = simulatePath(ctx, constantPath(ctx.len, r, r, inflation), 0, { record: true }).records![20];
     expect(rec.working).toBe(false);
     const real = 100_000 * (1 + r) ** 20; // 265,329.77
