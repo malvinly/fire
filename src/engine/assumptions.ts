@@ -86,7 +86,7 @@ export function describeAssumptions(plan: Plan): AssumptionRow[] {
     { group: 'Work & spending', label: 'While working', value: 'Paycheck covers all spending', status: 'fixed',
       why: 'The portfolio only receives contributions until the retirement date.', decision: 'D16' },
     { group: 'Work & spending', label: 'Dated items', value: `${plan.datedItems.length} item(s)`, status: 'fixed',
-      why: 'Ongoing items already paid today are part of the paycheck budget until retirement. Everything else dated before retirement is paid from (or saved to) cash and brokerage savings, with tax on any gains; a cost savings can’t cover counts as running out. Fixed-dollar items shrink with inflation.', decision: 'D17, D19' },
+      why: 'Ongoing items already paid today are part of the paycheck budget until retirement. Everything else dated before retirement is paid from (or saved to) cash and brokerage savings, with tax on any gains; a cost savings can’t cover counts as running out. Fixed-dollar items shrink with inflation. Income is taxed as ordinary income unless marked untaxed (a home sale, a cash gift).', decision: 'D17, D19, D66' },
 
     // Healthcare
     { group: 'Healthcare', label: 'Healthcare inflation', value: `${pct(a.healthcareInflation)} above inflation`, status: st(a.healthcareInflation === d.healthcareInflation),

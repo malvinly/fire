@@ -8,7 +8,8 @@ const isObject = (v: unknown): v is Json => typeof v === 'object' && v !== null 
 
 /**
  * Returns a copy of `raw` with defaults filled in for fields that may be missing from older files: any
- * missing assumption takes its default. Everything else is left for validation to accept or reject.
+ * missing assumption takes its default, and dated income is taxed unless marked otherwise (D66). Everything
+ * else is left for validation to accept or reject.
  */
 export function migratePlan(raw: unknown): unknown {
   if (!isObject(raw)) return raw;
@@ -16,6 +17,9 @@ export function migratePlan(raw: unknown): unknown {
   if (isObject(plan.assumptions)) {
     const a = plan.assumptions;
     for (const [key, value] of Object.entries(DEFAULT_ASSUMPTIONS)) if (a[key] === undefined) a[key] = structuredClone(value);
+  }
+  if (Array.isArray(plan.datedItems)) {
+    for (const item of plan.datedItems) if (isObject(item) && item.direction === 'income' && item.taxable === undefined) item.taxable = true;
   }
   return plan;
 }

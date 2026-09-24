@@ -90,7 +90,7 @@ describe('money conservation', () => {
     plan.you.socialSecurity = { mode: 'manual', earnings: [], manualPia: 2_500, claimAge: 70 };
     plan.spouse.socialSecurity = { mode: 'manual', earnings: [], manualPia: 1_000, claimAge: 67 };
     plan.datedItems = [
-      { id: 'h', label: 'home sale', direction: 'income', amount: 150_000, frequency: 'oneTime', start: { kind: 'year', year: START + 2 }, fixedDollars: false },
+      { id: 'h', label: 'home sale', direction: 'income', amount: 150_000, frequency: 'oneTime', start: { kind: 'year', year: START + 2 }, fixedDollars: false, taxable: false },
     ];
     const recs = expectConserved(plan, 10);
     expect(recs.slice(0, 10).some((r) => r.capitalGains > 0)).toBe(true);
@@ -210,7 +210,7 @@ describe('Roth ladder and early access', () => {
   test('before 59½, over three years: penalized pre-tax before Roth, conversions used up oldest-first (D27, D53)', () => {
     const plan = retiree(50); // $40k spending, no fill, no state tax
     plan.datedItems = [
-      { id: 'g', label: 'gift', direction: 'income', amount: 40_000, frequency: 'oneTime', start: { kind: 'year', year: START + 4 }, fixedDollars: false },
+      { id: 'g', label: 'gift', direction: 'income', amount: 40_000, frequency: 'oneTime', start: { kind: 'year', year: START + 4 }, fixedDollars: false, taxable: false },
     ];
     const ctx = ctxFor(plan);
     const s = initialState(ctx);
@@ -397,6 +397,52 @@ describe('healthcare', () => {
   });
 });
 
+describe('taxed dated income (D66)', () => {
+  const pension = (taxable: boolean): Plan['datedItems'][number] => ({
+    id: 'p', label: 'pension', direction: 'income', amount: 40_000, frequency: 'ongoing', start: { kind: 'year', year: START }, fixedDollars: false, taxable,
+  });
+  function firstYear(items: Plan['datedItems']) {
+    const plan = retiree(60);
+    plan.assumptions.bracketFill = '12';
+    plan.assumptions.stateTaxRate = 0.05;
+    plan.you.balances.pretax = 1_500_000;
+    plan.datedItems = items;
+    const ctx = ctxFor(plan);
+    return simulatePath(ctx, constantPath(ctx.len, 0), 0, { record: true, stopIdx: 1 }).records![0];
+  }
+  const fillRoom = FEDERAL.ordinaryBrackets[1][0] + FEDERAL.standardDeduction; // 133,000
+
+  test('a taxed pension is ordinary income: it uses up bracket-fill room and the tax is on fill + pension', () => {
+    const rec = firstYear([pension(true)]);
+    // Fill shrinks by the pension: 133,000 − 40,000 = 93,000 of pre-tax withdrawn (spent or converted).
+    expect(rec.withdrawals.pretax + rec.conversions).toBeCloseTo(fillRoom - 40_000, 0);
+    // Tax on 133,000 of ordinary income: 10% × 24,800 + 12% × (100,800 − 24,800) = 11,600; state 5% × 100,800.
+    expect(rec.federalTax).toBeCloseTo(11_600, 0);
+    expect(rec.stateTax).toBeCloseTo(0.05 * (fillRoom - FEDERAL.standardDeduction), 0);
+    expect(rec.ordinaryIncome).toBeCloseTo(fillRoom, 0);
+  });
+
+  test('an untaxed inflow (a home sale, a cash gift) leaves the fill and the tax unchanged', () => {
+    const none = firstYear([]);
+    const rec = firstYear([pension(false)]);
+    expect(rec.withdrawals.pretax + rec.conversions).toBeCloseTo(fillRoom, 0);
+    expect(rec.federalTax).toBeCloseTo(none.federalTax, 6);
+    expect(rec.stateTax).toBeCloseTo(none.stateTax, 6);
+  });
+
+  test('taxed income received while working is saved after the extra tax it causes on top of wages', () => {
+    const plan = retiree(45);
+    plan.you.salary = 150_000; // taxable wages 117,800: the 22% bracket
+    plan.assumptions.stateTaxRate = 0.05;
+    plan.datedItems = [{ ...pension(true), frequency: 'oneTime', amount: 30_000, start: { kind: 'year', year: START + 1 } }];
+    const ctx = buildContext(plan, { stopContributingYear: START + 3, retireYear: START + 3, baseSpending: 0 });
+    const rec = simulatePath(ctx, constantPath(ctx.len, 0), 0, { record: true }).records![1];
+    expect(rec.federalTax).toBeCloseTo(0.22 * 30_000, 0);
+    expect(rec.stateTax).toBeCloseTo(0.05 * 30_000, 0);
+    expect(rec.balances.taxable).toBeCloseTo(30_000 * (1 - 0.22 - 0.05), 0);
+  });
+});
+
 describe('dated items and contributions', () => {
   test('while working, dated items not in today\'s budget use savings: cash, then taxable with gains tax (D17)', () => {
     const plan = retiree(45);
@@ -413,7 +459,7 @@ describe('dated items and contributions', () => {
       item('mortgage', 'expense', 20_000, 'ongoing', START - 5, START + 10), // already paid today: retirement only
       item('roof', 'expense', 50_000, 'oneTime', START + 1),
       item('hoa', 'expense', 5_000, 'ongoing', START + 2), // starts later: not in today's budget
-      item('sale', 'income', 30_000, 'oneTime', START + 2),
+      { ...item('sale', 'income', 30_000, 'oneTime', START + 2), taxable: false }, // a home sale: not income
     ];
     const ctx = buildContext(plan, { stopContributingYear: START + 3, retireYear: START + 3, baseSpending: 0 });
     expect([...ctx.realOut.slice(0, 4)]).toEqual([0, 50_000, 5_000, 25_000]);

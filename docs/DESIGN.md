@@ -41,7 +41,7 @@ Key research points:
 9. **Taxes** — real federal MFJ rules + one editable flat state rate (default 5%).
    Roth ladder fills to a chosen bracket (default 12%).
 10. **Spending changes** — user-defined dated items (year or age; one-time / yearly / every N years;
-    inflows allowed; fixed-dollar flag for mortgages). Before retirement, items already paid today are left
+    inflows allowed, taxed as income unless marked otherwise; fixed-dollar flag for mortgages). Before retirement, items already paid today are left
     to the paycheck; others are paid from (or saved to) cash and brokerage savings (D17).
 11. **App** — local TypeScript/React web app; engine UI-free in Web Workers; historical data bundled
     and refreshed yearly by script.

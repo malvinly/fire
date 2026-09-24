@@ -14,6 +14,7 @@ function newItem(plan: Plan): DatedItem {
     frequency: 'ongoing',
     start: { kind: 'year', year: plan.startYear },
     fixedDollars: false,
+    taxable: true,
   };
 }
 
@@ -66,6 +67,12 @@ export function DatedItemsEditor({ plan, update }: { plan: Plan; update: Update 
             <input type="checkbox" checked={it.fixedDollars} onChange={(e) => edit(it.id, (x) => { x.fixedDollars = e.target.checked; })} />
             <Help text={HELP.itemFixed}>Fixed dollars (doesn't rise with inflation, e.g. mortgage payment)</Help>
           </label>
+          {it.direction === 'income' && (
+            <label className="check">
+              <input type="checkbox" checked={it.taxable !== false} onChange={(e) => edit(it.id, (x) => { x.taxable = e.target.checked; })} />
+              <Help text={HELP.itemTaxable}>Taxed as income (untick for a home sale or a cash gift)</Help>
+            </label>
+          )}
         </div>
       ))}
       <button className="btn small" onClick={() => update((d) => { d.datedItems.push(newItem(d)); })}>+ Add dated item</button>

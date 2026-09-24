@@ -36,6 +36,9 @@ export interface Context {
   nominalOut: Float64Array;
   realIn: Float64Array;
   nominalIn: Float64Array;
+  /** The part of realIn / nominalIn taxed as ordinary income (D66). */
+  realInTaxed: Float64Array;
+  nominalInTaxed: Float64Array;
   healthcare: Float64Array;
   /** Household Social Security after the trust-fund cut, today's dollars. */
   socialSecurity: Float64Array;
@@ -116,6 +119,8 @@ export function buildContext(plan: Plan, scenario: Scenario): Context {
     nominalOut: f64(),
     realIn: f64(),
     nominalIn: f64(),
+    realInTaxed: f64(),
+    nominalInTaxed: f64(),
     healthcare: f64(),
     socialSecurity: f64(),
     over65Count: new Uint8Array(len),
@@ -187,6 +192,7 @@ export function buildContext(plan: Plan, scenario: Scenario): Context {
   // Dated items (D17): from the retirement date on; before it, only those not already in today's budget.
   for (const item of plan.datedItems) {
     const fromIdx = inTodaysBudget(plan, item) ? retireIdx : 0;
+    const taxed = item.direction === 'income' && item.taxable !== false;
     for (const y of itemYears(plan, item, endYear)) {
       const t = y - startYear;
       if (t < fromIdx || t >= len) continue;
@@ -195,6 +201,7 @@ export function buildContext(plan: Plan, scenario: Scenario): Context {
           ? item.fixedDollars ? ctx.nominalOut : ctx.realOut
           : item.fixedDollars ? ctx.nominalIn : ctx.realIn;
       target[t] += item.amount;
+      if (taxed) (item.fixedDollars ? ctx.nominalInTaxed : ctx.realInTaxed)[t] += item.amount;
     }
   }
   return ctx;

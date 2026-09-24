@@ -75,40 +75,6 @@ Example for the example plan:
 
 ## P0: wrong or dangerously misleading
 
-### 3. Tax dated income (accuracy)
-
-- **Problem:**
-  - Dated income items (pension, part-time work, rental, inherited IRA) reduce what must be withdrawn,
-    but they are never added to taxable income.
-  - They also don't use up the bracket-fill room, so the Roth fill converts as if they didn't exist.
-  - Before retirement, income items are saved to taxable at full basis, untaxed.
-  - The help text says "Income isn't taxed by the model, so enter the after-tax amount". Users can't
-    follow that, because the right rate is the engine's own marginal rate after the fill.
-- **Where:**
-  - `src/engine/simulate.ts`, retired branch: `inflow` (~line 357) is subtracted in `baseNeed` (~line 361),
-    but not added in `taxOf` (~line 224) or the `bracketRoom` call (~line 369).
-  - Working branch: dated items at ~lines 298–307.
-  - `src/engine/context.ts`: builds `realIn`/`nominalIn` (~line 196).
-  - `src/engine/types.ts`: `DatedItem` (~line 50).
-  - `src/ui/DatedItemsEditor.tsx`.
-  - `src/ui/helpText.ts:74`.
-- **Evidence:**
-  - Couple both 60, $700k pre-tax each, $40k/yr pension, 12% fill, 5% state tax. Tax is understated by
-    **$10,800/yr**: the fill already fills the 12% bracket, so each pension dollar is taxed at 22% + 5%.
-  - Example plan with a $30k pension from 60, entered gross: 2037 and $2.11M. Entered net of 27%: 2038 and
-    $2.24M.
-- **Change:**
-  - Add `taxable?: boolean` to `DatedItem`: default true for income, and false for home sales and cash
-    gifts (explained in the editor).
-  - Keep separate taxable-inflow arrays in the context. Add them to ordinary income in `taxOf`, and pass
-    them as existing ordinary income to `bracketRoom` so the fill shrinks.
-  - While working, include them in the D49 extra-tax calculation.
-  - This adds a `Plan` field; see step 5 of [How to work on an item](#how-to-work-on-an-item).
-  - Update the help text.
-- **Test:** retired year with a $40k taxable pension. Tax equals the tax on (fill + pension). The fill amount
-  drops by the pension amount. A non-taxable item leaves tax unchanged.
-- **Related:** D17, D29, D49.
-
 ### 4. Replace "Your date already allows for bad markets while you save" (clarity)
 
 - **Problem:**

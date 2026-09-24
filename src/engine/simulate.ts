@@ -221,8 +221,9 @@ function penalizedAmount(d: Draws): number {
     d.rothPenaltyEarnings[0] + d.rothPenaltyEarnings[1];
 }
 
-function taxOf(ctx: Context, t: number, d: Draws, ss: number, priceLevel: number) {
-  const ordinary =
+/** `otherOrdinary`: ordinary income that isn't a withdrawal (taxed dated income, D66). */
+function taxOf(ctx: Context, t: number, d: Draws, ss: number, priceLevel: number, otherOrdinary: number) {
+  const ordinary = otherOrdinary +
     d.rmd[0] + d.rmd[1] + d.fill[0] + d.fill[1] + d.pretaxExtra[0] + d.pretaxExtra[1] +
     d.pretaxPenalty[0] + d.pretaxPenalty[1] + d.rothPenaltyEarnings[0] + d.rothPenaltyEarnings[1] + d.hsaNonMedical;
   const tax = computeTax({
@@ -262,6 +263,8 @@ export function simulatePath(ctx: Context, paths: ReturnPaths, p: number, opts: 
     const ss = ctx.socialSecurity[t];
     const rmd0 = ctx.rmdDivisor[0][t] > 0 ? s.pretax[0] / ctx.rmdDivisor[0][t] : 0;
     const rmd1 = ctx.rmdDivisor[1][t] > 0 ? s.pretax[1] / ctx.rmdDivisor[1][t] : 0;
+    // Dated income taxed as ordinary income (D66).
+    const taxedIn = ctx.realInTaxed[t] + ctx.nominalInTaxed[t] / priceLevel;
     let rec: YearRecord | undefined;
 
     if (ctx.working[t]) {
@@ -277,15 +280,23 @@ export function simulatePath(ctx: Context, paths: ReturnPaths, p: number, opts: 
       s.taxableBasis += ctx.contrib.taxable[t];
       s.cash += ctx.contrib.cash[t];
       // Social Security already claimed and RMDs while still working: the paycheck covers spending, so they
-      // are saved to taxable after the extra tax they cause on top of wages (D49).
+      // are saved to taxable after the extra tax they cause on top of wages (D49). Taxed dated income is stacked
+      // on top of those and loses its own extra tax (D66).
       let extraFederal = 0;
       let extraState = 0;
-      if (ss > 0 || rmd0 + rmd1 > 0) {
+      let datedFederal = 0;
+      let datedState = 0;
+      if (ss > 0 || rmd0 + rmd1 > 0 || taxedIn > 0) {
         const base = { ltcg: 0, over65: ctx.over65Count[t], priceLevel, stateRate: ctx.plan.assumptions.stateTaxRate };
-        const withIt = computeTax({ ...base, ordinary: ctx.wages[t] + rmd0 + rmd1, socialSecurity: ss });
         const without = computeTax({ ...base, ordinary: ctx.wages[t], socialSecurity: 0 });
+        const withIt = computeTax({ ...base, ordinary: ctx.wages[t] + rmd0 + rmd1, socialSecurity: ss });
         extraFederal = withIt.federal - without.federal;
         extraState = withIt.state - without.state;
+        if (taxedIn > 0) {
+          const withDated = computeTax({ ...base, ordinary: ctx.wages[t] + rmd0 + rmd1 + taxedIn, socialSecurity: ss });
+          datedFederal = withDated.federal - withIt.federal;
+          datedState = withDated.state - withIt.state;
+        }
         s.pretax[0] -= rmd0;
         s.pretax[1] -= rmd1;
         const saved = ss + rmd0 + rmd1 - extraFederal - extraState;
@@ -294,7 +305,7 @@ export function simulatePath(ctx: Context, paths: ReturnPaths, p: number, opts: 
       }
       // Dated items not already in today's budget (D17): inflows are saved to taxable; costs come from cash, then
       // taxable (paying the capital-gains tax on the sale). A cost savings can't cover fails the path.
-      const datedIn = ctx.realIn[t] + ctx.nominalIn[t] / priceLevel;
+      const datedIn = ctx.realIn[t] + ctx.nominalIn[t] / priceLevel - datedFederal - datedState;
       const datedOut = ctx.realOut[t] + ctx.nominalOut[t] / priceLevel;
       let fromCash = 0;
       let fromTaxable = 0;
@@ -312,7 +323,7 @@ export function simulatePath(ctx: Context, paths: ReturnPaths, p: number, opts: 
         if (need > 0) {
           const gainShare = s.taxable > 0 ? Math.max(0, 1 - s.taxableBasis / s.taxable) : 0;
           const base = {
-            ordinary: ctx.wages[t] + rmd0 + rmd1, socialSecurity: ss, over65: ctx.over65Count[t], priceLevel,
+            ordinary: ctx.wages[t] + rmd0 + rmd1 + taxedIn, socialSecurity: ss, over65: ctx.over65Count[t], priceLevel,
             stateRate: ctx.plan.assumptions.stateTaxRate,
           };
           const before = computeTax({ ...base, ltcg: 0 });
@@ -343,14 +354,14 @@ export function simulatePath(ctx: Context, paths: ReturnPaths, p: number, opts: 
       if (records) {
         rec = blankRecord(ctx, t, true);
         rec.spending = datedOut;
-        rec.otherIncome = datedIn;
+        rec.otherIncome = datedIn + datedFederal + datedState;
         rec.socialSecurity = ss;
         rec.rmd = rmd0 + rmd1;
         rec.withdrawals.cash = fromCash;
         rec.withdrawals.taxable = fromTaxable;
         rec.capitalGains = gain;
-        rec.federalTax = extraFederal + gainsFederal;
-        rec.stateTax = extraState + gainsState;
+        rec.federalTax = extraFederal + datedFederal + gainsFederal;
+        rec.stateTax = extraState + datedState + gainsState;
         rec.shortfall = short;
       }
     } else {
@@ -366,7 +377,7 @@ export function simulatePath(ctx: Context, paths: ReturnPaths, p: number, opts: 
       d.fillTarget[0] = d.fillTarget[1] = 0;
       if (ctx.fillTop > 0) {
         // Bracket room ignores this year's capital gains (they stack above ordinary income, D39).
-        let room = bracketRoom(ctx.fillTop, rmd0 + rmd1, 0, ss, ctx.over65Count[t], priceLevel);
+        let room = bracketRoom(ctx.fillTop, rmd0 + rmd1 + taxedIn, 0, ss, ctx.over65Count[t], priceLevel);
         for (const i of order) {
           d.fillTarget[i] = Math.max(0, Math.min(room, s.pretax[i] - d.rmd[i]));
           room -= d.fillTarget[i];
@@ -375,10 +386,10 @@ export function simulatePath(ctx: Context, paths: ReturnPaths, p: number, opts: 
 
       // Taxes are part of the need, and withdrawals change taxes: iterate to a fixed point.
       planDraws(ctx, s, t, baseNeed, hsaMedical, order, d);
-      let tax = taxOf(ctx, t, d, ss, priceLevel);
+      let tax = taxOf(ctx, t, d, ss, priceLevel, taxedIn);
       for (let iter = 0; iter < 20; iter++) {
         planDraws(ctx, s, t, baseNeed + tax.total, hsaMedical, order, d);
-        const next = taxOf(ctx, t, d, ss, priceLevel);
+        const next = taxOf(ctx, t, d, ss, priceLevel, taxedIn);
         const converged = Math.abs(next.total - tax.total) < 0.5;
         tax = next;
         if (converged) break;

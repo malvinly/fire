@@ -61,6 +61,11 @@ export interface DatedItem {
   everyYears?: number;
   /** Fixed nominal dollars (e.g. mortgage principal & interest): shrinks with inflation. */
   fixedDollars: boolean;
+  /**
+   * Income only: taxed as ordinary income (pension, part-time pay, rent, inherited IRA). False for money that
+   * isn't income (a home sale, a cash gift). Missing = taxed (D66).
+   */
+  taxable?: boolean;
 }
 
 export type BracketFill = 'none' | '10' | '12' | '22' | '24';

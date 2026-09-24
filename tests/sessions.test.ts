@@ -15,3 +15,14 @@ describe('older plan files', () => {
     expect(s.plan.assumptions.seed).toBe(DEFAULT_ASSUMPTIONS.seed);
   });
 });
+
+test('dated income saved before the "taxed" flag existed is taxed (D66)', () => {
+  const s = parseSession(sessionText((plan) => {
+    plan.datedItems = [
+      { id: 'p', label: 'pension', direction: 'income', amount: 20_000, frequency: 'ongoing', start: { kind: 'year', year: 2040 }, fixedDollars: false },
+      { id: 'r', label: 'roof', direction: 'expense', amount: 20_000, frequency: 'oneTime', start: { kind: 'year', year: 2030 }, fixedDollars: false },
+    ];
+  }));
+  expect(s.plan.datedItems[0].taxable).toBe(true);
+  expect(s.plan.datedItems[1].taxable).toBeUndefined();
+});

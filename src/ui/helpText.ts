@@ -71,14 +71,16 @@ export const HELP = {
   // Dated items
   itemLabel: 'Just for you, e.g. “Mortgage P&I” or “New car”.',
   itemType:
-    'Expense = money going out. Income = money coming in (home sale, pension, part-time work, inheritance). Income isn’t taxed by the model, so enter the after-tax amount.',
+    'Expense = money going out. Income = money coming in (home sale, pension, part-time work, inheritance). Income is taxed as ordinary income unless you untick “Taxed as income”, so enter it before tax.',
   itemFrequency: 'Every year, one time, or every N years (e.g. a car every 10 years).',
   itemAmount: 'The amount each time it happens — per year for “Every year”, per event otherwise. Today’s dollars, unless “Fixed dollars” is ticked.',
   itemStart:
-    'When it happens or begins, as a calendar year or someone’s age. An ongoing item you already pay today is covered by your paycheck until you retire. Anything else before retirement is paid from (or, for income, saved to) your cash and brokerage accounts, with tax on any gains; if they can’t cover a cost, that market counts as running out.',
+    'When it happens or begins, as a calendar year or someone’s age. An ongoing item you already pay today is covered by your paycheck until you retire. Anything else before retirement is paid from (or, for income, saved to, after its income tax) your cash and brokerage accounts, with tax on any gains; if they can’t cover a cost, that market counts as running out.',
   itemEnd: 'The last year it applies. “Plan end” means it never stops.',
   itemEvery: 'e.g. 10 for a car every 10 years, starting in the Starts year.',
   itemWhen: 'The calendar year, or that person’s age that year.',
+  itemTaxable:
+    'Ticked: the model adds this money to that year’s taxable income (federal and state), on top of your withdrawals and Roth conversions, and it uses up room in the conversion bracket. Right for a pension, part-time or consulting pay, rental profit, annuity payments or inherited IRA withdrawals. Enter the amount before tax. Untick for money that isn’t income: selling your home (a married couple usually owes no tax on up to $500,000 of gain), a cash gift or an inheritance of cash.',
   itemFixed:
     'Tick for payments that stay the same in actual dollars, like a fixed-rate mortgage or a fixed pension — their real value shrinks each year with inflation. Leave unticked for costs that rise with prices (property tax, insurance).',
 
