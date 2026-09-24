@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { examplePlan, untouchedSections } from './engine/defaults';
+import { migratePlan } from './engine/migrate';
 import type { Detail, Tier, TierResult } from './engine/solve';
 import { MARKET } from './engine/returns';
 import type { Plan } from './engine/types';
@@ -23,7 +24,9 @@ interface Results {
 function loadDraft(): { plan: Plan; meta: SessionMeta | null } | null {
   try {
     const raw = localStorage.getItem(DRAFT_KEY);
-    return raw ? JSON.parse(raw) : null;
+    if (!raw) return null;
+    const draft = JSON.parse(raw);
+    return { ...draft, plan: migratePlan(draft.plan) };
   } catch {
     return null;
   }

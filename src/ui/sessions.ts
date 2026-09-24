@@ -2,6 +2,7 @@
 // browser only asks for permission again, not for the folder.
 
 import { DATA_VERSIONS, describeAssumptions, type AssumptionRow } from '../engine/assumptions';
+import { migratePlan } from '../engine/migrate';
 import type { Detail, TierResult } from '../engine/solve';
 import type { Plan } from '../engine/types';
 
@@ -41,6 +42,7 @@ export function parseSession(text: string): SessionFile {
   const ok = typeof s.name === 'string' && typeof s.createdAt === 'string' && typeof s.savedAt === 'string' &&
     (s.results === null || (typeof s.results === 'object' && typeof s.results.calculatedAt === 'string' && Array.isArray(s.results.tiers)));
   if (!ok) throw new Error('This FIRE Planner session file is damaged.');
+  s.plan = migratePlan(s.plan);
   return s as SessionFile;
 }
 
