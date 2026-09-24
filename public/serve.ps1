@@ -1,4 +1,4 @@
-# Serves this folder at http://localhost:4173/ and opens the FIRE Planner in your browser.
+# Serves this folder at http://localhost:4391/ and opens the FIRE Planner in your browser.
 # Started by "Start FIRE Planner.cmd". Needs only Windows PowerShell (no Node.js, no internet).
 # Close the window (or press Ctrl+C) to stop the planner.
 # This file is plain ASCII on purpose: Windows PowerShell 5.1 misreads UTF-8 without a BOM, so the
@@ -6,7 +6,7 @@
 
 $ErrorActionPreference = 'Stop'
 $root = [IO.Path]::GetFullPath($PSScriptRoot).TrimEnd('\') + '\'
-$port = 4173
+$port = 4391
 $url = "http://localhost:$port/"
 
 try { [Console]::OutputEncoding = [Text.Encoding]::UTF8 } catch { }
@@ -70,7 +70,6 @@ $types = @{
   '.html' = 'text/html; charset=utf-8'
   '.js'   = 'text/javascript; charset=utf-8'
   '.css'  = 'text/css; charset=utf-8'
-  '.json' = 'application/json; charset=utf-8'
   '.svg'  = 'image/svg+xml'
   '.png'  = 'image/png'
   '.ico'  = 'image/x-icon'
@@ -98,9 +97,14 @@ try {
         $res.StatusCode = 404
         continue
       }
+      # Only the file types the app itself uses: never session .json files, SSA statements or anything
+      # else someone keeps in this folder.
       $ext = [IO.Path]::GetExtension($file).ToLowerInvariant()
       $type = $types[$ext]
-      if (-not $type) { $type = 'application/octet-stream' }
+      if (-not $type) {
+        $res.StatusCode = 404
+        continue
+      }
       $bytes = [IO.File]::ReadAllBytes($file)
       $res.ContentType = $type
       $res.Headers['Cache-Control'] = 'no-cache'
@@ -108,9 +112,11 @@ try {
       $res.OutputStream.Write($bytes, 0, $bytes.Length)
       if ($rel -eq 'index.html') { Write-Activity 'Planner loaded in a browser tab' }
     } catch {
-      $res.StatusCode = 500
+      # Headers may already be sent (e.g. the browser dropped the connection mid-download).
+      try { $res.StatusCode = 500 } catch { }
     } finally {
-      $res.Close()
+      # Closing a response whose client went away can throw; that must not stop the server.
+      try { $res.Close() } catch { }
     }
   }
 } finally {

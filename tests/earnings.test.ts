@@ -29,3 +29,11 @@ test('parses the SSA XML statement format', () => {
 test('skips multi-year range rows instead of reading the second year as dollars', () => {
   expect(parseEarnings('1981-1990  $123,456\n1991  $20,000')).toEqual([{ year: 1991, amount: 20_000 }]);
 });
+
+test('reads comma-separated rows (CSV) one amount at a time', () => {
+  expect(parseEarnings('2021,62889,62889\n2022, $66,421, $66,421\n2023,1234567.50,0')).toEqual([
+    { year: 2021, amount: 62_889 },
+    { year: 2022, amount: 66_421 },
+    { year: 2023, amount: 1_234_567.5 },
+  ]);
+});

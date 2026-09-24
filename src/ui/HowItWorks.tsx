@@ -1,5 +1,6 @@
 import { Fragment } from 'react';
 import { DATA_VERSIONS, describeAssumptions } from '../engine/assumptions';
+import { MARKET } from '../engine/returns';
 import type { Plan } from '../engine/types';
 
 
@@ -14,7 +15,7 @@ export function HowItWorks({ plan }: { plan: Plan }) {
           The calculator simulates your household year by year: contributions while you work, then spending, healthcare,
           Social Security, withdrawals, Roth conversions and taxes in retirement. It runs that plan through{' '}
           {plan.assumptions.paths.toLocaleString()} simulated markets (each stitched together from random {plan.assumptions.blockLength}-year
-          chunks of real US history since 1871) and through every real stretch of history long enough to cover your plan. A plan "succeeds" if money never runs out before the younger of you
+          chunks of real US history since {MARKET.firstYear}) and through every real stretch of history long enough to cover your plan. A plan "succeeds" if money never runs out before the younger of you
           turns {plan.assumptions.endAge}. Each FIRE result is the earliest date or smallest portfolio that reaches{' '}
           {Math.round(plan.assumptions.targetSuccess * 100)}% under <b>both</b> methods.
         </p>

@@ -1,6 +1,14 @@
 // Hover/focus help for every input (the "?" next to a label). Written for someone who knows 401(k)/Roth/HSA
 // basics but isn't a finance expert. Keep each entry accurate to how the engine uses the value.
 
+import { TRUST_FUND_DEFAULT } from '../data/rules';
+import { DATA_VERSIONS } from '../engine/assumptions';
+import { CHUBBY_SPENDING_FACTOR, FIDELITY_SPENDING_FACTOR } from '../engine/defaults';
+import { MARKET } from '../engine/returns';
+
+const tf = TRUST_FUND_DEFAULT;
+const pct = (x: number) => `${Math.round(x * 100)}%`;
+
 export const HELP = {
   // People
   name: 'Used only for labels on screen.',
@@ -40,7 +48,7 @@ export const HELP = {
     'Everything your household spends in a year, including mortgage and any healthcare you pay yourself; leave out savings and taxes taken from your paycheck. A year of bank/card statements or a budgeting app is the easiest source. On its own it doesn’t change results — it feeds the “Use Fidelity default” button.',
   traditionalSpending:
     'What you expect to spend per year once retired, in today’s dollars and before taxes (the model adds taxes). Leave out healthcare and dated items — they’re added on top. Coast FIRE also uses this after you stop working. If unsure, use the Fidelity default button.',
-  chubbySpending: 'A more comfortable retirement budget, with the same rules as Traditional. Default is a step up from today: 1.2 × current spending, vs Fidelity’s 0.85 × for Traditional. Clear it to skip the Chubby result.',
+  chubbySpending: `A more comfortable retirement budget, with the same rules as Traditional. Default is a step up from today: ${CHUBBY_SPENDING_FACTOR} × current spending, vs Fidelity’s ${FIDELITY_SPENDING_FACTOR} × for Traditional (both after taking out ongoing dated items you already pay today). Clear it to skip the Chubby result.`,
   coastAge:
     'If you stopped saving now, the age at which you’d both finally stop working. Until then your paychecks cover all spending; after that, Traditional spending applies. Default 65.',
 
@@ -86,19 +94,19 @@ export const HELP = {
   stateTax: 'A flat rate on your taxable retirement income, not counting Social Security. Use the rate of the state you expect to retire in (0 for no-income-tax states). Default 5%.',
   bracketFill:
     'Each retired year, the model takes 401(k)/IRA money up to the top of this federal tax bracket. What you don’t spend moves to Roth (a “Roth conversion”), usable tax- and penalty-free after 5 years. This builds early-retirement access and lowers later required withdrawals. Off = no conversions. Default 12%.',
-  paths: 'How many simulated markets to test. More gives steadier results but takes longer. Default 10,000 (minimum 500).',
+  paths: 'How many simulated markets to test. More gives steadier results but takes longer. Default 10,000 (500 to 50,000).',
   blockLength:
     'Each simulated market is stitched together from random stretches of real history this many years long, so crashes and recoveries stay together. Default 5.',
   seed: 'Any whole number. The same number always gives the same results; change it to see how much results wobble from chance alone.',
-  tfStart: 'The year the Social Security trust fund is projected to run short. Benefits are paid in full before then. 2032 per the 2026 Trustees Report.',
-  tfStartPct: 'Share of scheduled benefits paid when the cut starts. Default 78%. Set this and “Share paid from then on” to 100% to assume no cut.',
-  tfEnd: 'The share falls steadily until this year, then stays flat. Default 2100.',
-  tfEndPct: 'Share of benefits paid from that year on. Default 62%. Set both shares to 0% to leave Social Security out entirely (Fidelity FI Planner style).',
+  tfStart: `The year the Social Security trust fund is projected to run short. Benefits are paid in full before then. ${tf.startYear} per the ${DATA_VERSIONS.trusteesReport} Trustees Report.`,
+  tfStartPct: `Share of scheduled benefits paid when the cut starts. Default ${pct(tf.startPct)}. Set this and “Share paid from then on” to 100% to assume no cut.`,
+  tfEnd: `The share falls steadily until this year, then stays flat. Default ${tf.endYear}.`,
+  tfEndPct: `Share of benefits paid from that year on. Default ${pct(tf.endPct)}. Set both shares to 0% to leave Social Security out entirely (Fidelity FI Planner style).`,
 } as const;
 
 /** Shared explanation of the two ways results are tested. */
 export const METHODS_HELP =
-  'Simulated markets: 10,000 made-up market histories, each stitched together from random multi-year stretches of real US history since 1871. Real past markets: your plan replayed through every actual stretch of history. Your result must pass both, so the lower number is the one that counts.';
+  `Simulated markets: thousands of made-up market histories (10,000 by default), each stitched together from random multi-year stretches of real US history since ${MARKET.firstYear}. Real past markets: your plan replayed through every actual stretch of history. Your result must pass both, so the lower number is the one that counts.`;
 
 export const SUCCESS_HELP =
   'The share of markets in which you never run out of money before the younger of you reaches the “plan until” age (96 by default).';

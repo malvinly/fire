@@ -39,7 +39,7 @@ npm install
 npm run dev
 ```
 
-Open http://localhost:5173 in **Chrome or Edge** (needed to save sessions into a folder; other browsers
+Open http://localhost:5391 in **Chrome or Edge** (needed to save sessions into a folder; other browsers
 download and upload session files instead).
 
 ## Build a permanent copy
@@ -51,7 +51,7 @@ npm run build
 ```
 
 This creates a self-contained `dist/` folder. To use it, **double-click `Start FIRE Planner.cmd`** inside
-`dist/`. It opens the planner in your browser at http://localhost:4173; keep the small window it opens
+`dist/`. It opens the planner in your browser at http://localhost:4391; keep the small window it opens
 while you use the planner, and close it when you're done. It needs nothing else installed: no Node.js,
 no terminal, no internet.
 
@@ -62,7 +62,7 @@ Notes:
 - Opening `dist/index.html` directly does **not** work: browsers only run the app's background
   calculator from a web address, which is what the launcher provides.
 - `dist/` is not in git. Rebuild (and re-copy) after pulling changes or after the yearly data update.
-- The built copy (port 4173) and the development server (port 5173) count as different websites to the
+- The built copy (port 4391) and the development server (port 5391) count as different websites to the
   browser: each asks you to choose your sessions folder once and keeps its own unsaved draft. Your session
   files themselves are shared.
 - From a terminal, `npm run preview` serves the same `dist/` folder at the same address.

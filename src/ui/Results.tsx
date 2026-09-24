@@ -167,7 +167,7 @@ const COLUMNS: { label: string; help?: string }[] = [
   { label: 'Income taxed', help: 'Federal taxable income after the standard deduction.' },
   { label: 'Federal tax' },
   { label: 'State tax' },
-  { label: 'Early-withdrawal penalty', help: '10% penalty on retirement money taken out before 59½.' },
+  { label: 'Early-withdrawal penalty', help: '10% penalty on retirement money taken out before 59½, plus 20% on HSA money spent on non-medical costs while the younger of you is under 65.' },
   { label: 'Total savings (end of year)' },
 ];
 
@@ -244,7 +244,7 @@ export function DetailView({ plan, detail, loading }: { plan: Plan; detail: Deta
               {detail.worstHistorical.map((w) => (
                 <tr key={w.startYear}>
                   <td>{w.startYear}</td>
-                  <td>{w.success ? 'Money lasted' : `Ran out ${w.failYear! - retireYear} years into retirement`}</td>
+                  <td>{w.success ? 'Money lasted' : `Ran out in ${w.failYear} (year ${w.failYear! - retireYear + 1} of retirement)`}</td>
                   <td>{moneyShort(w.minBalance)}</td>
                   <td>{moneyShort(w.endBalance)}</td>
                 </tr>

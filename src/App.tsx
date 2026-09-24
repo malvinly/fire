@@ -1,6 +1,7 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { examplePlan } from './engine/defaults';
 import type { Detail, Tier, TierResult } from './engine/solve';
+import { MARKET } from './engine/returns';
 import type { Plan } from './engine/types';
 import { HowItWorks } from './ui/HowItWorks';
 import { Icon, TIER_ICONS } from './ui/icons';
@@ -40,8 +41,13 @@ export default function App() {
   const [detailLoading, setDetailLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [staleData, setStaleData] = useState(false);
+  // When the results on screen came from a session file rather than this app's own calculation.
+  const [savedAt, setSavedAt] = useState<string | null>(null);
   const [dirty, setDirty] = useState(false);
   const [sessionsOpen, setSessionsOpen] = useState(false);
+  // The plan snapshot of the calculation in progress; opening or starting a session clears it so a late
+  // result can't overwrite what is now on screen.
+  const running = useRef<Plan | null>(null);
 
   // Keep a local draft so a page reload never loses typing (convenience only; sessions are the real store).
   useEffect(() => {
@@ -65,19 +71,25 @@ export default function App() {
 
   const calculate = async () => {
     const snapshot = structuredClone(plan);
+    running.current = snapshot;
     setError(null);
     setStaleData(false);
+    setSavedAt(null);
     setDetail(null);
     setResults({ plan: snapshot, calculatedAt: new Date().toISOString(), tiers: {}, done: false });
     try {
       const tiers = await solveAll(snapshot, (r) =>
         setResults((cur) => (cur && cur.plan === snapshot ? { ...cur, tiers: { ...cur.tiers, [r.tier]: r } } : cur)),
       );
+      if (running.current !== snapshot) return;
+      running.current = null;
       setResults((cur) => (cur && cur.plan === snapshot ? { ...cur, done: true } : cur));
       const pick = tiers.find((t) => t.tier === selTier) ?? tiers[0];
       setSelTier(pick.tier);
       setSelYear(defaultYear(snapshot, pick));
     } catch (e) {
+      if (running.current !== snapshot) return;
+      running.current = null;
       // Clear the half-finished run so Calculate is usable again after fixing the input.
       setResults(null);
       setError(e instanceof Error ? e.message : String(e));
@@ -106,6 +118,7 @@ export default function App() {
     makeSession(name, plan, results?.done && !inputsChanged ? { calculatedAt: results.calculatedAt, tiers: Object.values(results.tiers), detail } : null, createdAt);
 
   const openSession = (s: SessionFile, m: SessionMeta) => {
+    running.current = null;
     setPlan(s.plan);
     setMeta(m);
     setDirty(false);
@@ -117,20 +130,30 @@ export default function App() {
       if (s.results.detail) {
         setSelTier(s.results.detail.tier);
         setSelYear(s.results.detail.tier === 'coast' ? s.results.detail.scenario.stopContributingYear : s.results.detail.scenario.retireYear);
+      } else {
+        // Don't carry the previous session's tier and year over to this plan.
+        const r = tiers.traditional ?? s.results.tiers[0];
+        if (r) {
+          setSelTier(r.tier);
+          setSelYear(defaultYear(s.plan, r));
+        }
       }
     } else {
       setResults(null);
     }
     setStaleData(!!s.results && isStale(s));
+    setSavedAt(s.results?.calculatedAt ?? null);
   };
 
   const newSession = () => {
+    running.current = null;
     setPlan(examplePlan());
     setMeta(null);
     setResults(null);
     setDetail(null);
     setDirty(false);
     setStaleData(false);
+    setSavedAt(null);
   };
 
   const tierOrder: Tier[] = ['traditional', 'chubby', 'coast'];
@@ -173,7 +196,13 @@ export default function App() {
             )}
             {staleData && (
               <div className="banner warn">
-                <Icon name="alert" /> These results used older market and tax data than the app now has. Recalculate to update.
+                <Icon name="alert" /> These results were calculated with older data or an older version of the calculator. Recalculate to update.
+                <button className="btn small" onClick={calculate}>Recalculate</button>
+              </div>
+            )}
+            {savedAt && !staleData && !inputsChanged && (
+              <div className="banner">
+                Showing the results saved in this session file (calculated {new Date(savedAt).toLocaleDateString()}), not a new calculation.
                 <button className="btn small" onClick={calculate}>Recalculate</button>
               </div>
             )}
@@ -189,7 +218,7 @@ export default function App() {
                 <p style={{ marginTop: 8 }}>
                   The left side is filled with example numbers — replace them with yours. Hover the “?” next to any
                   label to see what goes there. Calculating takes about 10 seconds: each FIRE type is tested against{' '}
-                  {plan.assumptions.paths.toLocaleString()} simulated markets and every real stretch of market history since 1871.
+                  {plan.assumptions.paths.toLocaleString()} simulated markets and every real stretch of market history since {MARKET.firstYear}.
                 </p>
               </div>
             ) : (
@@ -259,5 +288,5 @@ export default function App() {
 
 function defaultYear(plan: Plan, r: TierResult): number {
   if (r.earliest) return r.earliest.year;
-  return r.tier === 'coast' ? plan.startYear : plan.you.birthYear + 65;
+  return r.tier === 'coast' ? plan.startYear : Math.max(plan.startYear, plan.you.birthYear + 65);
 }

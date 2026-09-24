@@ -30,7 +30,7 @@ export function DatedItemsEditor({ plan, update }: { plan: Plan; update: Update 
         Applied from the retirement date on, in today's dollars; anything dated before retirement is ignored
         (your paycheck covers it). Tip: split a mortgage into principal & interest (fixed dollars, ends at payoff)
         and property tax & insurance (rises with inflation, no end). Ongoing items you already pay today are
-        taken out of the Fidelity spending default automatically.
+        taken out of the Traditional and Chubby spending defaults automatically.
       </p>
       {plan.datedItems.map((it) => (
         <div key={it.id} className="item">
@@ -46,7 +46,7 @@ export function DatedItemsEditor({ plan, update }: { plan: Plan; update: Update 
               onChange={(v) => edit(it.id, (x) => { x.direction = v; })} />
             <SelectField<DatedItem['frequency']> label="How often" help={HELP.itemFrequency} value={it.frequency}
               options={[{ value: 'ongoing', label: 'Every year' }, { value: 'oneTime', label: 'One time' }, { value: 'recurring', label: 'Every N years' }]}
-              onChange={(v) => edit(it.id, (x) => { x.frequency = v; })} />
+              onChange={(v) => edit(it.id, (x) => { x.frequency = v; if (v === 'recurring') x.everyYears ??= 10; })} />
             <NumberField label="Amount (each time)" help={HELP.itemAmount} value={it.amount} onChange={(v) => edit(it.id, (x) => { x.amount = v ?? 0; })} />
           </div>
           <div className="row">
@@ -57,7 +57,7 @@ export function DatedItemsEditor({ plan, update }: { plan: Plan; update: Update 
                 onChange={(t) => edit(it.id, (x) => { x.end = t; })} />
             )}
             {it.frequency === 'recurring' && (
-              <NumberField label="Repeats every … years" help={HELP.itemEvery} kind="int" min={1} value={it.everyYears ?? 10}
+              <NumberField label="Repeats every … years" help={HELP.itemEvery} kind="int" min={1} value={it.everyYears ?? 1}
                 onChange={(v) => edit(it.id, (x) => { x.everyYears = Math.max(1, v ?? 1); })} />
             )}
           </div>

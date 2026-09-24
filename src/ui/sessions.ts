@@ -35,7 +35,12 @@ export function makeSession(name: string, plan: Plan, results: SessionFile['resu
 
 export function parseSession(text: string): SessionFile {
   const s = JSON.parse(text);
-  if (s?.app !== 'fire-planner' || s.schemaVersion !== 1 || !s.plan) throw new Error('Not a FIRE Planner session file.');
+  if (s?.app !== 'fire-planner' || s.schemaVersion !== 1 || typeof s.plan !== 'object' || s.plan === null) throw new Error('Not a FIRE Planner session file.');
+  // Shape checks for what the session list and the results view read directly, so one damaged file can't
+  // break them.
+  const ok = typeof s.name === 'string' && typeof s.createdAt === 'string' && typeof s.savedAt === 'string' &&
+    (s.results === null || (typeof s.results === 'object' && typeof s.results.calculatedAt === 'string' && Array.isArray(s.results.tiers)));
+  if (!ok) throw new Error('This FIRE Planner session file is damaged.');
   return s as SessionFile;
 }
 
@@ -142,7 +147,8 @@ export function downloadSession(fileName: string, s: SessionFile) {
   a.href = URL.createObjectURL(blob);
   a.download = fileName;
   a.click();
-  URL.revokeObjectURL(a.href);
+  // Some browsers start the download after click() returns; freeing the blob at once can lose it.
+  setTimeout(() => URL.revokeObjectURL(a.href), 60_000);
 }
 
 export type { DirHandle };

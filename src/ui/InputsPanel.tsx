@@ -177,8 +177,8 @@ export function InputsPanel({ plan, update }: { plan: Plan; update: Update }) {
           <SelectField<BracketFill> label="Yearly Roth conversions: fill up to" help={HELP.bracketFill} value={a.bracketFill}
             options={[{ value: 'none', label: 'Off' }, { value: '10', label: '10% bracket' }, { value: '12', label: '12% bracket' }, { value: '22', label: '22% bracket' }, { value: '24', label: '24% bracket' }]}
             onChange={(v) => update((d) => { d.assumptions.bracketFill = v; })} />
-          <NumberField label="Number of simulated markets" help={HELP.paths} kind="int" value={a.paths} min={500}
-            onChange={(v) => update((d) => { d.assumptions.paths = Math.max(500, Math.round(v ?? 10_000)); d.assumptions.searchPaths = Math.min(d.assumptions.searchPaths, d.assumptions.paths); })} />
+          <NumberField label="Number of simulated markets" help={HELP.paths} kind="int" value={a.paths} min={500} max={50_000}
+            onChange={(v) => update((d) => { d.assumptions.paths = Math.min(50_000, Math.max(500, Math.round(v ?? 10_000))); d.assumptions.searchPaths = Math.min(d.assumptions.searchPaths, d.assumptions.paths); })} />
           <NumberField label="Simulated markets: chunk size (years)" help={HELP.blockLength} kind="int" value={a.blockLength} min={1}
             onChange={(v) => update((d) => { d.assumptions.blockLength = Math.max(1, Math.round(v ?? 5)); })} />
           <NumberField label="Random seed" help={HELP.seed} kind="int" value={a.seed} onChange={(v) => update((d) => { d.assumptions.seed = Math.round(v ?? 1); })} />

@@ -2,7 +2,7 @@
 // data tables; the explanatory text is hand-written and must be reviewed on each data update
 // (docs/UPDATE_DATA_PROMPT.md). Each row: what, the value used, default or yours, why, and the source.
 
-import { FEDERAL, LIMITS, RULES_YEAR, SOCIAL_SECURITY } from '../data/rules';
+import { FEDERAL, LIMITS, RULES_YEAR, SOCIAL_SECURITY, rmdStartAge } from '../data/rules';
 import { CHUBBY_SPENDING_FACTOR, DEFAULT_ASSUMPTIONS, FIDELITY_SPENDING_FACTOR, chubbyDefaultSpending, datedExpensesToday, fidelityDefaultSpending } from './defaults';
 import { MARKET } from './returns';
 import type { Plan } from './types';
@@ -20,10 +20,17 @@ export interface AssumptionRow {
 const pct = (x: number, d = 1) => `${(x * 100).toFixed(d)}%`;
 const usd = (x: number) => `$${Math.round(x).toLocaleString('en-US')}`;
 
+/**
+ * Saved with every session; a session whose copy differs is flagged "recalculate" (src/ui/sessions.ts).
+ * `engine`: bump whenever a code change alters results for the same inputs.
+ */
 export const DATA_VERSIONS = {
   marketThrough: MARKET.lastYear,
+  marketGenerated: MARKET.generated,
   rulesYear: RULES_YEAR,
+  wageIndexYear: SOCIAL_SECURITY.awiLatestYear,
   trusteesReport: 2026,
+  engine: 2,
 };
 
 export function describeAssumptions(plan: Plan): AssumptionRow[] {
@@ -88,7 +95,7 @@ export function describeAssumptions(plan: Plan): AssumptionRow[] {
       why: 'Conservative. Subsidies depend on yearly income from withdrawals; planned for v2.', decision: 'D21' },
 
     // Social Security
-    { group: 'Social Security', label: 'Benefit formula', value: `${RULES_YEAR} bend points ${usd(SOCIAL_SECURITY.bendPoints[0])} / ${usd(SOCIAL_SECURITY.bendPoints[1])}, earnings indexed to the ${SOCIAL_SECURITY.awiLatestYear} wage index`, status: 'fixed',
+    { group: 'Social Security', label: 'Benefit formula', value: `${SOCIAL_SECURITY.awiLatestYear + 2} bend points ${usd(SOCIAL_SECURITY.bendPoints[0])} / ${usd(SOCIAL_SECURITY.bendPoints[1])}, earnings indexed to the ${SOCIAL_SECURITY.awiLatestYear} wage index`, status: 'fixed',
       why: 'SSA’s formula: your top 35 years of pay, adjusted for wage growth; years after you stop working count as zero.', source: { label: 'SSA benefit formula', url: 'https://www.ssa.gov/oact/cola/piaformula.html' }, decision: 'D24' },
     { group: 'Social Security', label: 'Trust fund cut', value: `100% until ${tf.startYear}, then ${pct(tf.startPct, 0)} falling to ${pct(tf.endPct, 0)} by ${tf.endYear}`, status: st(tfSame),
       why: 'Plans conservatively for the retirement trust fund’s officially projected shortfall. Set both shares to 100% for no cut.', source: { label: '2026 Trustees Report', url: 'https://www.ssa.gov/oact/trsum/' }, decision: 'D26' },
@@ -97,16 +104,16 @@ export function describeAssumptions(plan: Plan): AssumptionRow[] {
 
     // Taxes & accounts
     { group: 'Taxes & accounts', label: 'Federal tax', value: `${RULES_YEAR} married filing jointly, standard deduction ${usd(FEDERAL.standardDeduction)}`, status: 'fixed',
-      why: 'Brackets, 0/15/20% capital gains, tax on part of Social Security, and the 3.8% extra tax on investment income for high earners. Only computed in retirement.', source: { label: 'IRS 2026 inflation adjustments', url: 'https://www.irs.gov/newsroom/irs-releases-tax-inflation-adjustments-for-tax-year-2026-including-amendments-from-the-one-big-beautiful-bill' }, decision: 'D32' },
+      why: 'Brackets, 0/15/20% capital gains, tax on part of Social Security, and the 3.8% extra tax on investment income for high earners. While working, only the extra tax that Social Security or RMDs add on top of wages is counted (D49).', source: { label: 'IRS 2026 inflation adjustments', url: 'https://www.irs.gov/newsroom/irs-releases-tax-inflation-adjustments-for-tax-year-2026-including-amendments-from-the-one-big-beautiful-bill' }, decision: 'D32' },
     { group: 'Taxes & accounts', label: 'State tax', value: pct(a.stateTaxRate), status: st(a.stateTaxRate === d.stateTaxRate),
       why: 'Flat rate on taxable income excluding Social Security. Use the rate of the state you expect to retire in (0% for no-income-tax states).', decision: 'D33' },
     { group: 'Taxes & accounts', label: 'Yearly Roth conversions', value: a.bracketFill === 'none' ? 'Off' : `Fill the ${a.bracketFill}% bracket every retired year`, status: st(a.bracketFill === d.bracketFill),
       why: 'Pre-tax money up to the top of this bracket is withdrawn; what you don\'t spend is converted to Roth and usable after 5 years.', decision: 'D29' },
     { group: 'Taxes & accounts', label: 'Before 59½', value: 'cash → brokerage → Roth contributions → Roth conversions 5+ years old → 401(k)/IRA with 10% penalty', status: 'fixed',
       why: 'Penalized withdrawals are allowed as a last resort and flagged, not treated as failure.', decision: 'D27' },
-    { group: 'Taxes & accounts', label: 'Required minimum distributions (RMDs)', value: 'Age 75 (born 1960+), IRS Uniform Lifetime Table', status: 'fixed',
+    { group: 'Taxes & accounts', label: 'Required minimum distributions (RMDs)', value: `${plan.you.name} from ${rmdStartAge(plan.you.birthYear)}, ${plan.spouse.name} from ${rmdStartAge(plan.spouse.birthYear)} (IRS Uniform Lifetime Table)`, status: 'fixed',
       why: 'Surplus RMD money is reinvested in the taxable account.', decision: 'D31' },
     { group: 'Taxes & accounts', label: 'Contribution limits', value: `401(k) ${usd(LIMITS.employee401k)}, IRA ${usd(LIMITS.ira)}, HSA family ${usd(LIMITS.hsaFamily)}`, status: 'fixed',
-      why: 'Shown as warnings only.', decision: 'D15' },
+      why: 'Contributions are capped at these limits every year (catch-ups from 50, HSA from 55); money above a limit is not saved elsewhere. The limits stay flat in today’s dollars.', decision: 'D15' },
   ];
 }

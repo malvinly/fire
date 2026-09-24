@@ -9,10 +9,10 @@
         "dev",
         "--",
         "--port",
-        "5173",
+        "5391",
         "--strictPort"
       ],
-      "port": 5173
+      "port": 5391
     },
     {
       "name": "fire-built",
@@ -23,7 +23,7 @@
         "--",
         "--strictPort"
       ],
-      "port": 4173
+      "port": 4391
     }
   ]
 }

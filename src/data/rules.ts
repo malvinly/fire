@@ -30,7 +30,7 @@ export const FEDERAL = {
   hsaNonMedicalPenalty: 0.2,
 };
 
-// IRS 2026 contribution limits (warnings only).
+// IRS 2026 contribution limits. The engine caps contributions at these every year (D15); the inputs panel also warns.
 export const LIMITS = {
   employee401k: 24_500,
   catchUp401k: 8_000, // age 50+

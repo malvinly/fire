@@ -44,7 +44,7 @@ export interface Context {
   access: [Uint8Array, Uint8Array];
   /** RMD divisor, 0 when no RMD is due. */
   rmdDivisor: [Float64Array, Float64Array];
-  /** 1 when the younger spouse is under 65 (HSA non-medical penalty, D22). */
+  /** 1 when the younger spouse is under 65 (HSA non-medical penalty, D41). */
   hsaPenalty: Uint8Array;
   fillTop: number; // 0 = no bracket fill
   pia: [number, number];
@@ -55,6 +55,8 @@ export function planYears(plan: Plan): { startYear: number; endYear: number; len
   const endYear = youngerBirth + plan.assumptions.endAge;
   const len = endYear - plan.startYear + 1;
   if (len < 2) throw new Error(`"Plan to age" (${plan.assumptions.endAge}) must be above the younger spouse's current age.`);
+  // A typo (plan start "202", plan to age "960") would otherwise run for hours.
+  if (len > 120) throw new Error(`The plan runs ${len} years (${plan.startYear}–${endYear}). Check "Plan starts in year", birth years and "Plan until … age".`);
   return { startYear: plan.startYear, endYear, len };
 }
 

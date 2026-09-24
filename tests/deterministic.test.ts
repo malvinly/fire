@@ -42,9 +42,13 @@ describe('cash flow with constant returns', () => {
     expect(res.success).toBe(true);
     expect(res.records![coastYears - 1].balances.total).toBeCloseTo(perpetuity, 2);
     expect(res.endBalance).toBeCloseTo(perpetuity, 2);
-    // 1% less today fails before the end of a long plan.
+    // 1% less today reaches retirement 1% short (0.99 × 840,000). Each retired year B ← (B − 40,000) × 1.05,
+    // so the 8,400 gap to the perpetuity grows 5% a year: after the 50 retired years (t = 10…59) the balance is
+    // 840,000 − 8,400 × 1.05^50 ≈ 743,674 — still positive, but never self-sustaining.
     const short = ctxFor(simplePlan({ roth: needToday * 0.99, years: 60 }), scenario);
-    expect(simulatePath(short, constantPath(short.len, r), 0).endBalance).toBeLessThan(perpetuity);
+    const res99 = simulatePath(short, constantPath(short.len, r), 0);
+    expect(res99.success).toBe(true);
+    expect(res99.endBalance).toBeCloseTo(perpetuity - 0.01 * perpetuity * 1.05 ** 50, 2);
   });
 
   test('contributions grow with wages and stop at the stop-contributing year', () => {

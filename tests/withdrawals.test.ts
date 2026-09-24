@@ -1,5 +1,6 @@
 // Account rules: 59½ access, Roth ladder seasoning, penalties, RMDs, HSA.
 import { describe, expect, test } from 'vitest';
+import { buildContext } from '../src/engine/context';
 import { constantPath } from '../src/engine/returns';
 import { simulatePath } from '../src/engine/simulate';
 import { ctxFor, simplePlan, START } from './helpers';
@@ -75,6 +76,19 @@ describe('required minimum distributions', () => {
     expect(r75.rmd).toBeCloseTo(1_000_000 / 24.6, 0);
     expect(r75.balances.taxable).toBeGreaterThan(0);
   });
+
+  test('begin at 73 for people born 1951–1959 and at 72 for 1950 (Uniform Lifetime divisors)', () => {
+    for (const [born, startAge, divisor] of [[1950, 72, 27.4], [1951, 73, 26.5], [1959, 73, 26.5]]) {
+      const plan = simplePlan();
+      plan.startYear = born + 70; // ages 70, 71, 72, …
+      plan.you.birthYear = plan.spouse.birthYear = born;
+      plan.assumptions.endAge = 96;
+      const ctx = buildContext(plan, { stopContributingYear: plan.startYear, retireYear: plan.startYear, baseSpending: 0 });
+      const t = startAge - 70;
+      expect(ctx.rmdDivisor[0][t - 1]).toBe(0);
+      expect(ctx.rmdDivisor[0][t]).toBe(divisor);
+    }
+  });
 });
 
 describe('HSA', () => {
@@ -87,5 +101,22 @@ describe('HSA', () => {
     const res = simulatePath(ctx, constantPath(ctx.len, 0), 0, { record: true });
     expect(res.records![0].withdrawals.hsa).toBe(10_000);
     expect(res.records![0].withdrawals.roth).toBeCloseTo(40_000, 6);
+  });
+
+  test('non-medical withdrawals pay the 20% penalty until the younger spouse turns 65 (D41)', () => {
+    const plan = earlyRetiree(66);
+    plan.spouse.birthYear = START - 63;
+    plan.household.traditionalSpending = 10_000;
+    plan.you.balances.hsa = 100_000; // the only money; income stays under the deduction, so no income tax
+    const ctx = ctxFor(plan);
+    const recs = simulatePath(ctx, constantPath(ctx.len, 0), 0, { record: true }).records!;
+    // Spouse 63 and 64: X = 10,000 + 0.2 X → X = 12,500, penalty 2,500. Spouse 65: 10,000, no penalty.
+    for (const t of [0, 1]) {
+      expect(recs[t].withdrawals.hsa).toBeCloseTo(12_500, 0);
+      expect(recs[t].penaltyTax).toBeCloseTo(2_500, 0);
+    }
+    expect(recs[2].withdrawals.hsa).toBe(10_000);
+    expect(recs[2].penaltyTax).toBe(0);
+    expect(recs.slice(0, 3).every((r) => r.federalTax === 0)).toBe(true);
   });
 });

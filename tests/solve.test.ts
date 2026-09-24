@@ -3,7 +3,7 @@
 import { describe, expect, test } from 'vitest';
 import { buildContext } from '../src/engine/context';
 import { examplePlan } from '../src/engine/defaults';
-import { constantPath } from '../src/engine/returns';
+import { constantPath, historicalPaths, MARKET, type ReturnPaths } from '../src/engine/returns';
 import { initialState, scaleState, simulatePath } from '../src/engine/simulate';
 import {
   averageInflation, detailFor, evaluate, makeEngine, projectState, scenarioFor, solveTier,
@@ -62,6 +62,39 @@ describe('Traditional FIRE', () => {
     const chubby = solveTier(engine, 'chubby');
     expect(chubby.earliest!.year).toBeGreaterThanOrEqual(trad.earliest!.year);
     expect(chubby.fireNumber!).toBeGreaterThan(trad.fireNumber!);
+  });
+});
+
+describe('search on a path subset, answers confirmed on all paths (D5)', () => {
+  // Search on the first 100 of 400 paths. With seed 18 the subset is optimistic about both answers, so the
+  // confirm steps must move them; the last assertion of each test checks that they did. If a data update
+  // breaks only those last assertions, pick another seed where the subset is optimistic.
+  const p = smallPlan();
+  p.assumptions.searchPaths = 100;
+  p.assumptions.seed = 18;
+  const e = makeEngine(p);
+  const r = solveTier(e, 'traditional');
+  const passes = (s: { combined: number }) => s.combined >= target - 1e-9;
+
+  test('the earliest year passes on all paths; the year before was rejected on the subset or on all paths', () => {
+    const y = r.earliest!.year;
+    const at = (year: number, full: boolean) =>
+      passes(evaluate(e, buildContext(p, scenarioFor(p, 'traditional', year)), {}, full));
+    expect(y).toBeGreaterThan(p.startYear);
+    expect(at(y, true)).toBe(true);
+    const before = { search: at(y - 1, false), full: at(y - 1, true) };
+    expect(before.search && before.full).toBe(false);
+    expect(before).toEqual({ search: true, full: false }); // the subset alone would have answered a year early
+  });
+
+  test('the FIRE number passes on all paths', () => {
+    const ctx = buildContext(p, scenarioFor(p, 'traditional', r.earliest!.year));
+    const base = projectState(ctx, ctx.retireIdx);
+    const run = (x: number, full: boolean) =>
+      passes(evaluate(e, ctx, { startIdx: ctx.retireIdx, startState: scaleState(base, x), retirementOnly: true }, full));
+    expect(run(r.fireNumber!, true)).toBe(true);
+    // One 2% step lower passes the subset but not all paths: the confirm step raised the number.
+    expect({ search: run(r.fireNumber! / 1.02, false), full: run(r.fireNumber! / 1.02, true) }).toEqual({ search: true, full: false });
   });
 });
 
@@ -139,6 +172,34 @@ describe('price level in retirement-only runs', () => {
       startIdx: 10, startState: projectState(ctx, 10), initialPriceLevel: level, record: true,
     }).records![0];
     expect(rec.spending - rec.healthcare).toBeCloseTo(p.household.traditionalSpending + 20_000 / level, 6);
+  });
+
+  test('retirement-only runs: windows start at the retirement year, both legs at the average price level (D47, D51)', () => {
+    // Independent re-computation of evaluate(…, retirementOnly) from simulatePath and historicalPaths.
+    const p = smallPlan();
+    p.datedItems = [{ id: 'm', label: 'mortgage', direction: 'expense', amount: 30_000, frequency: 'ongoing',
+      start: { kind: 'year', year: 2026 }, fixedDollars: true }]; // makes the price level matter
+    const e = makeEngine(p);
+    const ctx = buildContext(p, scenarioFor(p, 'traditional', 2046));
+    const idx = ctx.retireIdx;
+    expect(idx).toBe(20);
+    const startState = scaleState(projectState(ctx, idx), 2_000_000);
+    const level = Math.pow(1 + averageInflation(), idx);
+    const rate = (paths: ReturnPaths, pathShift: number, initialPriceLevel: number) => {
+      let ok = 0;
+      for (let q = 0; q < paths.n; q++) {
+        if (simulatePath(ctx, paths, q, { startIdx: idx, startState, pathShift, initialPriceLevel }).success) ok++;
+      }
+      return ok / paths.n;
+    };
+    const windows = historicalPaths(ctx.len - idx, p.assumptions.allocation, p.assumptions.feeRate);
+    expect(windows.n).toBe(MARKET.years.length - (ctx.len - idx) + 1);
+    const s = evaluate(e, ctx, { startIdx: idx, startState, retirementOnly: true }, true);
+    expect(s.historical).toBe(rate(windows, idx, level));
+    expect(s.bootstrap).toBe(rate(e.boot, 0, level));
+    // The scenario is sensitive to the price level, so the wrong one would show above.
+    expect(rate(windows, idx, 1)).not.toBe(s.historical);
+    expect(rate(e.boot, 0, 1)).not.toBe(s.bootstrap);
   });
 
   test('shifting paths without a starting price level is refused', () => {

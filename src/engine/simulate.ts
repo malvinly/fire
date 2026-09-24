@@ -192,7 +192,8 @@ function planDraws(ctx: Context, s: State, t: number, need: number, hsaMedical: 
     if (access[i]) continue;
     const unfilled = s.pretax[i] - d.rmd[i] - d.fill[i];
     const take = Math.min(remaining, unfilled + d.convert[i]);
-    const reclaimed = Math.max(0, take - unfilled);
+    // Spending the planned conversion keeps income inside the chosen bracket (D29); only then more pre-tax.
+    const reclaimed = Math.min(take, d.convert[i]);
     d.convert[i] -= reclaimed;
     d.fill[i] -= reclaimed;
     d.pretaxPenalty[i] = take;
@@ -277,15 +278,17 @@ export function simulatePath(ctx: Context, paths: ReturnPaths, p: number, opts: 
       s.cash += ctx.contrib.cash[t];
       // Social Security already claimed and RMDs while still working: the paycheck covers spending, so they
       // are saved to taxable after the extra tax they cause on top of wages (D49).
-      let extraTax = 0;
+      let extraFederal = 0;
+      let extraState = 0;
       if (ss > 0 || rmd0 + rmd1 > 0) {
         const base = { ltcg: 0, over65: ctx.over65Count[t], priceLevel, stateRate: ctx.plan.assumptions.stateTaxRate };
         const withIt = computeTax({ ...base, ordinary: ctx.wages[t] + rmd0 + rmd1, socialSecurity: ss });
         const without = computeTax({ ...base, ordinary: ctx.wages[t], socialSecurity: 0 });
-        extraTax = withIt.federal + withIt.state - without.federal - without.state;
+        extraFederal = withIt.federal - without.federal;
+        extraState = withIt.state - without.state;
         s.pretax[0] -= rmd0;
         s.pretax[1] -= rmd1;
-        const saved = ss + rmd0 + rmd1 - extraTax;
+        const saved = ss + rmd0 + rmd1 - extraFederal - extraState;
         s.taxable += saved;
         s.taxableBasis += saved;
       }
@@ -293,7 +296,8 @@ export function simulatePath(ctx: Context, paths: ReturnPaths, p: number, opts: 
         rec = blankRecord(ctx, t, true);
         rec.socialSecurity = ss;
         rec.rmd = rmd0 + rmd1;
-        rec.federalTax = extraTax;
+        rec.federalTax = extraFederal;
+        rec.stateTax = extraState;
       }
     } else {
       const inflow = ctx.realIn[t] + ctx.nominalIn[t] / priceLevel;

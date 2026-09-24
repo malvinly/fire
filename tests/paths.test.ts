@@ -3,9 +3,10 @@
 import { describe, expect, test } from 'vitest';
 import { buildContext } from '../src/engine/context';
 import { constantPath } from '../src/engine/returns';
-import { initialState, simulatePath } from '../src/engine/simulate';
+import { initialState, simulatePath, totalBalance } from '../src/engine/simulate';
 import { annualBenefits, ownClaimFactor, payableShare, spousalClaimFactor } from '../src/engine/socialSecurity';
-import { LIMITS } from '../src/data/rules';
+import { FEDERAL, LIMITS } from '../src/data/rules';
+import type { Plan } from '../src/engine/types';
 import { ctxFor, simplePlan, START } from './helpers';
 
 function retiree(ageYou: number, ageSpouse = ageYou) {
@@ -15,6 +16,88 @@ function retiree(ageYou: number, ageSpouse = ageYou) {
   plan.assumptions.endAge = 96;
   return plan;
 }
+
+/** Both 45, $40k spending, 12% fill, $1.5M pre-tax, $90k taxable at full basis (about two years of bridge). */
+function ladderPlan() {
+  const plan = retiree(45);
+  plan.assumptions.bracketFill = '12';
+  plan.you.balances.pretax = 1_500_000;
+  plan.household.taxable = plan.household.taxableBasis = 90_000;
+  return plan;
+}
+
+describe('money conservation', () => {
+  /**
+   * At 0% returns and no inflation, balances move only by the year's flows. Conversions and RMD surpluses
+   * move money between accounts and must neither create nor destroy any:
+   *   total(t) = total(t−1) − (spending + federal + state + penalty − Social Security − other income).
+   * Per-account balances (per person for pre-tax and Roth) never go negative.
+   */
+  function expectConserved(plan: Plan, years: number) {
+    const ctx = ctxFor(plan);
+    const path = constantPath(ctx.len, 0, 0, 0);
+    const recs = simulatePath(ctx, path, 0, { record: true }).records!;
+    let prev = totalBalance(initialState(ctx));
+    for (const [t, r] of recs.slice(0, years).entries()) {
+      expect(r.working).toBe(false);
+      expect(r.shortfall).toBe(0);
+      const outflow = r.spending + r.federalTax + r.stateTax + r.penaltyTax - r.socialSecurity - r.otherIncome;
+      expect(Math.abs(r.balances.total - (prev - outflow))).toBeLessThan(1);
+      prev = r.balances.total;
+      const s = simulatePath(ctx, path, 0, { stopIdx: t + 1 }).state;
+      for (const v of [s.cash, s.taxable, s.taxableBasis, s.hsa, ...s.pretax, ...s.roth]) expect(v).toBeGreaterThan(-1);
+    }
+    return recs;
+  }
+
+  test('under 59½: bracket fill given up for spending (D52), then early Roth principal and earnings', () => {
+    const plan = retiree(50, 48);
+    plan.assumptions.bracketFill = '12';
+    plan.household.traditionalSpending = 50_000;
+    plan.household.taxable = plan.household.taxableBasis = 50_000;
+    plan.you.balances.pretax = 300_000;
+    plan.spouse.balances.pretax = 60_000; // below the 133k fill room: all of it is planned for conversion
+    plan.spouse.balances.roth = 400_000; // no basis: all earnings
+    const recs = expectConserved(plan, 14);
+    // The scenario reaches the paths it is meant to check:
+    expect(recs[1].conversions).toBeLessThan(130_000); // your year-1 fill (133k) partly reclaimed for spending
+    expect(recs[2].conversions).toBeLessThan(60_000); // spouse's whole balance planned, most reclaimed
+    expect(recs.slice(0, 14).some((r) => r.withdrawals.roth > 0 && r.penaltyWithdrawals > 0 && r.federalTax === 0)).toBe(true);
+    expect(recs.slice(0, 14).some((r) => r.withdrawals.roth > 0 && r.penaltyWithdrawals > 0 && r.federalTax > 0)).toBe(true);
+  });
+
+  test('a Roth ladder over ten years: conversions, penalized pre-tax, then seasoned conversions', () => {
+    const recs = expectConserved(ladderPlan(), 12);
+    // Each year's pre-tax draw is exactly the 133k fill (100,800 + 32,200), never more: in the penalized
+    // years part of it is spent instead of converted (D52), so income stays inside the 12% bracket.
+    const fill = FEDERAL.ordinaryBrackets[1][0] + FEDERAL.standardDeduction;
+    for (const r of recs.slice(0, 9)) expect(Math.abs(r.conversions + r.penaltyWithdrawals - fill)).toBeLessThan(1);
+    expect(recs[2].penaltyWithdrawals).toBeGreaterThan(0);
+    expect(recs[6].withdrawals.roth).toBeGreaterThan(0);
+  });
+
+  test('past 59½: RMD surplus, Social Security, state tax, gains, HSA and a one-time income deposit', () => {
+    const plan = retiree(74, 70);
+    plan.assumptions.bracketFill = '12';
+    plan.assumptions.stateTaxRate = 0.05;
+    plan.household.traditionalSpending = 130_000;
+    plan.household.taxable = 400_000;
+    plan.household.taxableBasis = 150_000;
+    plan.household.cash = 20_000;
+    plan.you.balances.pretax = 900_000;
+    plan.spouse.balances.hsa = 30_000;
+    plan.you.healthcare.medicare = plan.spouse.healthcare.medicare = 6_000;
+    plan.you.socialSecurity = { mode: 'manual', earnings: [], manualPia: 2_500, claimAge: 70 };
+    plan.spouse.socialSecurity = { mode: 'manual', earnings: [], manualPia: 1_000, claimAge: 67 };
+    plan.datedItems = [
+      { id: 'h', label: 'home sale', direction: 'income', amount: 150_000, frequency: 'oneTime', start: { kind: 'year', year: START + 2 }, fixedDollars: false },
+    ];
+    const recs = expectConserved(plan, 10);
+    expect(recs.slice(0, 10).some((r) => r.capitalGains > 0)).toBe(true);
+    expect(recs[0].withdrawals.hsa).toBe(12_000);
+    expect(recs[2].balances.taxable).toBeGreaterThan(recs[1].balances.taxable); // surplus + unspent RMD deposited
+  });
+});
 
 describe('after-tax cash flow', () => {
   test('withdrawals + income = spending + every tax, with state tax, gains and Social Security', () => {
@@ -63,6 +146,33 @@ describe('Roth ladder and early access', () => {
     expect(recs[3].penaltyWithdrawals).toBeGreaterThan(0); // year-0 conversion not yet seasoned
     expect(recs[5].penaltyWithdrawals).toBe(0); // year-0 conversion now spendable
     expect(recs[5].withdrawals.roth).toBeGreaterThan(0);
+  });
+
+  test('ladder-year taxes match hand arithmetic: a 12% fill year, then a penalized year', () => {
+    const ctx = ctxFor(ladderPlan());
+    const recs = simulatePath(ctx, constantPath(ctx.len, 0), 0, { record: true }).records!;
+    const [[top10, r10], [top12, r12]] = FEDERAL.ordinaryBrackets; // 24,800 @10%, 100,800 @12%
+    const penalty = FEDERAL.earlyWithdrawalPenalty;
+    // Year 0 (both 45, no other income): the fill converts up to the top of the 12% bracket plus the
+    // deduction, 100,800 + 32,200 = 133,000. Tax = 10% × 24,800 + 12% × (100,800 − 24,800) = 2,480 + 9,120
+    // = 11,600. Spending + tax = 51,600 come from taxable at full basis (no gain, no penalty).
+    const fillTax = r10 * top10 + r12 * (top12 - top10);
+    expect(fillTax).toBeCloseTo(11_600, 6);
+    expect(Math.abs(recs[0].conversions - (top12 + FEDERAL.standardDeduction))).toBeLessThan(1);
+    expect(Math.abs(recs[0].federalTax - fillTax)).toBeLessThan(1);
+    expect(recs[0].penaltyTax).toBe(0);
+    expect(Math.abs(recs[0].withdrawals.taxable - (40_000 + fillTax))).toBeLessThan(1);
+    // Year 1: taxable has 90,000 − 51,600 = 38,400 left. The year-0 conversion is unseasoned, so the rest is
+    // penalized pre-tax X taken out of this year's planned 133,000 fill instead of converting it (D52): income
+    // stays 133,000, so federal tax stays 11,600. 38,400 + X = 40,000 + 11,600 + 0.10 X
+    //   → X = 13,200 / 0.9 = 14,666.67; penalty = 0.10 X = 1,466.67; converted = 133,000 − X = 118,333.33.
+    const left = 90_000 - (40_000 + fillTax);
+    const x = (40_000 - left + fillTax) / (1 - penalty);
+    expect(x).toBeCloseTo(14_666.67, 2);
+    expect(Math.abs(recs[1].penaltyWithdrawals - x)).toBeLessThan(1);
+    expect(Math.abs(recs[1].federalTax - fillTax)).toBeLessThan(1);
+    expect(Math.abs(recs[1].penaltyTax - penalty * x)).toBeLessThan(1);
+    expect(Math.abs(recs[1].conversions - (top12 + FEDERAL.standardDeduction - x))).toBeLessThan(1);
   });
 
   test('the ladder gives up this year\'s conversion rather than run short', () => {
@@ -167,7 +277,7 @@ describe('Social Security in the simulation', () => {
     expect(early.pia[0]).toBeLessThan(late.pia[0]);
   });
 
-  test('benefits and RMDs received while still working are saved to taxable, after tax', () => {
+  test('benefits and RMDs received while still working are saved to taxable, after the extra tax they cause (D49)', () => {
     const plan = simplePlan({ roth: 0 });
     plan.you.birthYear = START - 76; // RMDs and SS already running
     plan.spouse.birthYear = START - 55;
@@ -175,13 +285,31 @@ describe('Social Security in the simulation', () => {
     plan.you.balances.pretax = 500_000;
     plan.you.socialSecurity = { mode: 'manual', earnings: [], manualPia: 2_000, claimAge: 70 };
     plan.assumptions.endAge = 96;
+    plan.assumptions.stateTaxRate = 0.05;
     const ctx = buildContext(plan, { stopContributingYear: START + 3, retireYear: START + 3, baseSpending: 40_000 });
     const rec = simulatePath(ctx, constantPath(ctx.len, 0), 0, { record: true }).records![0];
     expect(rec.working).toBe(true);
-    expect(rec.rmd).toBeGreaterThan(0);
-    expect(rec.socialSecurity).toBeGreaterThan(0);
-    expect(rec.federalTax).toBeGreaterThan(0);
-    expect(rec.balances.taxable).toBeCloseTo(rec.rmd + rec.socialSecurity - rec.federalTax - 0, 0);
+    // Hand arithmetic for 2026 (you 76, born 1950 so RMDs from 72; spouse 55, no income):
+    //   SS  = 2,000 × 1.32 (48 months of delayed credits past FRA 66) × 12 = 31,680 (no trust-fund cut yet)
+    //   RMD = 500,000 / 23.7 (Uniform Lifetime, age 76) = 21,097.05
+    //   Deduction = 32,200 + 1,650 (one spouse 65+) = 33,850
+    //   With them: provisional income 80,000 + 21,097.05 + 15,840 is far above 44,000 → 85% cap = 26,928 of
+    //     SS taxable; taxable income 80,000 + 21,097.05 + 26,928 − 33,850 = 94,175.05 (12% bracket)
+    //   Without: 80,000 − 33,850 = 46,150 (12% bracket)
+    //   Extra federal = 12% × (94,175.05 − 46,150) = 5,763.01
+    //   Extra state = 5% × 21,097.05 = 1,054.85 (the state does not tax Social Security)
+    //   Saved = 31,680 + 21,097.05 − 5,763.01 − 1,054.85 = 45,959.19
+    const ss = 2_000 * 1.32 * 12;
+    const rmd = 500_000 / 23.7;
+    const extraFederal = 0.12 * ((80_000 + rmd + 0.85 * ss - 33_850) - (80_000 - 33_850));
+    const extraState = 0.05 * rmd;
+    expect(extraFederal).toBeCloseTo(5_763.01, 2);
+    expect(rec.socialSecurity).toBeCloseTo(ss, 6);
+    expect(rec.rmd).toBeCloseTo(rmd, 6);
+    expect(rec.federalTax).toBeCloseTo(extraFederal, 2);
+    expect(rec.stateTax).toBeCloseTo(extraState, 2);
+    expect(rec.balances.taxable).toBeCloseTo(ss + rmd - extraFederal - extraState, 2);
+    expect(rec.balances.pretax).toBeCloseTo(500_000 - rmd, 6);
   });
 });
 
@@ -224,5 +352,22 @@ describe('dated items and contributions', () => {
     const limitUnder50 = LIMITS.employee401k + LIMITS.ira;
     const t = 15; // age 45
     expect(ctx.contrib.pretax[0][t] - 5_000 * 1.015 ** t).toBeCloseTo(limitUnder50, 6);
+  });
+
+  test('catch-ups: 401(k)+IRA from 50, HSA family limit plus one catch-up per spouse from 55', () => {
+    const plan = simplePlan();
+    plan.you.birthYear = START - 49;
+    plan.spouse.birthYear = START - 53;
+    for (const p of [plan.you, plan.spouse]) p.contributions = { pretax: 50_000, employerMatch: 0, roth: 0, hsa: 10_000 };
+    plan.assumptions.endAge = 96;
+    const ctx = buildContext(plan, { stopContributingYear: START + 10, retireYear: START + 10, baseSpending: 0 });
+    // You: 49 → 24,500 + 7,500 = 32,000; 50 → 32,000 + 8,000 + 1,100 = 41,100.
+    expect(ctx.contrib.pretax[0][0]).toBe(32_000);
+    expect(ctx.contrib.pretax[0][1]).toBe(41_100);
+    // HSA (20,000 wanted): spouse 53, you 49 → 8,750; spouse 55 (t=2) → 9,750; you reach 55 at t=6 → 10,750.
+    expect(ctx.contrib.hsa[1]).toBe(8_750);
+    expect(ctx.contrib.hsa[2]).toBe(9_750);
+    expect(ctx.contrib.hsa[5]).toBe(9_750);
+    expect(ctx.contrib.hsa[6]).toBe(10_750);
   });
 });

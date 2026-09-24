@@ -9,11 +9,16 @@ type RequestBody = DistributiveOmit<WorkerRequest, 'id'>;
 type Pending = { resolve: (v: unknown) => void; reject: (e: Error) => void };
 
 class EngineWorker {
-  private worker = new Worker(new URL('./engine.worker.ts', import.meta.url), { type: 'module' });
+  private worker!: Worker;
   private pending = new Map<number, Pending>();
   private nextId = 1;
 
   constructor() {
+    this.start();
+  }
+
+  private start() {
+    this.worker = new Worker(new URL('./engine.worker.ts', import.meta.url), { type: 'module' });
     this.worker.onmessage = (ev) => {
       const { id, ok, result, error } = ev.data;
       const p = this.pending.get(id);
@@ -21,6 +26,16 @@ class EngineWorker {
       this.pending.delete(id);
       if (ok) p.resolve(result);
       else p.reject(new Error(error));
+    };
+    // A crashed worker (e.g. out of memory) never replies: fail what it was doing and start a fresh one,
+    // so Calculate doesn't stay stuck on "Calculating…".
+    this.worker.onerror = (ev) => {
+      ev.preventDefault();
+      this.worker.terminate();
+      const err = new Error(`The calculation stopped unexpectedly${ev.message ? `: ${ev.message}` : ''}.`);
+      for (const p of this.pending.values()) p.reject(err);
+      this.pending.clear();
+      this.start();
     };
   }
 
