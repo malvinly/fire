@@ -87,23 +87,6 @@ Example for the example plan:
 
 ## P3: polish and rare edges
 
-### 18. Mark borderline results (clarity)
-
-- **Problem:** the earliest year can shift with the random seed when success at that year sits just over
-  the target.
-- **Where:** `successAtEarliest` in `TierResult`; `TierCard`.
-- **Evidence:**
-
-  | Seed | Traditional result |
-  |---|---|
-  | 20260924 (default), 1, 2, 3 | 2039 |
-  | 4 | 2040 |
-
-  At 2039 the simulated-market chance is 90.2%.
-- **Change:** when combined success at the earliest year is within ~1.5 points of the target, add a line to
-  the [warnings panel](#where-warnings-go): "{Tier} {year} is borderline ({success}); it could be a year
-  later." Not on the card.
-
 ### 19. Today's dollars and the Social Security label (clarity)
 
 - **Today's dollars:** the card figures (`src/ui/Results.tsx:83–120`) say "today's dollars" only in hover

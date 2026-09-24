@@ -44,6 +44,18 @@ describe('Coast assumptions (fix 7)', () => {
   });
 });
 
+describe('borderline results (fix 18)', () => {
+  test('a date passing within 1.5 points of the target is flagged; a comfortable one is not', () => {
+    const at = (combined: number): Success => ({ ...ok, combined, bootstrap: combined });
+    const lines = texts(beforeYouAct(examplePlan(2026), {
+      traditional: tier('traditional', 2039, 2_627_800, { successAtEarliest: at(0.909) }),
+      chubby: tier('chubby', 2043, 3_270_900, { successAtEarliest: at(0.924) }),
+    }));
+    expect(lines).toContain('Traditional 2039 is borderline (90.9%); it could be a year later.');
+    expect(lines.join(' ')).not.toContain('Chubby 2043 is borderline');
+  });
+});
+
 describe('last line (fix 13)', () => {
   test('the panel always ends with the disclaimer, linking to what the model leaves out', () => {
     const lines = beforeYouAct(examplePlan(2026), { traditional: tier('traditional', 2039, 2_627_800) });

@@ -15,6 +15,9 @@ export interface WarningLine {
 /** Share of markets paying the early-withdrawal penalty above which the panel says so (D68). */
 export const PENALTY_WARN = 0.05;
 
+/** A date whose success is less than this above the target is called borderline (D78). */
+export const BORDERLINE = 0.015;
+
 const SHORT: Record<Tier, string> = { traditional: 'Traditional', chubby: 'Chubby', coast: 'Coast' };
 
 /** "a", "a and b", "a, b and c". */
@@ -36,6 +39,14 @@ export function beforeYouAct(plan: Plan, tiers: Partial<Record<Tier, TierResult>
       key: 'needed',
       text: `${names} ${retire.length > 1 ? 'assume' : 'assumes'} you’ll have about ${amounts} by then. Re-run each year with your real balances.`,
     });
+  }
+
+  // A date that only just passes can move with the random seed (D78).
+  for (const t of ['traditional', 'chubby', 'coast'] as const) {
+    const r = tiers[t];
+    if (r?.earliest && r.successAtEarliest && r.successAtEarliest.combined - plan.assumptions.targetSuccess < BORDERLINE) {
+      lines.push({ key: `borderline-${t}`, text: `${SHORT[t]} ${r.earliest.year} is borderline (${percent(r.successAtEarliest.combined, 1)}); it could be a year later.` });
+    }
   }
 
   // Penalized early withdrawals count as successes (their cost is already in the balances), so say how often (D68).
