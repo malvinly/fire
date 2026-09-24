@@ -123,20 +123,3 @@ directly below the cards means they're still seen before anyone acts on the numb
 the page is a long scroll that most people would miss.
 
 **Applies to:** fixes 4, 6, 7, 12, 13, 18, 19; features 1, 2.
-
-## 6. Validation strictness
-
-**Question.** The app accepts almost any typed value and quietly produces nonsense, e.g. coast age 200
-gives "Needed today: $900", and a negative balance gives negative required withdrawals. Should bad values be
-blocked, or warned about?
-
-**Decided:** **block values that are impossible, and warn about values that are unusual but possible.**
-- **Block:** negative balances, contributions or spending (debts go in as a dated expense instead); fees or
-  tax rates below 0% or above 100%; trust-fund percentage outside 0–100%; coast age at or below the current
-  age, or at or past the plan end; retirement years past the plan end.
-- **Warn:** fees above 3%; state tax above 15%; healthcare growth above +10% or below 0% a year.
-
-**Why:** blocking stops the math from producing meaningless answers; warnings keep real edge cases (a
-high-tax locale, an unusual fee) possible.
-
-**Applies to:** fix 16; fix 9 (loaded files get the same checks).
