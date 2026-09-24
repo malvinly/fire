@@ -83,37 +83,6 @@ Example for the example plan:
 
 ## P2: narrower wrong answers, clarity gaps
 
-### 16. Input ranges and warnings (robustness)
-
-- **Problem:** many fields accept values that give confident nonsense instead of a warning.
-- **Where:**
-  - `NumberField` supports `min`, `max` and `warn` props (`src/ui/fields.tsx:52`); most money and rate
-    fields in `src/ui/InputsPanel.tsx` don't set them.
-  - Coast age field: `InputsPanel.tsx`.
-  - Year picker: `src/App.tsx:256`.
-- **Evidence:**
-  - Coast age 200: "You can stop saving now", needs $900. Coast age 30 for a 42-year-old gives "Not
-    reachable".
-  - Negative pre-tax gives negative RMDs, and the plan still runs.
-  - State tax at 60%: the tax loop failed to converge in 3,176 of 102,949 retired years, leaving up to $113k
-    of tax unpaid. With realistic inputs it always converged.
-  - Fees above 100% make balances negative. Negative trust-fund % gives negative Social Security.
-  - The year picker past the plan end reports 100%.
-- **Change:** block impossible values and warn on unusual ones
-  ([decision 6](pending-decisions.md#6-validation-strictness)).
-  - **Block** (the field won't accept the value, and says why):
-    - negative balances, contributions or spending. The message says to enter debts as a dated expense,
-      e.g. loan payments;
-    - fees and tax rates below 0% or above 100%;
-    - trust-fund percentage outside 0–100%;
-    - coast age at or below You's current age, or at or past the plan end;
-    - year picker past `endYear − 1`.
-  - **Warn but allow** (a message under the field, like the existing end-age warning):
-    - fees above 3%;
-    - state tax above 15%;
-    - healthcare growth above +10% or below 0% a year.
-  - Fix 9's `validatePlan()` should reject blocked values in loaded files too.
-
 ### 17. Social Security wage growth (accuracy)
 
 - **Problem:**

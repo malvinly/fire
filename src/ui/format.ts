@@ -29,3 +29,16 @@ export function parseFieldText(text: string, kind: 'money' | 'percent' | 'int' |
   if (kind === 'int') return Math.round(n);
   return kind === 'percent' ? n / 100 : n;
 }
+
+/**
+ * Why a typed value can't be accepted (pending-work decision 6: impossible values are blocked, D76), or null.
+ * `min`/`max` are in stored units; the message shows them as typed (percent × 100).
+ */
+export function fieldBlock(v: number, kind: 'money' | 'percent' | 'int' | 'number', opts: {
+  min?: number; max?: number; rangeMessage?: string; check?: (v: number) => string | null;
+}): string | null {
+  const shown = (x: number) => (kind === 'percent' ? `${+(x * 100).toFixed(3)}%` : kind === 'money' ? money(x) : String(x));
+  if (opts.min !== undefined && v < opts.min) return opts.rangeMessage ?? `Must be at least ${shown(opts.min)}.`;
+  if (opts.max !== undefined && v > opts.max) return opts.rangeMessage ?? `Must be at most ${shown(opts.max)}.`;
+  return opts.check?.(v) ?? null;
+}

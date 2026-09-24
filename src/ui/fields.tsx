@@ -1,5 +1,5 @@
 import { useId, useRef, useState, type ReactNode } from 'react';
-import { parseFieldText } from './format';
+import { fieldBlock, parseFieldText } from './format';
 import { Icon, type IconName } from './icons';
 
 /**
@@ -41,22 +41,29 @@ interface NumberFieldProps {
   onChange: (v: number | null) => void;
   /** 'percent' shows/edits value × 100. */
   kind?: 'money' | 'percent' | 'int' | 'number';
+  /** Limits in stored units. A value outside them is not accepted, and the field says why (D76). */
   min?: number;
   max?: number;
+  /** Message for a value outside min/max, instead of "Must be at least …". */
+  rangeMessage?: string;
+  /** Any other reason a value can't be accepted, or null. */
+  check?: (v: number) => string | null;
   step?: number;
   hint?: ReactNode;
   help?: ReactNode;
+  /** A value that is accepted but unusual. */
   warn?: string | null;
   allowEmpty?: boolean;
 }
 
-export function NumberField({ label, value, onChange, kind = 'money', min, max, step, hint, help, warn, allowEmpty }: NumberFieldProps) {
+export function NumberField({ label, value, onChange, kind = 'money', min, max, rangeMessage, check, step, hint, help, warn, allowEmpty }: NumberFieldProps) {
   const id = useId();
   const scale = kind === 'percent' ? 100 : 1;
   const toText = (v: number | null) => (v === null ? '' : String(+(v * scale).toFixed(kind === 'percent' ? 3 : 2)));
   const [text, setText] = useState(toText(value));
   const [seen, setSeen] = useState(value);
   const [focused, setFocused] = useState(false);
+  const [blocked, setBlocked] = useState<string | null>(null);
   const parsed = parseFieldText(text, kind);
   // Keep the text in sync when the value changes from outside (loading a session, defaults button). While
   // typing, a caller that clamps (claim age 62–70) would otherwise rewrite a half-typed "6" to "62"; the
@@ -69,6 +76,7 @@ export function NumberField({ label, value, onChange, kind = 'money', min, max, 
   const commit = (t: string) => {
     setText(t);
     const v = parseFieldText(t, kind);
+    setBlocked(null);
     if (v === null) {
       if (allowEmpty) {
         setSeen(null);
@@ -76,15 +84,20 @@ export function NumberField({ label, value, onChange, kind = 'money', min, max, 
       }
       return;
     }
-    if (v !== undefined) {
-      setSeen(v);
-      onChange(v);
+    if (v === undefined) return;
+    const why = fieldBlock(v, kind, { min, max, rangeMessage, check });
+    if (why) {
+      setBlocked(why); // keep the last accepted value; the text reverts on leaving the field
+      return;
     }
+    setSeen(v);
+    onChange(v);
   };
+  const message = blocked ?? warn;
 
   const unit = kind === 'money' ? ' ($)' : kind === 'percent' ? ' (%)' : '';
   return (
-    <div className={`field${warn ? ' invalid' : ''}`}>
+    <div className={`field${message ? ' invalid' : ''}`}>
       <Label htmlFor={id} text={`${label}${unit}`} help={help} />
       <input
         id={id}
@@ -96,9 +109,10 @@ export function NumberField({ label, value, onChange, kind = 'money', min, max, 
         step={step ?? (kind === 'money' ? 100 : kind === 'percent' ? 0.1 : 1)}
         onChange={(e) => commit(e.target.value)}
         onFocus={() => setFocused(true)}
-        onBlur={() => { setFocused(false); setText(toText(value)); }}
+        onBlur={() => { setFocused(false); setBlocked(null); setText(toText(value)); }}
+        aria-invalid={blocked ? true : undefined}
       />
-      {warn && <span className="warn">{warn}</span>}
+      {message && <span className="warn" role={blocked ? 'alert' : undefined}>{message}</span>}
       {hint && <span className="hint">{hint}</span>}
     </div>
   );

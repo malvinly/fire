@@ -190,6 +190,8 @@ export default function App() {
   const thisYear = new Date().getFullYear();
   const selResult = results?.tiers[selTier];
   const exampleSections = untouchedSections(plan);
+  // The year picker stops the year before the plan ends (D76).
+  const lastYear = results ? Math.max(results.plan.you.birthYear, results.plan.spouse.birthYear) + results.plan.assumptions.endAge - 1 : 0;
 
   return (
     <div className="app">
@@ -294,13 +296,14 @@ export default function App() {
                           <label htmlFor="year-input">{selTier === 'coast' ? 'Stop saving in' : 'Retire in'}</label>
                           <div className="row">
                             <button className="btn" aria-label="One year earlier" onClick={() => setSelYear((y) => Math.max(results.plan.startYear, (y ?? 0) - 1))}>−</button>
-                            <input id="year-input" type="number" style={{ width: 90 }} value={selYear}
-                              onChange={(e) => { const v = Number(e.target.value); if (v >= results.plan.startYear) setSelYear(v); }} />
-                            <button className="btn" aria-label="One year later" onClick={() => setSelYear((y) => (y ?? 0) + 1)}>+</button>
+                            <input id="year-input" type="number" style={{ width: 90 }} value={selYear} min={results.plan.startYear} max={lastYear}
+                              onChange={(e) => { const v = Number(e.target.value); if (Number.isInteger(v) && v >= results.plan.startYear && v <= lastYear) setSelYear(v); }} />
+                            <button className="btn" aria-label="One year later" disabled={selYear >= lastYear} onClick={() => setSelYear((y) => Math.min(lastYear, (y ?? 0) + 1))}>+</button>
                             <button className="btn" onClick={() => setSelYear(defaultYear(results.plan, selResult))}>Back to earliest</button>
                           </div>
                           <span className="hint">
                             {results.plan.you.name} {selYear - results.plan.you.birthYear} · {results.plan.spouse.name} {selYear - results.plan.spouse.birthYear}
+                            {selYear >= lastYear && ` · ${lastYear} is the last year before the plan ends`}
                             {detailLoading && <> · <span className="spinner" /></>}
                           </span>
                         </div>

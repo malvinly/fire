@@ -13,6 +13,13 @@ type Update = (fn: (draft: Plan) => void) => void;
 
 const PEOPLE: PersonId[] = ['you', 'spouse'];
 
+// Limits enforced as you type (pending-work decision 6, D76); src/engine/validate.ts rejects the same values in
+// loaded files.
+const NO_DEBT = { min: 0, rangeMessage: 'Can’t be negative. Enter a debt or money you’ll take out as a dated expense instead (e.g. loan payments).' };
+const NOT_NEGATIVE = { min: 0, rangeMessage: 'Can’t be negative.' };
+const RATE = { min: 0, max: 1, rangeMessage: 'Must be between 0% and 100%.' };
+const GROWTH = { min: -0.5, max: 0.5, rangeMessage: 'Must be between −50% and 50% a year.' };
+
 export function InputsPanel({ plan, update }: { plan: Plan; update: Update }) {
   const h = plan.household;
   const dated = datedExpensesToday(plan);
@@ -20,6 +27,13 @@ export function InputsPanel({ plan, update }: { plan: Plan; update: Update }) {
   const spendingBase = dated ? `(${money(h.currentSpending)} − ${money(dated)} dated items)` : money(h.currentSpending);
   const a = plan.assumptions;
   const salaries = plan.you.salary + plan.spouse.salary;
+  // Coast age: after today and before the plan ends (when the younger of you reaches the plan-to age).
+  const ageNow = plan.startYear - plan.you.birthYear;
+  const planEnd = Math.max(plan.you.birthYear, plan.spouse.birthYear) + a.endAge;
+  const coastCheck = (v: number) =>
+    v <= ageNow ? `Must be above ${plan.you.name}’s current age (${ageNow}).`
+    : plan.you.birthYear + v >= planEnd ? `Must be before the plan ends in ${planEnd} (${plan.you.name} ${planEnd - plan.you.birthYear}).`
+    : null;
   const hsaLimit = LIMITS.hsaFamily + PEOPLE.filter((id) => plan.startYear - plan[id].birthYear >= 55).length * LIMITS.hsaCatchUp;
   const saved =
     PEOPLE.reduce((s, id) => {
@@ -34,15 +48,15 @@ export function InputsPanel({ plan, update }: { plan: Plan; update: Update }) {
           {PEOPLE.map((id) => (
             <div key={id} className="person-col section-body">
               <TextField label="Name" help={HELP.name} value={plan[id].name} onChange={(v) => update((d) => { d[id].name = v; })} />
-              <NumberField label="Birth year" help={HELP.birthYear} kind="int" value={plan[id].birthYear} onChange={(v) => update((d) => { d[id].birthYear = v ?? d[id].birthYear; })}
+              <NumberField label="Birth year" help={HELP.birthYear} kind="int" value={plan[id].birthYear} min={plan.startYear - 120} max={plan.startYear} onChange={(v) => update((d) => { d[id].birthYear = v ?? d[id].birthYear; })}
                 hint={`Age ${plan.startYear - plan[id].birthYear} in ${plan.startYear}`} />
               <NumberField label="Birth month" help={HELP.birthMonth} kind="int" min={1} max={12} value={plan[id].birthMonth}
                 onChange={(v) => update((d) => { d[id].birthMonth = Math.min(12, Math.max(1, v ?? 1)); })} />
-              <NumberField label="Yearly salary (before taxes)" help={HELP.salary} value={plan[id].salary} onChange={(v) => update((d) => { d[id].salary = v ?? 0; })} />
+              <NumberField label="Yearly salary (before taxes)" help={HELP.salary} {...NOT_NEGATIVE} value={plan[id].salary} onChange={(v) => update((d) => { d[id].salary = v ?? 0; })} />
             </div>
           ))}
         </div>
-        <NumberField label="Plan starts in year" help={HELP.startYear} kind="int" value={plan.startYear} onChange={(v) => update((d) => { d.startYear = v ?? d.startYear; })}
+        <NumberField label="Plan starts in year" help={HELP.startYear} kind="int" min={1900} max={2200} value={plan.startYear} onChange={(v) => update((d) => { d.startYear = v ?? d.startYear; })}
           hint="Balances below are as of the start of this year." />
       </Section>
 
@@ -51,22 +65,22 @@ export function InputsPanel({ plan, update }: { plan: Plan; update: Update }) {
           {PEOPLE.map((id) => (
             <div key={id} className="section-body">
               <h3>{plan[id].name}</h3>
-              <NumberField label="Pre-tax 401(k)/403(b)/IRA" help={HELP.pretaxBalance} value={plan[id].balances.pretax} onChange={(v) => update((d) => { d[id].balances.pretax = v ?? 0; })} />
-              <NumberField label="Roth 401(k)/IRA balance" help={HELP.rothBalance} value={plan[id].balances.roth} onChange={(v) => update((d) => { d[id].balances.roth = v ?? 0; })} />
-              <NumberField label="…of which you put in" help={HELP.rothBasis} value={plan[id].balances.rothBasis}
+              <NumberField label="Pre-tax 401(k)/403(b)/IRA" help={HELP.pretaxBalance} {...NO_DEBT} value={plan[id].balances.pretax} onChange={(v) => update((d) => { d[id].balances.pretax = v ?? 0; })} />
+              <NumberField label="Roth 401(k)/IRA balance" help={HELP.rothBalance} {...NO_DEBT} value={plan[id].balances.roth} onChange={(v) => update((d) => { d[id].balances.roth = v ?? 0; })} />
+              <NumberField label="…of which you put in" help={HELP.rothBasis} {...NO_DEBT} value={plan[id].balances.rothBasis}
                 onChange={(v) => update((d) => { d[id].balances.rothBasis = v ?? 0; })}
                 warn={plan[id].balances.rothBasis > plan[id].balances.roth ? 'More than the Roth total' : null}
                 hint="Withdrawable anytime without tax or penalty" />
-              <NumberField label="HSA balance" help={HELP.hsaBalance} value={plan[id].balances.hsa} onChange={(v) => update((d) => { d[id].balances.hsa = v ?? 0; })} />
+              <NumberField label="HSA balance" help={HELP.hsaBalance} {...NO_DEBT} value={plan[id].balances.hsa} onChange={(v) => update((d) => { d[id].balances.hsa = v ?? 0; })} />
             </div>
           ))}
         </div>
         <div className="subhead">Household</div>
         <div className="grid2">
-          <NumberField label="Brokerage (non-retirement)" help={HELP.taxable} value={h.taxable} onChange={(v) => update((d) => { d.household.taxable = v ?? 0; })} />
-          <NumberField label="…amount you paid in (cost basis)" help={HELP.taxableBasis} value={h.taxableBasis} onChange={(v) => update((d) => { d.household.taxableBasis = v ?? 0; })}
+          <NumberField label="Brokerage (non-retirement)" help={HELP.taxable} {...NO_DEBT} value={h.taxable} onChange={(v) => update((d) => { d.household.taxable = v ?? 0; })} />
+          <NumberField label="…amount you paid in (cost basis)" help={HELP.taxableBasis} {...NO_DEBT} value={h.taxableBasis} onChange={(v) => update((d) => { d.household.taxableBasis = v ?? 0; })}
             hint="What you paid in; gains above it are taxed when sold" />
-          <NumberField label="Cash / emergency fund" help={HELP.cash} value={h.cash} onChange={(v) => update((d) => { d.household.cash = v ?? 0; })} />
+          <NumberField label="Cash / emergency fund" help={HELP.cash} {...NO_DEBT} value={h.cash} onChange={(v) => update((d) => { d.household.cash = v ?? 0; })} />
         </div>
       </Section>
 
@@ -80,11 +94,11 @@ export function InputsPanel({ plan, update }: { plan: Plan; update: Update }) {
             return (
               <div key={id} className="section-body">
                 <h3>{p.name}</h3>
-                <NumberField label="Pre-tax 401(k)/IRA" help={HELP.pretaxContribution} value={p.contributions.pretax} onChange={(v) => update((d) => { d[id].contributions.pretax = v ?? 0; })}
+                <NumberField label="Pre-tax 401(k)/IRA" help={HELP.pretaxContribution} {...NO_DEBT} value={p.contributions.pretax} onChange={(v) => update((d) => { d[id].contributions.pretax = v ?? 0; })}
                   warn={employee > limit ? `Above 401(k)+IRA limits (${money(limit)})` : null} />
-                <NumberField label="Employer match" help={HELP.employerMatch} value={p.contributions.employerMatch} onChange={(v) => update((d) => { d[id].contributions.employerMatch = v ?? 0; })} />
-                <NumberField label="Roth 401(k)/IRA" help={HELP.rothContribution} value={p.contributions.roth} onChange={(v) => update((d) => { d[id].contributions.roth = v ?? 0; })} />
-                <NumberField label="HSA" help={HELP.hsaContribution} value={p.contributions.hsa} onChange={(v) => update((d) => { d[id].contributions.hsa = v ?? 0; })} />
+                <NumberField label="Employer match" help={HELP.employerMatch} {...NO_DEBT} value={p.contributions.employerMatch} onChange={(v) => update((d) => { d[id].contributions.employerMatch = v ?? 0; })} />
+                <NumberField label="Roth 401(k)/IRA" help={HELP.rothContribution} {...NO_DEBT} value={p.contributions.roth} onChange={(v) => update((d) => { d[id].contributions.roth = v ?? 0; })} />
+                <NumberField label="HSA" help={HELP.hsaContribution} {...NO_DEBT} value={p.contributions.hsa} onChange={(v) => update((d) => { d[id].contributions.hsa = v ?? 0; })} />
               </div>
             );
           })}
@@ -93,8 +107,8 @@ export function InputsPanel({ plan, update }: { plan: Plan; update: Update }) {
           <p className="muted">HSA contributions exceed the family limit ({money(hsaLimit)} with catch-ups at your ages).</p>
         )}
         <div className="grid2">
-          <NumberField label="Brokerage" help={HELP.taxableContribution} value={h.taxableContribution} onChange={(v) => update((d) => { d.household.taxableContribution = v ?? 0; })} />
-          <NumberField label="Cash savings" help={HELP.cashContribution} value={h.cashContribution} onChange={(v) => update((d) => { d.household.cashContribution = v ?? 0; })} />
+          <NumberField label="Brokerage" help={HELP.taxableContribution} {...NO_DEBT} value={h.taxableContribution} onChange={(v) => update((d) => { d.household.taxableContribution = v ?? 0; })} />
+          <NumberField label="Cash savings" help={HELP.cashContribution} {...NO_DEBT} value={h.cashContribution} onChange={(v) => update((d) => { d.household.cashContribution = v ?? 0; })} />
         </div>
         <p className="text-2">
           Savings rate: <b>{percent(salaries > 0 ? saved / salaries : 0, 1)}</b> of gross pay ({money(saved)}/yr). Contributions grow {percent(a.wageGrowth, 1)}/yr above inflation.
@@ -102,9 +116,9 @@ export function InputsPanel({ plan, update }: { plan: Plan; update: Update }) {
       </Section>
 
       <Section title="Spending" icon="receipt">
-        <NumberField label="Current yearly spending (today)" help={HELP.currentSpending} value={h.currentSpending} onChange={(v) => update((d) => { d.household.currentSpending = v ?? 0; })}
+        <NumberField label="Current yearly spending (today)" help={HELP.currentSpending} {...NO_DEBT} value={h.currentSpending} onChange={(v) => update((d) => { d.household.currentSpending = v ?? 0; })}
           hint="Everything you spend today, including mortgage and any healthcare you pay yourself." />
-        <NumberField label="Traditional FIRE: yearly retirement spending" help={HELP.traditionalSpending} value={h.traditionalSpending}
+        <NumberField label="Traditional FIRE: yearly retirement spending" help={HELP.traditionalSpending} {...NO_DEBT} value={h.traditionalSpending}
           onChange={(v) => update((d) => { d.household.traditionalSpending = v ?? 0; })}
           hint={
             <>
@@ -115,7 +129,7 @@ export function InputsPanel({ plan, update }: { plan: Plan; update: Update }) {
               {' '}If today's spending includes healthcare you pay yourself, subtract that too.
             </>
           } />
-        <NumberField label="Chubby FIRE: yearly retirement spending" help={HELP.chubbySpending} value={h.chubbySpending} allowEmpty
+        <NumberField label="Chubby FIRE: yearly retirement spending" help={HELP.chubbySpending} {...NO_DEBT} value={h.chubbySpending} allowEmpty
           onChange={(v) => update((d) => { d.household.chubbySpending = v; })}
           warn={h.chubbySpending ? null : 'Required for the Chubby FIRE result'}
           hint={
@@ -127,7 +141,7 @@ export function InputsPanel({ plan, update }: { plan: Plan; update: Update }) {
               {' '}Clear it to skip Chubby FIRE.
             </>
           } />
-        <NumberField label={`Coast FIRE: ${plan.you.name}'s age when you both stop working`} help={HELP.coastAge} kind="int" value={h.coastRetireAge}
+        <NumberField label={`Coast FIRE: ${plan.you.name}'s age when you both stop working`} help={HELP.coastAge} kind="int" value={h.coastRetireAge} check={coastCheck}
           onChange={(v) => update((d) => { d.household.coastRetireAge = v ?? 65; })}
           hint="Coast = stop contributing, keep working (paycheck covers spending) until this age." />
       </Section>
@@ -137,10 +151,10 @@ export function InputsPanel({ plan, update }: { plan: Plan; update: Update }) {
           {PEOPLE.map((id) => (
             <div key={id} className="section-body">
               <h3>{plan[id].name}</h3>
-              <NumberField label="Health costs before 65 (yearly)" help={HELP.preMedicare} value={plan[id].healthcare.preMedicare}
+              <NumberField label="Health costs before 65 (yearly)" help={HELP.preMedicare} {...NOT_NEGATIVE} value={plan[id].healthcare.preMedicare}
                 onChange={(v) => update((d) => { d[id].healthcare.preMedicare = v ?? 0; })}
                 hint="ACA premium + out-of-pocket, full price (no subsidy)" />
-              <NumberField label="Health costs from 65 (yearly)" help={HELP.medicare} value={plan[id].healthcare.medicare}
+              <NumberField label="Health costs from 65 (yearly)" help={HELP.medicare} {...NOT_NEGATIVE} value={plan[id].healthcare.medicare}
                 onChange={(v) => update((d) => { d[id].healthcare.medicare = v ?? 0; })}
                 hint="Part B + D + Medigap + out-of-pocket" />
             </div>
@@ -161,34 +175,37 @@ export function InputsPanel({ plan, update }: { plan: Plan; update: Update }) {
 
       <Section title="Assumptions (advanced)" icon="sliders">
         <div className="grid2">
-          <NumberField label="Plan until the younger of you is age" help={HELP.endAge} kind="int" value={a.endAge} onChange={(v) => update((d) => { d.assumptions.endAge = v ?? 96; })}
+          <NumberField label="Plan until the younger of you is age" help={HELP.endAge} kind="int" min={1} max={130} value={a.endAge} onChange={(v) => update((d) => { d.assumptions.endAge = v ?? 96; })}
             warn={Math.max(plan.you.birthYear, plan.spouse.birthYear) + a.endAge <= plan.startYear ? "Must be above the younger spouse's current age" : null} />
           <NumberField label="Required chance of success" help={HELP.targetSuccess} kind="percent" value={a.targetSuccess} min={0.5} max={0.99}
             onChange={(v) => update((d) => { d.assumptions.targetSuccess = Math.min(0.99, Math.max(0.5, v ?? 0.9)); })} />
-          <NumberField label="Stocks share" help={HELP.stocks} kind="percent" value={a.allocation.stocks}
+          <NumberField label="Stocks share" help={HELP.stocks} kind="percent" {...RATE} value={a.allocation.stocks}
             onChange={(v) => update((d) => { setAllocation(d, 'stocks', v ?? 0); })} />
-          <NumberField label="Bonds share" help={HELP.bonds} kind="percent" value={a.allocation.bonds}
+          <NumberField label="Bonds share" help={HELP.bonds} kind="percent" {...RATE} value={a.allocation.bonds}
             onChange={(v) => update((d) => { setAllocation(d, 'bonds', v ?? 0); })}
             hint={`Cash = the rest (${percent(a.allocation.cash)})`} />
-          <NumberField label="Fund fees (expense ratio)" help={HELP.fees} kind="percent" value={a.feeRate} step={0.01} onChange={(v) => update((d) => { d.assumptions.feeRate = v ?? 0; })} />
-          <NumberField label="Raises above inflation" help={HELP.wageGrowth} kind="percent" value={a.wageGrowth} onChange={(v) => update((d) => { d.assumptions.wageGrowth = v ?? 0; })} />
-          <NumberField label="Healthcare cost growth above inflation" help={HELP.healthcareInflation} kind="percent" value={a.healthcareInflation} onChange={(v) => update((d) => { d.assumptions.healthcareInflation = v ?? 0; })} />
-          <NumberField label="State income tax in retirement" help={HELP.stateTax} kind="percent" value={a.stateTaxRate} onChange={(v) => update((d) => { d.assumptions.stateTaxRate = v ?? 0; })} />
+          <NumberField label="Fund fees (expense ratio)" help={HELP.fees} kind="percent" {...RATE} value={a.feeRate} step={0.01}
+            warn={a.feeRate > 0.03 ? 'Unusually high: most funds charge under 1%, and fees come off returns every year.' : null} onChange={(v) => update((d) => { d.assumptions.feeRate = v ?? 0; })} />
+          <NumberField label="Raises above inflation" help={HELP.wageGrowth} kind="percent" {...GROWTH} value={a.wageGrowth} onChange={(v) => update((d) => { d.assumptions.wageGrowth = v ?? 0; })} />
+          <NumberField label="Healthcare cost growth above inflation" help={HELP.healthcareInflation} kind="percent" {...GROWTH} value={a.healthcareInflation}
+            warn={a.healthcareInflation > 0.1 ? 'Unusually high: it compounds every year.' : a.healthcareInflation < 0 ? 'Healthcare costs have usually risen faster than other prices.' : null} onChange={(v) => update((d) => { d.assumptions.healthcareInflation = v ?? 0; })} />
+          <NumberField label="State income tax in retirement" help={HELP.stateTax} kind="percent" {...RATE} value={a.stateTaxRate}
+            warn={a.stateTaxRate > 0.15 ? 'Higher than any US state’s top rate (about 13–14%).' : null} onChange={(v) => update((d) => { d.assumptions.stateTaxRate = v ?? 0; })} />
           <SelectField<BracketFill> label="Yearly Roth conversions: fill up to" help={HELP.bracketFill} value={a.bracketFill}
             options={[{ value: 'none', label: 'Off' }, { value: '10', label: '10% bracket' }, { value: '12', label: '12% bracket' }, { value: '22', label: '22% bracket' }, { value: '24', label: '24% bracket' }]}
             onChange={(v) => update((d) => { d.assumptions.bracketFill = v; })} />
           <NumberField label="Number of simulated markets" help={HELP.paths} kind="int" value={a.paths} min={500} max={50_000}
             onChange={(v) => update((d) => { d.assumptions.paths = Math.min(50_000, Math.max(500, Math.round(v ?? 10_000))); d.assumptions.searchPaths = Math.min(d.assumptions.searchPaths, d.assumptions.paths); })} />
-          <NumberField label="Simulated markets: chunk size (years)" help={HELP.blockLength} kind="int" value={a.blockLength} min={1}
+          <NumberField label="Simulated markets: chunk size (years)" help={HELP.blockLength} kind="int" value={a.blockLength} min={1} max={200}
             onChange={(v) => update((d) => { d.assumptions.blockLength = Math.max(1, Math.round(v ?? 5)); })} />
           <NumberField label="Random seed" help={HELP.seed} kind="int" value={a.seed} onChange={(v) => update((d) => { d.assumptions.seed = Math.round(v ?? 1); })} />
         </div>
         <div className="subhead">Social Security trust fund</div>
         <div className="grid2">
           <NumberField label="Benefit cut starts in (year)" help={HELP.tfStart} kind="int" value={a.ssTrustFund.startYear} onChange={(v) => update((d) => { d.assumptions.ssTrustFund.startYear = v ?? TRUST_FUND_DEFAULT.startYear; })} />
-          <NumberField label="Share paid when the cut starts" help={HELP.tfStartPct} kind="percent" value={a.ssTrustFund.startPct} onChange={(v) => update((d) => { d.assumptions.ssTrustFund.startPct = v ?? 0; })} />
+          <NumberField label="Share paid when the cut starts" help={HELP.tfStartPct} kind="percent" {...RATE} value={a.ssTrustFund.startPct} onChange={(v) => update((d) => { d.assumptions.ssTrustFund.startPct = v ?? 0; })} />
           <NumberField label="Cut deepens until (year)" help={HELP.tfEnd} kind="int" value={a.ssTrustFund.endYear} onChange={(v) => update((d) => { d.assumptions.ssTrustFund.endYear = v ?? TRUST_FUND_DEFAULT.endYear; })} />
-          <NumberField label="Share paid from then on" help={HELP.tfEndPct} kind="percent" value={a.ssTrustFund.endPct} onChange={(v) => update((d) => { d.assumptions.ssTrustFund.endPct = v ?? 0; })}
+          <NumberField label="Share paid from then on" help={HELP.tfEndPct} kind="percent" {...RATE} value={a.ssTrustFund.endPct} onChange={(v) => update((d) => { d.assumptions.ssTrustFund.endPct = v ?? 0; })}
             />
         </div>
         <button className="btn small" onClick={() => update((d) => { d.assumptions = structuredClone(DEFAULT_ASSUMPTIONS); })}>
@@ -222,7 +239,7 @@ function SocialSecurityInputs({ id, person, update }: { id: PersonId; person: Pe
           onChange={(v) => update((d) => { d[id].socialSecurity.claimAge = Math.min(70, Math.max(62, v ?? 67)); })} />
       </div>
       {ss.mode === 'manual' ? (
-        <NumberField label="Monthly benefit at full retirement age" help={HELP.manualPia} value={ss.manualPia}
+        <NumberField label="Monthly benefit at full retirement age" help={HELP.manualPia} {...NOT_NEGATIVE} value={ss.manualPia}
           onChange={(v) => update((d) => { d[id].socialSecurity.manualPia = v ?? 0; })}
           hint="From your SSA statement. Warning: it assumes you keep working until you claim, so it is likely too high for an early retiree." />
       ) : (

@@ -49,7 +49,7 @@ export function DatedItemsEditor({ plan, update }: { plan: Plan; update: Update 
             <SelectField<DatedItem['frequency']> label="How often" help={HELP.itemFrequency} value={it.frequency}
               options={[{ value: 'ongoing', label: 'Every year' }, { value: 'oneTime', label: 'One time' }, { value: 'recurring', label: 'Every N years' }]}
               onChange={(v) => edit(it.id, (x) => { x.frequency = v; if (v === 'recurring') x.everyYears ??= 10; })} />
-            <NumberField label="Amount (each time)" help={HELP.itemAmount} value={it.amount} onChange={(v) => edit(it.id, (x) => { x.amount = v ?? 0; })} />
+            <NumberField label="Amount (each time)" help={HELP.itemAmount} min={0} rangeMessage="Can’t be negative. Choose Expense or Income under Type instead." value={it.amount} onChange={(v) => edit(it.id, (x) => { x.amount = v ?? 0; })} />
           </div>
           <div className="row">
             <TimingField label={it.frequency === 'oneTime' ? 'When' : 'Starts'} help={HELP.itemStart} plan={plan} value={it.start}
@@ -105,7 +105,7 @@ function TimingField({ label, help, plan, value, onChange, optional }: {
     <>
       <SelectField<Kind> label={label} help={help} value={kind} options={options} onChange={setKind} />
       {value && (
-        <NumberField label={value.kind === 'year' ? 'Year' : 'Age'} help={HELP.itemWhen} kind="int"
+        <NumberField label={value.kind === 'year' ? 'Year' : 'Age'} help={HELP.itemWhen} kind="int" min={value.kind === 'age' ? 0 : undefined}
           value={value.kind === 'year' ? value.year : value.age}
           onChange={(v) => onChange(value.kind === 'year' ? { ...value, year: v ?? value.year } : { ...value, age: v ?? value.age })} />
       )}
