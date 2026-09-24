@@ -2,7 +2,8 @@
 import { describe, expect, test } from 'vitest';
 import { DEFAULT_ASSUMPTIONS, examplePlan } from '../src/engine/defaults';
 import { planProblems } from '../src/engine/validate';
-import { makeSession, parseSession } from '../src/ui/sessions';
+import type { Detail } from '../src/engine/solve';
+import { detailMatches, detailSelection, makeSession, parseSession } from '../src/ui/sessions';
 
 function sessionText(edit: (plan: Record<string, unknown>) => void = () => {}): string {
   const s = JSON.parse(JSON.stringify(makeSession('test', examplePlan(2026), null)));
@@ -77,5 +78,29 @@ describe('review fixes: what blocks loading and what only blocks Calculate', () 
     const s = JSON.parse(sessionText());
     s.results = { calculatedAt: 'x', tiers: [{}], detail: {} };
     expect(() => parseSession(JSON.stringify(s))).toThrow(/damaged/);
+  });
+});
+
+describe('the saved detail view of a stale session is shown only for the choice it was saved for (D85)', () => {
+  const saved = (tier: Detail['tier'], retireYear: number, stopContributingYear: number) =>
+    ({ tier, scenario: { retireYear, stopContributingYear, baseSpending: 60_000 } }) as Detail;
+
+  test('Coast is saved for its stop-saving year, the others for their retirement year', () => {
+    expect(detailSelection(saved('coast', 2050, 2035))).toEqual({ tier: 'coast', year: 2035 });
+    expect(detailSelection(saved('traditional', 2040, 2040))).toEqual({ tier: 'traditional', year: 2040 });
+  });
+
+  test('matches only the same FIRE type and year', () => {
+    const coast = saved('coast', 2050, 2035);
+    expect(detailMatches(coast, 'coast', 2035)).toBe(true);
+    expect(detailMatches(coast, 'coast', 2050)).toBe(false);
+    expect(detailMatches(coast, 'coast', 2036)).toBe(false);
+    expect(detailMatches(coast, 'traditional', 2035)).toBe(false);
+    expect(detailMatches(saved('chubby', 2042, 2042), 'chubby', 2042)).toBe(true);
+  });
+
+  test('no saved detail or no year never matches', () => {
+    expect(detailMatches(null, 'traditional', 2040)).toBe(false);
+    expect(detailMatches(saved('traditional', 2040, 2040), 'traditional', null)).toBe(false);
   });
 });

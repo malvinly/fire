@@ -12,7 +12,7 @@ import { Icon, TIER_ICONS } from './ui/icons';
 import { InputsPanel } from './ui/InputsPanel';
 import { BeforeYouAct, DetailView, TIER_NAMES, TierCard } from './ui/Results';
 import { SessionsDialog, type SessionMeta } from './ui/SessionsDialog';
-import { DRAFT_KEY, REJECTED_DRAFT_KEY, describeProblems, downloadJson, isStale, makeSession, type SessionFile } from './ui/sessions';
+import { DRAFT_KEY, REJECTED_DRAFT_KEY, describeProblems, detailMatches, detailSelection, downloadJson, isStale, makeSession, type SessionFile } from './ui/sessions';
 import { beforeYouAct } from './ui/warnings';
 import { CancelledError, detail as fetchDetail, solveAll } from './worker/client';
 
@@ -131,9 +131,10 @@ export default function App() {
   };
 
   // Fetch the detail view whenever the selection changes, once the year picker has been still for a moment; a
-  // newer request cancels the one in progress (D80).
+  // newer request cancels the one in progress (D80). Stale saved results keep their saved detail instead, so it
+  // can't disagree with the saved cards (D85).
   useEffect(() => {
-    if (!results?.done || selYear === null || !results.tiers[selTier]) return;
+    if (!results?.done || staleData || selYear === null || !results.tiers[selTier]) return;
     let cancelled = false;
     setDetailLoading(true);
     const timer = setTimeout(() => {
@@ -143,7 +144,7 @@ export default function App() {
         .finally(() => { if (!cancelled) setDetailLoading(false); });
     }, DETAIL_DELAY_MS);
     return () => { cancelled = true; clearTimeout(timer); };
-  }, [results, selTier, selYear]);
+  }, [results, staleData, selTier, selYear]);
 
   const selectTier = (t: Tier) => {
     setSelTier(t);
@@ -161,12 +162,15 @@ export default function App() {
     setDirty(false);
     setError(null);
     setDetail(s.results?.detail ?? null);
+    // A detail request still running for the previous plan is dropped, so it can't leave the spinner on.
+    setDetailLoading(false);
     if (s.results) {
       const tiers = Object.fromEntries(s.results.tiers.map((t) => [t.tier, t]));
       setResults({ plan: s.plan, calculatedAt: s.results.calculatedAt, tiers, done: true });
       if (s.results.detail) {
-        setSelTier(s.results.detail.tier);
-        setSelYear(s.results.detail.tier === 'coast' ? s.results.detail.scenario.stopContributingYear : s.results.detail.scenario.retireYear);
+        const sel = detailSelection(s.results.detail);
+        setSelTier(sel.tier);
+        setSelYear(sel.year);
       } else {
         // Don't carry the previous session's tier and year over to this plan.
         const r = tiers.traditional ?? s.results.tiers[0];
@@ -322,7 +326,15 @@ export default function App() {
                     </div>
                   </div>
                 )}
-                {detail && <DetailView plan={results.plan} detail={detail} loading={detailLoading} simpleNumber={results.tiers[detail.tier]?.simpleNumber} />}
+                {staleData && results.done && selResult && selYear !== null && !detailMatches(detail, selTier, selYear) && (
+                  <div className="banner">
+                    The saved results don't include the details for this FIRE type and year. Recalculate to see them.
+                    <button className="btn small" onClick={calculate}>Recalculate</button>
+                  </div>
+                )}
+                {detail && (!staleData || detailMatches(detail, selTier, selYear)) && (
+                  <DetailView plan={results.plan} detail={detail} loading={detailLoading} simpleNumber={results.tiers[detail.tier]?.simpleNumber} />
+                )}
               </>
             )}
           </section>

@@ -3,7 +3,7 @@
 
 import { DATA_VERSIONS, describeAssumptions, type AssumptionRow } from '../engine/assumptions';
 import { checkLoadedPlan } from '../engine/validate';
-import type { Detail, TierResult } from '../engine/solve';
+import type { Detail, Tier, TierResult } from '../engine/solve';
 import type { Plan } from '../engine/types';
 
 /** The working plan auto-saved in the browser (D38). */
@@ -85,6 +85,18 @@ export function describeProblems(problems: string[]): string {
 /** True when the session's results were computed with older data tables than this app has. */
 export function isStale(s: SessionFile): boolean {
   return JSON.stringify(s.dataVersions) !== JSON.stringify(DATA_VERSIONS);
+}
+
+/** The FIRE type and year a detail view was calculated for: Coast's stop-saving year, otherwise the retirement year. */
+export function detailSelection(d: Detail): { tier: Tier; year: number } {
+  return { tier: d.tier, year: d.tier === 'coast' ? d.scenario.stopContributingYear : d.scenario.retireYear };
+}
+
+/** True when `d` is the detail view for this FIRE type and year; a stale session shows only that one (D85). */
+export function detailMatches(d: Detail | null, tier: Tier, year: number | null): boolean {
+  if (!d || year === null) return false;
+  const s = detailSelection(d);
+  return s.tier === tier && s.year === year;
 }
 
 export function fileNameFor(name: string, createdAt: string): string {

@@ -104,6 +104,17 @@ None pending.
 - **Test:** a path with a 10% bond yield taxes 10% of the bond share as interest.
 - **Source:** adversarial review of the fixes (devil's advocate).
 
+### 30. Saving a stale session marks it current (clarity)
+
+- **Problem:** while the "calculated with older data or an older version" banner is up (D59), saving the session
+  writes the older cards and detail with the app's current `DATA_VERSIONS`, so the file opens next time as a current
+  calculation. Saved results from an older engine then pass for the app's own (against D59 and D62).
+- **Where:** `sessionFor` in `src/App.tsx` (passes results whenever `results.done && !inputsChanged`) and
+  `makeSession` in `src/ui/sessions.ts` (always writes `DATA_VERSIONS`).
+- **Change:** keep the opened file's `dataVersions` when saving while `staleData` is true (or save without results).
+- **Test:** saving a session opened as stale and reopening it still shows the recalculate banner.
+- **Source:** found while fixing #28.
+
 ---
 
 ## P3: polish and rare edges
@@ -116,14 +127,6 @@ None pending.
   record in `src/engine/simulate.ts` (RMDs are taken in full; what spending doesn't need goes back to the
   brokerage account, as the "Required withdrawal" column's help says).
 - **Change:** record the reinvested RMD surplus separately (or subtract it from "From 401(k)/IRA") and say where it went.
-
-### 28. Detail view of a stale session (clarity)
-
-- **Problem:** opening a session whose results came from an older engine shows the saved cards, but the detail view
-  is recalculated with the current engine, so the two can disagree until Recalculate.
-- **Where:** `openSession` (`src/App.tsx:156`; `staleData` comes from `isStale` in `src/ui/sessions.ts`, D59)
-  and the detail effect in `src/App.tsx`.
-- **Change:** show the saved detail only (no refetch) while the recalculate banner is up, or recalculate on open.
 
 ### 29. Stronger detail-view and income-stacking tests (tests)
 
