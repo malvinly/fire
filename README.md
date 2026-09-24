@@ -102,7 +102,7 @@ Market history, tax brackets and Social Security rules change every year. See
 
 Both spouses assumed alive through the plan (no survivor modeling); no ACA subsidies or IRMAA; US market
 data only; flat state tax; no 72(t)/Rule of 55; no flexible-spending (guardrail) rules; no session
-comparison view. See `docs/DESIGN.md` → "Deferred to v2".
+comparison view. See [docs/pending-features.md](docs/pending-features.md) for planned work.
 
 This is a personal planning tool, not financial advice.
 

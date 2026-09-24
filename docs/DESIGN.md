@@ -72,9 +72,11 @@ Key research points:
 - **Detail view** — for a chosen FIRE type and year: bands, penalty-withdrawal rate, the "significantly
   below average" path's account balances, worst historical start years, and the median path's tax table.
 
-## Deferred to v2
+## Planned changes
 
-Survivor modeling (one spouse dies: larger SS benefit continues, spending drops); separate retirement
-years per spouse; ACA subsidies + IRMAA (both need yearly MAGI); flexible-spending report ("in the worst
-10% you'd cut X% for Y years"); side-by-side session comparison; international market data;
-72(t) / Rule of 55; asset location; per-state tax rules.
+Planned work is tracked in three files, each ordered by priority:
+
+- [pending-fixes.md](pending-fixes.md): bug fixes and accuracy, clarity and robustness changes.
+- [pending-features.md](pending-features.md): new capabilities, such as survivor modeling, separate
+  retirement years, ACA subsidies, flexible spending, Rule of 55 and scenario comparison.
+- [pending-decisions.md](pending-decisions.md): open questions to settle before some of the above.
