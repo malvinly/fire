@@ -1,247 +1,406 @@
 # Pending features
 
-Enhancements that add something new to the calculator: new inputs, new modeling or new views, all of which
-change or extend the answers it gives. Bug fixes and accuracy changes are in
-[pending-fixes.md](pending-fixes.md); choices that must be settled first are in
+New capabilities for the calculator. Bug fixes and accuracy changes are in
+[pending-fixes.md](pending-fixes.md). Choices that must be settled first are in
 [pending-decisions.md](pending-decisions.md).
 
-Source: a five-reviewer audit of v1. Numbers come from the v1 engine on the example plan unless marked
-*estimate*. How to reproduce them, and the workflow for any change (tests, `DATA_VERSIONS.engine`,
-D-numbers, adding `Plan` fields safely), is in pending-fixes.md:
-[How to work on an item](pending-fixes.md#how-to-work-on-an-item) and
+Each feature starts with a plain-language explanation of what it is and what you'd see in the app. The
+**For implementers** part at the end of each gives code locations and a first version to build. The
+workflow for any change is in pending-fixes.md: [How to work on an item](pending-fixes.md#how-to-work-on-an-item)
+(tests, engine version, D-numbers, adding `Plan` fields safely) and
 [Reproducing the numbers](pending-fixes.md#reproducing-the-numbers). Line numbers are as of commit `6394336`.
 
-Features are ordered by **importance**: how much each changes a typical user's answer.
+Features are ordered by **importance**: how much each changes a typical user's answer. Numbers come from the
+v1 engine on the example plan unless marked *estimate*. Example screen text is illustrative; the final
+wording is up to whoever builds it.
 
-**Any feature that adds a `Plan` or `Assumptions` field** (most of them) must fill that field's default for
-older session files and drafts. The first such feature should add the migration hook (see fix 9).
+**Any feature that adds a `Plan` or `Assumptions` field** must fill in that field's default for older
+session files and drafts. The first one to do so should add the migration hook (see fix 9).
 
 ## Summary
 
-| # | Feature | Size of effect | Done well by |
-|---|---|---|---|
-| 1 | ACA premium subsidies | *Estimate:* ~15% smaller FIRE number, one year earlier | Boldin, ProjectionLab |
-| 2 | Separate retirement year per spouse | *Estimate:* $350–400k less needed | ProjectionLab, Boldin |
-| 3 | Roth conversion comparison | $70k and 2× the penalty rate on the example | Boldin, ProjectionLab |
-| 4 | Baseline comparison and sensitivity | a 1% return cut moves the date 3 years | ProjectionLab, Engaging Data |
-| 5 | Flexible spending / guardrails | *Estimate:* 10–20% more starting spending | FI Calc, Boldin |
-| 6 | Survivor scenario | depends on the benefit gap | Boldin |
-| 7 | State retirement-income exemptions | *Estimate:* ~$140k of portfolio in exempt states | Boldin |
-| 8 | Rule of 55 / 72(t) | removes penalties in up to 37.5% of markets | ProjectionLab |
-| 9 | Historical cycle explorer | trust, not the number | FI Calc, cFIREsim |
-| 10 | Export and fuller tables | auditability | ProjectionLab, cFIREsim |
-| 11 | Upside bands | context for one-more-year decisions | ProjectionLab, cFIREsim |
+| # | Feature | In one sentence |
+|---|---|---|
+| 1 | Compare with a baseline, and "what if returns are lower" | See how a change moves your answer, and test a worse-than-history future. |
+| 2 | What if one of you dies first | Check the plan still works for the survivor with one Social Security check and single-filer taxes. |
+| 3 | State tax exemptions for retirement withdrawals | Stop charging state tax on 401(k)/IRA money in states that don't tax it. |
+| 4 | Rule of 55 and 72(t) | Model the two legal ways to take 401(k)/IRA money before 59½ without the 10% penalty. |
+| 5 | Replay any historical year | Pick a real year, like 1966, and watch your plan go through it year by year. |
+| 6 | Fuller year-by-year table and CSV export | See the bad-market years and the working years, and download them to a spreadsheet. |
+| 7 | Upside on the chart | Show how much you might end with in good markets, not only typical and bad ones. |
 
 ---
 
-### 1. ACA premium subsidies
+## 1. Compare with a baseline, and "what if returns are lower"
 
-- **Today:** pre-65 healthcare is charged at full price in every non-working year (D21, D58). The "How this
-  works" page says subsidies aren't modeled.
-- **Why it matters:**
-  - The default 12% Roth fill puts retirement MAGI at about $133k before Social Security. That is above
-    400% of the poverty line for two (~$84.6k for 2026 coverage), where the credit is zero now that the
-    enhanced credits have expired.
-  - A household keeping MAGI under the line would pay about 9.96% of income toward the benchmark plan.
-    For a couple of 60 on ~$31.8k of premiums, that's a credit of about $23.8k/yr.
-  - Re-solving the example with a 10% fill and ~$6k net cost per person gave 2038 and $2.28M, against
-    2039 and $2.70M.
-  - *Estimate:* the FPL and 9.96% figures are the reviewer's 2026 numbers, not checked against source.
+### What it is
+
+Two small additions for asking "what if?":
+
+- **A baseline.** Today, when you change an input and press Calculate, the old answer disappears. To compare
+  "claim Social Security at 67 vs 70", you have to write the first answer down. A baseline keeps the old
+  answer on screen next to the new one.
+- **A return adjustment.** Every result assumes future markets behave like US history since 1871, which
+  has been unusually good. A return adjustment lets you ask "what if returns are 1% a year lower than
+  history?" It is one number that shifts every simulated year's return up or down.
+
+### What you'd see
+
+1. Press Calculate. Under the cards, a new button: **Keep as baseline**.
+2. Change something, e.g. set the return adjustment to −1%, and press Calculate again.
+3. Each card now shows both answers:
+
+   > **Traditional FIRE: 2042** (baseline 2039, **+3 years**)
+   > Savings needed when you retire: $2.76M (baseline $2.70M, **+$60k**)
+
+4. **Clear baseline** removes the comparison.
+
+The return adjustment is a new field under **Assumptions (advanced)**: "Returns vs. history (± per year)",
+default 0%.
+
+### Why it's worth doing
+
+- It's the quickest way to see which inputs matter for *your* plan, and how sensitive the date is.
+- Measured: lowering returns by 1% a year moves the example from 2039 to 2042.
+- ProjectionLab and Engaging Data make this kind of comparison easy. Here it takes pen and paper.
+
+### Today
+
+- There is no comparison.
+- The "Fees" field (`feeRate`) is subtracted from every year's return, so raising it already works as a
+  return cut. That isn't obvious from its label or help text.
+
+### For implementers
+
+- **Where:** results state in `src/App.tsx`; `TierCard` (`src/ui/Results.tsx:51`); `feeRate` is applied in
+  `realYears` (`src/engine/returns.ts:38–42`).
+- **First version:**
+  - Store the current `TierResult`s when "Keep as baseline" is pressed; render the deltas in `TierCard`.
+    No engine work.
+  - Add `returnAdjustment` to `Assumptions`, applied on the same code path as `feeRate`, with its own
+    How-this-works row and help text.
+  - Side-by-side comparison of saved session files comes later.
+- **Test:** a return adjustment of −1% gives the same results as raising the fee by 1%.
+
+---
+
+## 2. What if one of you dies first
+
+### What it is
+
+Today the plan assumes both of you live to the end (age 96 of the younger one). Real plans usually check the
+case where one spouse dies earlier, because three things change for the one left:
+
+- **Social Security:** the household goes from two checks to one. The survivor keeps whichever check is
+  larger; the smaller one stops.
+- **Taxes:** from the year after the death, the survivor files as single. Single tax brackets are about
+  half as wide as joint ones, so the same income is taxed more. This is often called the "widow's
+  penalty".
+- **Spending:** it usually drops, but not by half (housing costs stay). One person's healthcare cost goes
+  away.
+
+### What you'd see
+
+A new optional setting under Social Security or People: **"Also test: {name} dies at age [__]"**. With it
+set, the results add a line, e.g.:
+
+> If You dies at 75: chance the money lasts for Spouse **87%** (below your 90% target)
+
+Blank means no survivor test, as today.
+
+### Why it's worth doing
+
+- *Estimate,* on the example plan (both $2,500/month benefits at 67):
+  - the survivor loses about $21k a year of Social Security;
+  - the same $85k of 401(k)/IRA withdrawals costs **$13,346** in federal tax as single vs **$9,728** jointly;
+  - offsetting that, spending drops (typically 20–30%) and one Medicare cost ends.
+- For two similar earners it roughly nets out. It is worse when one benefit is much larger, or when a lot
+  of money sits in pre-tax accounts.
+- It is also the main reason planners do Roth conversions and delay the higher earner's claim. Without it,
+  the app can't show the benefit of either.
+
+### Today
+
+- Not modeled; listed in the README's limitations and D13.
+- Not shown inside the app (fix 13 adds that disclosure).
+
+### For implementers
+
 - **Where:**
-  - Healthcare per year: `buildContext`, `src/engine/context.ts:171–181`.
-  - Tax: `computeTax` in `src/engine/tax.ts`.
-  - The retired-year tax loop: `simulatePath` in `src/engine/simulate.ts` ~lines 357–380. MAGI = ordinary
-    + gains + untaxed Social Security.
-  - Yearly data: `src/data/rules.ts`, refreshed by `docs/UPDATE_DATA_PROMPT.md`.
-- **Minimal version:**
-  - **Interim** (no engine change): help text on the pre-65 cost and the fill. "If you'll keep income
-    under ~$84.6k (two people), enter the subsidized price from healthcare.gov and use the 10% fill."
-  - **Full:**
-    - add the FPL and the applicable-percentage table to `rules.ts` and the data-update prompt;
-    - compute the credit from each retired pre-65 year's MAGI inside the tax loop (it is circular, since
-      a smaller cost means smaller withdrawals and a lower MAGI);
-    - add an option to cap the Roth fill at 400% FPL while anyone is under 65.
-- **Test:** a year at MAGI $80k gets the expected credit; at $90k it gets zero. The fill cap holds MAGI
-  under the line.
-- **Related:** D21, D29, D58; [decision 1](pending-decisions.md#1-which-way-to-correct).
+  - Social Security: `annualBenefits` (`src/engine/socialSecurity.ts:60`).
+  - Tax: `computeTax` (`src/engine/tax.ts`); `FEDERAL` in `src/data/rules.ts` has joint brackets only, so
+    single brackets and the single standard deduction must be added. Also add them to
+    `docs/UPDATE_DATA_PROMPT.md` so they're refreshed yearly.
+  - Spending and healthcare: `buildContext` (`src/engine/context.ts`).
+- **First version:**
+  - A plan field `survivor: { person, deathAge, spendingDrop }` (off by default).
+  - From the year after the death: survivor gets the larger of the two benefits; single brackets apply;
+    spending × (1 − `spendingDrop`, default ~25%); the deceased's healthcare line is removed.
+  - Report success under that scenario next to the normal one.
+  - Simplification to record in a D-row: the survivor-benefit reductions for claiming early are ignored.
+- **Test:** with the setting off, results are identical to today. With it on, the survivor year uses
+  single brackets and one benefit.
 
-### 2. Separate retirement year per spouse
+---
 
-- **Today:** both spouses stop working in the same year (D13). A common real pattern is one spouse working
-  a few more years, often for employer health cover. The only workaround is a dated income item, which is
-  untaxed (fix 3).
-- **Why it matters:** *Estimate:* three extra years on a $100k salary means:
-  - ~$76k/yr of spending covered by the paycheck;
-  - ~$32k/yr of pre-65 premiums avoided;
-  - ~$25k/yr more contributions.
+## 3. State tax exemptions for retirement withdrawals
 
-  That is $350–400k less needed when the first spouse stops.
-- **Where:**
-  - `Scenario` (`src/engine/types.ts:109`) has one `retireYear`.
-  - `buildContext` (`src/engine/context.ts`) derives a household `working[t]` and `wages`.
-  - `scenarioFor` and `earliestYear` (`src/engine/solve.ts:95`, `:166`) search one year.
-  - Year picker: `src/App.tsx`.
-- **Minimal version:**
-  - Keep the solver searching the *first* spouse's stop year. Add a per-person input "keeps working N more
-    years" (default 0).
-  - Make `working`, wages and contributions per person in the context.
-  - Charge pre-65 healthcare only in years when neither spouse has employer cover (an input).
-  - Update D13 and the How-this-works rows.
-- **Test:** with N=0, results match today's exactly. With N=3, success at the same first-stop year rises.
+### What it is
 
-### 3. Roth conversion comparison
+The app charges one flat state tax rate (default 5%) on all taxable retirement income:
 
-- **Today:** one bracket-fill setting at a time, with no feedback on whether it helps. On the example
-  plan, at the 2039 retirement year:
+- 401(k)/IRA withdrawals;
+- Roth conversions;
+- capital gains.
 
-  | Fill | Needed | Penalty rate | Bad-market end |
-  |---|---|---|---|
-  | Off | $2.631M | 15.7% | $291k |
-  | 10% | $2.622M | 19.0% | $365k |
-  | 12% (default) | $2.695M | 37.5% | $74k |
-  | 22% | $2.728M (earliest 2040) | 66.1% | $0 |
+But several states don't tax 401(k)/IRA withdrawals, or tax only part of them. For example:
 
-- **Where:**
-  - `detailFor` (`src/engine/solve.ts:288`, ~0.7 s at 10k markets).
-  - Worker request types: `src/worker/engine.worker.ts:6–7`.
-  - Detail panel: `DetailView` (`src/ui/Results.tsx:174`).
-  - Fill options: `bracketFill` in `Assumptions` (`src/engine/types.ts:68`).
-- **Minimal version:**
-  - A "Compare Roth conversion settings" button in the detail panel.
-  - It runs `detailFor` for each fill option at the chosen year, on a copy of the plan with
-    `assumptions.bracketFill` changed and spread across the worker pool.
-  - It shows success, penalty rate, bad-market end balance and median end balance in a small table.
-- **Blocked by:** [decision 3](pending-decisions.md#3-roth-conversion-default) (whether the default
-  changes). Fix 5 (help text) can ship first.
+- **Illinois** exempts them entirely but taxes capital gains.
+- **Pennsylvania** exempts them after retirement age.
+- **Mississippi** exempts retirement income.
+- **New York** and **Georgia** exempt a fixed amount per person.
 
-### 4. Baseline comparison and sensitivity
+For someone retiring in one of those states, the flat rate overcharges state tax every year.
 
-- **Today:**
-  - Every "what if" means editing inputs, recalculating (~10 s) and remembering the old numbers. There is
-    no expected-return input.
-  - The fee (`feeRate`) is subtracted from every real return (`realYears`, `src/engine/returns.ts:38–42`),
-    so it already works as a return haircut. Fee 0.1% → 1.1% moves the example **2039 → 2042**.
-- **Where:** results state in `src/App.tsx`; `TierCard` in `src/ui/Results.tsx:51`; `feeRate` in
-  `returns.ts`.
-- **Minimal version:**
-  - "Keep as baseline" button: store the current `TierResult`s. After the next Calculate, show the baseline
-    beside each card with deltas in years and dollars. No engine work.
-  - A "Return adjustment (± per year)" assumption, applied on the same code path as `feeRate`, with its own
-    How-this-works row.
-  - Side-by-side comparison of saved sessions comes later.
-- **Test:** return adjustment −1% gives the same results as a fee raised by 1%.
+### What you'd see
 
-### 5. Flexible spending / guardrails
+Under **Assumptions (advanced)**, next to "State income tax", a second field:
 
-- **Today:** spending is fixed in real terms (`baseSpending`). A 90% target with rigid spending sizes the
-  plan to the worst 10% of paths.
-- **Why it matters:** *Estimate (literature, not verified):* modest cuts in bad markets support roughly
-  10–20% higher starting spending at similar risk (Guyton-Klinger, Kitces).
-- **Where:** spending need in `simulatePath` (`src/engine/simulate.ts` ~line 361); `outcomes` from
-  `successRate` (`src/engine/solve.ts:115–133`).
-- **Minimal version:**
-  - **Step 1 (report only):** for failed paths at the chosen year, compute the smallest uniform spending cut
-    from the first bad year that would have avoided failure. Show "in the worst 10% you'd cut X% for Y
-    years". This doesn't change success.
-  - **Step 2:** an optional guardrail rule (cut Z% when the withdrawal rate exceeds a threshold). This
-    changes the success definition and needs a D-row.
-- **Related:** [decision 5](pending-decisions.md#5-precision-vs-hedging), fix 12.
+> State tax on 401(k)/IRA withdrawals and Roth conversions: [ 0 ]%
+> (Leave equal to the rate above unless your state exempts retirement income.)
 
-### 6. Survivor scenario
+Improved help text also says: use your *effective* state rate, not your top bracket.
 
-- **Today:** both spouses live to the end (D13). Both Social Security checks and joint tax brackets
-  continue.
-- **Why it matters:** *Estimate,* for the example plan (both PIA $2,500, claiming at 67):
-  - the survivor loses ~$21k/yr of Social Security;
-  - the same $85k of pre-tax withdrawals costs $13,346 in tax single vs $9,728 joint;
-  - spending typically drops 20–30%, and one Medicare cost disappears.
+### Why it's worth doing
 
-  Roughly neutral for equal earners; worse with unequal benefits and large pre-tax balances.
-- **Where:**
-  - Social Security: `annualBenefits` in `src/engine/socialSecurity.ts:60`.
-  - Tax: `src/engine/tax.ts` and `FEDERAL` in `src/data/rules.ts`, which has joint brackets only, so single
-    brackets and the single standard deduction would need adding and refreshing yearly.
-  - Healthcare and spending: `buildContext`.
-- **Minimal version:** an optional "first death: {person} at age X" input. From the following year:
-  - the survivor gets the larger of the two benefits;
-  - single brackets apply;
-  - spending drops by a set % (default ~25%);
-  - one healthcare line is removed.
+- *Estimate:* in the example, about $5k a year of state tax falls on withdrawals and conversions. For
+  someone in an exempt state, that's roughly $140k less portfolio needed at a 3.5% withdrawal rate.
+- The error leans conservative, so it matters only for people in those states.
 
-  Results show success under that scenario.
-- **Related:** fix 13 (disclosure).
+### Today
 
-### 7. State retirement-income exemptions
+One flat rate (D33), applied to ordinary income plus gains, minus the federal standard deduction. Social
+Security is already excluded.
 
-- **Today:** one flat state rate on ordinary income plus gains, minus the federal standard deduction
-  (`computeTax`, `src/engine/tax.ts:70`). Social Security is excluded.
-- **Why it matters:** *Estimate:*
-  - Illinois fully exempts IRA/401(k) withdrawals and conversions, Pennsylvania does from 59½, and
-    Mississippi exempts retirement income. New York and Georgia exempt part.
-  - At 5%, that's ~$5k/yr, roughly $140k of portfolio.
-  - A flat rate also overstates tax if users enter their top marginal rate.
-- **Minimal version:**
-  - **Interim:** help text (`stateTax` in `src/ui/helpText.ts:94`): "Use your effective rate. If your state
-    exempts retirement-account withdrawals, enter a much lower rate."
-  - **Full:** a second assumption, "State rate on retirement-account withdrawals", applied to pre-tax
-    withdrawals and conversions, with the flat rate kept for gains and other income.
-- **Related:** D33.
+### For implementers
 
-### 8. Rule of 55 / 72(t)
+- **Where:** `computeTax` (`src/engine/tax.ts:70`); `stateTax` help (`src/ui/helpText.ts:94`); D33.
+- **First version:**
+  - Add a `stateRetirementRate` assumption, defaulting to the same value as `stateTaxRate`. Apply it to
+    pre-tax withdrawals, RMDs and conversions, and keep the flat rate for gains and other income.
+  - `computeTax` needs the pre-tax portion passed separately from other ordinary income.
+  - Help text now, whether or not the field ships.
+- **Test:** with the retirement rate at 0%, state tax falls only on the gains portion.
 
-- **Today:**
-  - Pre-tax money is penalty-free from the calendar year a person turns 60 (D14). Earlier withdrawals pay
-    10%.
-  - In the example, "You" retires at exactly 55, and 37.5% of markets pay the penalty.
-- **Where:** `ctx.access[i][t] = age >= 60 ? 1 : 0` at `src/engine/context.ts:153`, read in `planDraws`
+---
+
+## 4. Rule of 55 and 72(t)
+
+### What it is
+
+Money in a 401(k) or IRA normally carries a **10% penalty** if you take it out before age 59½. There are two
+common legal ways around that for early retirees:
+
+- **Rule of 55.** If you leave your job in or after the calendar year you turn 55, you can take money from
+  *that employer's* 401(k) without the penalty. It doesn't apply to IRAs, or to 401(k)s from earlier jobs
+  (unless you rolled them into the current plan *before* leaving). Income tax still applies.
+- **72(t), also called SEPP ("substantially equal periodic payments").** At any age, you can take a fixed
+  yearly amount from an IRA without the penalty. The IRS sets the amount by formula from your balance and
+  life expectancy. It must continue unchanged for 5 years or until 59½, whichever is longer. Breaking the
+  schedule brings back the penalty on everything already taken.
+
+### What you'd see
+
+- **Rule of 55:** a checkbox per person under People: **"Leaves their employer at 55 or later (Rule of
+  55)"**. When checked, and that person retires at 55+, their 401(k) money can be used without the
+  penalty from the retirement year.
+- **72(t) (later):** an option to start fixed penalty-free IRA payments at retirement. The app computes
+  the allowed amount and shows it in the year-by-year table.
+- The detail view's "Markets needing an early-withdrawal penalty" figure would drop accordingly.
+
+### Why it's worth doing
+
+- In the example, "You" retires at exactly 55. At the default settings **37.5%** of simulated markets pay
+  the 10% penalty at some point before 60. With Rule of 55, many of those penalties wouldn't be real.
+- The app counts penalty years as success, so the date may not move much. But the penalty cost is real
+  money, and it shrinks the cushion in bad markets.
+
+### Today
+
+- Pre-tax money is penalty-free from the calendar year a person turns 60 (D14, which rounds 59½ up).
+  Earlier withdrawals pay 10%.
+- Both rules are listed as not modeled in the README.
+
+### For implementers
+
+- **Where:** `ctx.access[i][t] = age >= 60 ? 1 : 0` (`src/engine/context.ts:153`), read in `planDraws`
   (`src/engine/simulate.ts:156`).
-- **Minimal version:**
-  - A per-person "leaves employer at 55 or later" checkbox. When set and the person stops working at 55+,
-    that person's pre-tax balance is accessible from the retirement year.
-  - This simplifies things: the rule applies only to the last employer's 401(k), not IRAs. Record that in a
-    D-row.
-  - 72(t) SEPP comes later.
-- **Test:** retiring at 55 with the flag gives a 0% penalty rate for that person's withdrawals.
-- **Related:** fix 6, [decision 4](pending-decisions.md#4-penalty-paths-as-success).
-
-### 9. Historical cycle explorer
-
-- **Today:** the worst-years table lists 5 whole-plan start years (D47). Rows aren't clickable, and there's
-  no way to see a named cycle such as retiring into 1929, 1966 or 2000.
-- **Where:** `detailFor` builds `worstHistorical` (`src/engine/solve.ts:315–321`); `simulatePath(..., { record:
-  true })` gives year-by-year records; the table is at `src/ui/Results.tsx:235`.
-- **Minimal version:**
-  - Clickable rows that show that window's year-by-year table and account chart.
-  - A "retirement market year" search box.
-  - Needs fix 20's market-year column first.
-
-### 10. Export and fuller tables
-
-- **Today:**
-  - The year-by-year table shows only the typical path's retired years (`src/ui/Results.tsx:178`).
-  - The bad-market path appears only as stacked bars, so its conversions and penalties are invisible.
-  - Coast's working and coasting years never appear.
-  - There is no CSV, copy or print anywhere.
-- **Minimal version:**
-  - A typical/bad toggle on the table (same `COLUMNS`) and a "show working years" checkbox.
-  - A "Download CSV" button that serializes the visible `YearRecord[]` client-side (Blob download).
-  - CSVs are already git-ignored (see DEVELOPMENT.md → Privacy).
-
-### 11. Upside bands and ending-balance summary
-
-- **Today:** bands are 50th/25th/10th only (`detailFor` `bands`, `src/engine/solve.ts:297`; `BandsChart` in
-  `src/ui/charts.tsx:107`). There is no view of the chance of ending with far more than needed.
-- **Minimal version:**
-  - Add p75/p90 to `bands` and show them behind the existing zoom toggle.
-  - Add one stat: ending balance at 10th / 50th / 90th percentile.
+- **First version (Rule of 55 only):**
+  - A per-person `ruleOf55: boolean`. When set and the retirement year's age is ≥ 55, grant access to that
+    person's pre-tax balance from the retirement year.
+  - Record the simplification in a D-row: the model has one pre-tax bucket per person, so it treats all of
+    it as the last employer's 401(k).
+  - 72(t) later: it needs the IRS payment calculation (amortization method) and a locked yearly withdrawal.
+- **Test:** retiring at 55 with the flag set gives no penalty on that person's pre-tax withdrawals.
+- **Related:** fix 6; [decision 4](pending-decisions.md#4-penalty-paths-as-success).
 
 ---
 
-## Lower priority
+## 5. Replay any historical year
 
-- **IRMAA.** Low impact under the default fill: MAGI stays around $133–145k, below the $218k joint tier.
-  Worth revisiting alongside feature 6 (single thresholds are half).
-- **International market data.** US history is the big winner, which leans optimistic (DECISIONS lean
-  table).
-- **Asset location.** Different mixes per account.
-- **Per-state tax rules**, beyond feature 7.
+### What it is
+
+Besides simulated markets, the app replays your plan through every real stretch of US market history since
+1871. Some starting years are famous for being hard on retirees:
+
+- **1929:** the crash and the Depression.
+- **1966:** a decade of high inflation and flat stocks.
+- **2000:** two crashes in the first decade.
+
+Experienced FIRE users judge a plan by asking "would I have survived retiring into 1966?"
+
+Today the app shows only the five worst replays, as a list, with two problems:
+
+- the list is labelled by the year the *plan* started (today's equivalent), not the year *retirement*
+  started, so "retiring into 1966" appears as 1953 for a 2039 retirement;
+- you can't open a replay to see what happened year by year.
+
+### What you'd see
+
+In the detail view:
+
+- A box: **"Replay retiring into year: [1966]"**.
+- Choosing a year (or clicking a row of the worst-years list) fills the year-by-year table and the account
+  chart with that exact replay: balances, withdrawals, taxes and conversions for each year.
+
+> Retiring into 1966: money lasts until age 91 (runs out in 2078).
+
+### Why it's worth doing
+
+It doesn't change the answer, but it is the most convincing way to trust it. You can see exactly how the
+plan copes with a bad decade. FI Calc and cFIREsim both offer it.
+
+### Today
+
+A fixed list of the 5 worst start years; rows aren't clickable. Fix 20 adds the "retirement began in"
+column, which this builds on.
+
+### For implementers
+
+- **Where:** `detailFor` builds `worstHistorical` (`src/engine/solve.ts:315–321`).
+  `simulatePath(ctx, e.hist, pathIndex, { record: true })` gives year-by-year records for one historical
+  path. Table at `src/ui/Results.tsx:235`.
+- **First version:**
+  - A worker request `{ type: 'replay', plan, tier, year, marketYear }` that returns records for that
+    historical path.
+  - Show them in the existing table and `AccountsChart`.
+  - Map market year to path index: `marketYear − (retireYear − plan.startYear)` is the whole-plan start
+    year (D47).
+- **Test:** replaying the worst-years row's start year reproduces its reported failure year.
+
+---
+
+## 6. Fuller year-by-year table and CSV export
+
+### What it is
+
+The detail view has a table showing, for each year of retirement:
+
+- where the spending money came from (Social Security, cash, brokerage, 401(k)/IRA, Roth);
+- taxes, penalties and Roth conversions.
+
+Today it shows only **one** market, the typical one, and only **retired** years. The interesting cases are
+hidden:
+
+- In the **bad market**, the brokerage can run dry, conversions get cut back and penalties get paid. You
+  can see that only as colored bars in a chart, with no numbers.
+- **Working years** never appear, so for Coast FIRE the whole coasting period is invisible.
+- There is no way to get the numbers into Excel to check them.
+
+### What you'd see
+
+Above the table:
+
+> Show: (•) Typical market ( ) Bad market (1 in 10)   [ ] Include working years   [Download CSV]
+
+The CSV contains exactly what the table shows, one row per year, ready for Excel or Google Sheets.
+
+### Why it's worth doing
+
+Auditability. People who keep their own spreadsheet will trust the date only if they can check it. The bad
+market is where the plan's weak spots are (running out of brokerage money, penalties), and today it has no
+table. ProjectionLab and cFIREsim both export.
+
+### Today
+
+A typical-market, retired-years-only table; no export of any kind.
+
+### For implementers
+
+- **Where:** `DetailView` (`src/ui/Results.tsx:174`, rows filtered at `:178`, `COLUMNS` at `:154`);
+  `detail.medianPath` and `detail.p10Path` are both already computed.
+- **First version:**
+  - A path toggle and a "working years" checkbox on the existing table.
+  - A client-side CSV builder over the visible `YearRecord[]`, downloaded via a Blob link.
+  - CSV files are already git-ignored (DEVELOPMENT.md → Privacy); session data never leaves the browser.
+- **Depends on:** fix 11 (so "typical" and "bad" really are typical and bad paths).
+
+---
+
+## 7. Upside on the chart
+
+### What it is
+
+The "savings over time" chart has three lines:
+
+- **typical** (50th percentile: half of simulated markets do better);
+- **below average** (25th percentile);
+- **significantly below average** (10th percentile: only 1 in 10 markets do worse).
+
+That shows how bad things can get, but not how *good* they can get. In the example, the typical ending
+balance is about **$15M** in today's dollars, far more than needed, and nothing on screen says how likely
+that is.
+
+### What you'd see
+
+- Two more lines, hidden until you turn them on: **above average** (75th) and **well above average** (90th).
+- A one-line summary under the chart:
+
+  > At age 96: 1 in 10 markets end below $74k · half end above $15.1M · 1 in 10 end above $X.
+
+### Why it's worth doing
+
+Deciding whether to work "one more year", or whether you could spend more, depends on how likely you are
+to end up with far more than you need, not only on how bad it can get.
+
+### Today
+
+Only the 50th, 25th and 10th percentile lines.
+
+### For implementers
+
+- **Where:** `bands` in `detailFor` (`src/engine/solve.ts:297`); `BandsChart` (`src/ui/charts.tsx:107`).
+- **First version:** add `p75` and `p90` to `bands`; draw them behind the existing zoom toggle; add the
+  ending-balance summary from the final column.
+
+---
+
+## Lower priority: international market data
+
+### What it is
+
+All market history here is from the US, 1871–2025. The US was the best-performing major stock market of
+that period. Other countries had long stretches that were far worse: Japan after 1990, or Germany and Italy
+around the World Wars. Planning only on US history leans optimistic, as the DECISIONS "Which way the
+assumptions lean" table notes.
+
+### What you'd see
+
+An option under Assumptions: **"Market history: [US only / Developed markets]"**. The second choice builds
+the simulated markets from a wider set of countries, making the answer more cautious.
+
+### For implementers
+
+Needs a free multi-country dataset with stocks, bonds, bills and inflation. The Jordà-Schularick-Taylor
+Macrohistory Database is one candidate. It would come in through `scripts/build-market-data.ts` and
+`market.json`, with the bootstrap in `src/engine/returns.ts` sampling from it.

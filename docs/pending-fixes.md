@@ -169,8 +169,7 @@ Items are ordered by criticality:
 - **Change:**
   - Fix the help text.
   - Add a "Seasoned Roth available" value to `YearRecord`, filled when recording, and show it as a column.
-- **Not here:** the default setting is [decision 3](pending-decisions.md#3-roth-conversion-default). The
-  side-by-side comparison is [feature 3](pending-features.md#3-roth-conversion-comparison).
+- **Not here:** the default setting is [decision 3](pending-decisions.md#3-roth-conversion-default).
 - **Related:** D14, D29, D30.
 
 ---
@@ -323,7 +322,10 @@ Items are ordered by criticality:
     `src/ui/HowItWorks.tsx`.
   - `docs/DECISIONS.md:117`.
 - **Change:**
-  - Add a "What this doesn't model" group drawn from [pending-features.md](pending-features.md).
+  - Add a "What this doesn't model" group. It should cover:
+    - the features not yet built (see [pending-features.md](pending-features.md));
+    - things deliberately left out: ACA premium subsidies, separate retirement years per spouse, flexible
+      spending / guardrails, IRMAA, asset location and per-state tax rules.
   - Add a D13 row.
   - Add a one-line disclaimer under the cards ("Estimates, not a guarantee or financial advice").
   - Fix the lean-table wording.
@@ -443,7 +445,7 @@ Items are ordered by criticality:
   therefore appears as start year 1953 for a 2039 retirement.
 - **Where:** `src/ui/Results.tsx:235`; the list is built in `detailFor` (`src/engine/solve.ts:315–321`).
 - **Change:** add a column for the market year retirement began: `startYear + (retireYear − plan.startYear)`.
-- **Related:** D47, [feature 9](pending-features.md#9-historical-cycle-explorer).
+- **Related:** D47, [feature 5](pending-features.md#5-replay-any-historical-year).
 
 ### 21. Social Security first-year months (accuracy)
 
