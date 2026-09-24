@@ -34,6 +34,8 @@ export interface TierResult {
   penaltyRate?: number | null;
   /** Spending ÷ 4% sanity check (spending + first-year healthcare). */
   simpleNumber: number;
+  /** Traditional/Chubby: the last year searched for the earliest date (D43). Missing in older sessions. */
+  searchLimit?: number;
   /**
    * Bootstrap balance at the start of the earliest year: typical (50th) and significantly below average
    * (10th percentile). Lets the card show how the date and the FIRE number relate (D54).
@@ -268,8 +270,10 @@ export function solveTier(e: Engine, tier: Tier): TierResult {
     };
   }
 
-  // Search up to your age 75 (D43), but never before the plan start (people already past 75).
-  const latest = Math.max(e.startYear, Math.min(e.endYear - 1, plan.you.birthYear + 75));
+  // Search up to the younger spouse's age 75 (D43), so the answer doesn't depend on who is entered as "You", but
+  // never before the plan start (households already past 75) or past the year before the plan ends.
+  const younger = Math.max(plan.you.birthYear, plan.spouse.birthYear);
+  const latest = Math.max(e.startYear, Math.min(e.endYear - 1, younger + 75));
   const earliest = earliestYear(e, tier, e.startYear, latest);
   let fireNumber: number | null = null;
   let successAtEarliest: Success | null = null;
@@ -287,7 +291,7 @@ export function solveTier(e: Engine, tier: Tier): TierResult {
   }
   return {
     tier, spending, currentBalance: current, successToday, simpleNumber, fireNumber, successAtEarliest, penaltyRate,
-    earliest: earliest === null ? null : agesAt(plan, earliest), projectedAtEarliest,
+    earliest: earliest === null ? null : agesAt(plan, earliest), projectedAtEarliest, searchLimit: latest,
   };
 }
 

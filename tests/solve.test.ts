@@ -237,3 +237,18 @@ describe('fractional years (fix 10)', () => {
     expect(() => makeEngine(p)).toThrow(/whole number/);
   });
 });
+
+describe('age-gap couples (fix 14)', () => {
+  test('the earliest date does not depend on who is entered as "You"', () => {
+    const p = smallPlan();
+    p.you.birthYear = 2026 - 74;
+    p.spouse.birthYear = 2026 - 58;
+    const swapped = structuredClone(p);
+    [swapped.you, swapped.spouse] = [swapped.spouse, swapped.you];
+    const a = solveTier(makeEngine(p), 'traditional');
+    const b = solveTier(makeEngine(swapped), 'traditional');
+    expect(a.earliest).not.toBeNull();
+    expect(a.earliest!.year).toBe(b.earliest!.year);
+    expect(a.searchLimit).toBe(2026 - 58 + 75); // the younger spouse's age 75
+  });
+});

@@ -83,21 +83,6 @@ Example for the example plan:
 
 ## P2: narrower wrong answers, clarity gaps
 
-### 14. Search limit for age-gap couples (accuracy)
-
-- **Problem:** the earliest-date search stops at the *first* person's age 75 (D43). The result therefore
-  depends on who is entered as "You".
-- **Where:** `solveTier`, `src/engine/solve.ts:250–251`. "Not reachable" text: `src/ui/Results.tsx:83`.
-- **Evidence:**
-  - You 74, spouse 58: Traditional says "Not reachable".
-  - `detailFor` at later years gives 2030: 88%, 2032: 96%.
-  - Swapping the two birth years gives earliest 2031.
-  - For someone already past 75, the card says "Even retiring when You is 75…", which is false.
-- **Change:**
-  - Use the younger spouse's birth year + 75 (or `endYear − 1`) as the limit, and update D43.
-  - Make the text name the limit actually used.
-- **Test:** the solver result is the same with `you` and `spouse` swapped.
-
 ### 15. Coast number and today's account mix (accuracy)
 
 - **Problem:**

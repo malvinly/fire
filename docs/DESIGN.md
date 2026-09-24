@@ -57,7 +57,7 @@ Key research points:
   Reported for bootstrap and history separately; the *combined* rate is the lower of the two.
 - **Earliest date (Traditional/Chubby)** — smallest household retirement year whose combined success
   ≥ target when the *whole plan* is simulated from today (so bad markets while saving count).
-  Searched up to the first person's age 75.
+  Searched up to the younger spouse's age 75.
 - **FIRE number (Traditional/Chubby)** — smallest total portfolio *at the earliest date* (today's
   dollars) that passes when retirement starts then (retirement-only simulation). Account mix at that date
   comes from a projection at long-run average returns, scaled up or down; both methods start at average

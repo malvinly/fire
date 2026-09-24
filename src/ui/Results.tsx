@@ -17,6 +17,12 @@ function tierHelp(tier: Tier, plan: Plan): string {
   return `Stop saving now (employer matches stop too), keep working until ${plan.you.name} is ${plan.household.coastRetireAge} with your paychecks covering the bills, then retire on the Traditional budget.`;
 }
 
+/** Names the last year searched, which is the younger spouse's age 75 or the year before the plan ends (D43). */
+function notReachable(plan: Plan, limit: number, target: string): string {
+  return `Even retiring in ${limit} (${plan.you.name} ${limit - plan.you.birthYear} · ${plan.spouse.name} ${limit - plan.spouse.birthYear}), ` +
+    `your money lasts in fewer than ${target} of markets.`;
+}
+
 function SuccessBadge({ s, target }: { s: Success | null; target: number }) {
   if (!s) return <span className="muted">—</span>;
   const ok = s.combined >= target - 1e-9;
@@ -81,7 +87,7 @@ export function TierCard({ r, plan, selected, onSelect }: { r: TierResult | null
           <p className="muted">
             {isCoast
               ? `Even saving until ${plan.you.name} is ${plan.household.coastRetireAge}, your money lasts in fewer than ${percent(target)} of markets.`
-              : `Even retiring when ${plan.you.name} is 75, your money lasts in fewer than ${percent(target)} of markets.`}
+              : notReachable(plan, r.searchLimit ?? plan.you.birthYear + 75, percent(target))}
           </p>
         )}
       </div>
