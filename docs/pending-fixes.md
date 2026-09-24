@@ -235,7 +235,7 @@ Example for the example plan:
     {tier} plan pays a 10% penalty on early 401(k)/IRA withdrawals." Not on the card.
 - **Related:** [decision 4](pending-decisions.md#4-penalty-paths-as-success).
 
-### 7. Coast caveats (clarity)
+### 7. Coast caveats and the 4% line (clarity)
 
 - **Problem:**
   - "You can stop saving now" depends on both jobs covering all spending until the coast age.
@@ -251,7 +251,15 @@ Example for the example plan:
 - **Change:**
   - Add a line to the [warnings panel](#where-warnings-go): "Coast assumes you both keep working until
     {coast age} with pay covering all spending, and stopping saving includes giving up employer matches."
-  - Remove the 4% line from the Coast card.
+  - Move the "4% rule check" line off **all** cards and into the detail view.
+    - Show it as a small stat, "Rule-of-thumb check (4% rule)", in the stats row of the savings chart panel
+      (`DetailView`, `src/ui/Results.tsx:192`).
+    - Show it for Traditional and Chubby only. For Coast it's a retirement-age figure that contradicts
+      "Needed today".
+    - The current card sentence (25 × (spending + first-year healthcare); ignores taxes and Social
+      Security) becomes its "?" help.
+    - The value is `simpleNumber` on the selected `TierResult`. Pass it into `DetailView`, or add it to
+      `Detail`.
 
 ### 8. Tax brokerage dividends and interest yearly (accuracy)
 

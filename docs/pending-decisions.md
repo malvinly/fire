@@ -114,6 +114,9 @@ the result cards?
   those markets.
 - Anything else that reports on results, such as the baseline comparison (feature 1) and the survivor test
   (feature 2), also goes below the cards rather than inside them.
+- The existing "4% rule check" line moves off the cards into the detail view as a small stat with its
+  explanation in the "?" help (fix 7). It's a reference figure, not a warning, so it doesn't go in the
+  warnings panel.
 
 **Why:** the maintainer wants the target numbers easy to read with no extra text. Keeping the warnings
 directly below the cards means they're still seen before anyone acts on the numbers; the very bottom of
