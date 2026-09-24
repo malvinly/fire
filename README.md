@@ -19,10 +19,13 @@ Roth conversions, 59½ access rules, required withdrawals, and federal + state t
 
 Everything runs in your browser; your numbers never leave your computer.
 
-## Why no Fat FIRE or Barista FIRE
+## Why no Lean FIRE, Fat FIRE or Barista FIRE
 
-Both are left out on purpose; they don't match the kind of plan this tool is built for.
+All three are left out on purpose; they don't match the kind of plan this tool is built for.
 
+- **Lean FIRE** — retiring on a bare-bones budget means watching every dollar for decades. This
+  planner is for a retirement with room to enjoy it: plenty of vacations, travel and eating out,
+  without penny-pinching.
 - **Fat FIRE** — funding a luxury retirement usually means saving very aggressively for years, putting
   off travel, purchases and experiences until after work ends. This planner assumes the opposite
   tradeoff: enjoy money along the way and retire comfortably. Traditional and Chubby cover that range.
