@@ -59,6 +59,12 @@ Two small additions for asking "what if?":
 The return adjustment is a new field under **Assumptions (advanced)**: "Returns vs. history (± per year)",
 default 0%.
 
+Its help text also covers international funds. The app's only stock history is the US market, so money in a
+fund like VXUS is treated as US stocks. Over the long run, stocks outside the US have returned roughly 2
+percentage points a year less than US stocks after inflation, so the help suggests a lower setting when part
+of your stocks are international. For example, with 70% in stocks and a third of that international: about
+−0.5% (70% × ⅓ × 2 points). This replaces adding international market data (declined, D89).
+
 ### Why it's worth doing
 
 - It's the quickest way to see which inputs matter for *your* plan, and how sensitive the date is.
@@ -87,7 +93,9 @@ default 0%.
     engine. Whether they can be kept as a baseline is a question for the maintainer, since the comparison
     would mix the model change with the input change.
   - Add `returnAdjustment` to `Assumptions`, applied on the same code path as `feeRate`, with its own
-    How-this-works row and help text.
+    How-this-works row and help text (including the international-funds guidance above). The "Markets"
+    row under "What this doesn't model" (`describeAssumptions`, `src/engine/assumptions.ts`) should then
+    point to this setting.
   - Side-by-side comparison of saved session files comes later.
 - **Test:** a return adjustment of −1% gives the same results as raising the fee by 1%.
 
@@ -245,37 +253,3 @@ details (names, earnings history), holds detail for only one FIRE type, and does
 - **Test:** with the example plan, the report has a section for each FIRE type and its numbers match the
   `TierResult`s and `Detail`s; it contains neither person's name nor any earnings-history amount; a stale
   or out-of-date result can't be exported. Check the file size on the example plan and note it here.
-
----
-
-## Lower priority: international market data
-
-### What it is
-
-All market history here is from the US, 1871–2025. The US was the best-performing major stock market of
-that period. Other countries had long stretches that were far worse: Japan after 1990, or Germany and Italy
-around the World Wars. Planning only on US history leans optimistic, as the DECISIONS "Which way the
-assumptions lean" table notes.
-
-### What you'd see
-
-An option under Assumptions: **"Market history: [US only / Developed markets]"**. The second choice builds
-the simulated markets from a wider set of countries, making the answer more cautious.
-
-### For implementers
-
-Needs a free multi-country dataset with stocks, bonds, bills, inflation and a long-term government bond
-yield for each year, since bond interest is taxed at each market's own yield (`bondYield`, D82). The
-Jordà-Schularick-Taylor Macrohistory Database has all five. It would come in through
-`scripts/build-market-data.ts` and `market.json`. `bootstrapPaths` and `historicalPaths` already accept a
-`years` list, but `averageInflation`, `averageBondInterestRate` and `averageRealReturns`
-(`src/engine/solve.ts`, used by `projectState`, the retirement-only runs' starting price level (D51) and the failure summary) read `MARKET.years` directly and
-would need the chosen dataset too.
-
-**Watch the page's size.** `src/data/market.json` (22 kB of US data) is bundled into the main page, not just the
-engine's worker, because the UI imports `MARKET` from `src/engine/returns.ts` for its first and last year
-(`App.tsx`, `helpText.ts`, `HowItWorks.tsx`, `assumptions.ts`). A multi-country dataset could be many times
-larger and would land there too. The build warns above 750 kB (`chunkSizeWarningLimit` in `vite.config.ts`;
-the main file was 511 kB at engine 6). Keep the new data out of the main page: export the year
-range as a small separate constant for the UI so only the worker loads the full data, and check the build
-output. Don't just raise the limit.
