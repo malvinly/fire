@@ -2,7 +2,7 @@
 
 import { buildContext, planYears, type Context } from './context';
 import { bootstrapPaths, constantPath, firstPaths, historicalPaths, MARKET, type ReturnPaths } from './returns';
-import { initialState, scaleState, simulatePath, totalBalance, type State } from './simulate';
+import { initialState, scaleState, simulatePath, totalBalance, type Mix, type State } from './simulate';
 import type { Plan, Scenario, YearRecord } from './types';
 
 export type Tier = 'coast' | 'traditional' | 'chubby';
@@ -36,6 +36,8 @@ export interface TierResult {
   simpleNumber: number;
   /** Traditional/Chubby: the last year searched for the earliest date (D43). Missing in older sessions. */
   searchLimit?: number;
+  /** Coast: the mix any money needed beyond today's balances is assumed to be saved in (D50). */
+  coastMix?: Mix;
   /**
    * Bootstrap balance at the start of the earliest year: typical (50th) and significantly below average
    * (10th percentile). Lets the card show how the date and the FIRE number relate (D54).
@@ -215,11 +217,28 @@ export function averageRealReturns(alloc: { stocks: number; bonds: number; cash:
   return { portfolio: alloc.stocks * s + alloc.bonds * b + alloc.cash * c - feeRate, cash: c };
 }
 
-/** Smallest total balance (scaled from `base`) that passes when simulated from `startIdx`. */
-function minPortfolio(e: Engine, ctx: Context, base: State, startIdx: number, retirementOnly: boolean): number | null {
+/**
+ * The mix new savings go into: today's contributions (employer match to pre-tax), cash savings left out. With no
+ * contributions at all, everything goes to the brokerage account at full basis (D50).
+ */
+export function contributionMix(plan: Plan): Mix {
+  const pretax = [plan.you, plan.spouse].map((p) => p.contributions.pretax + p.contributions.employerMatch);
+  const roth = [plan.you, plan.spouse].map((p) => p.contributions.roth);
+  const hsa = plan.you.contributions.hsa + plan.spouse.contributions.hsa;
+  const taxable = plan.household.taxableContribution;
+  const sum = pretax[0] + pretax[1] + roth[0] + roth[1] + hsa + taxable;
+  if (!(sum > 0)) return { pretax: [0, 0], roth: [0, 0], hsa: 0, taxable: 1 };
+  return { pretax: [pretax[0] / sum, pretax[1] / sum], roth: [roth[0] / sum, roth[1] / sum], hsa: hsa / sum, taxable: taxable / sum };
+}
+
+/**
+ * Smallest total balance built from `base` that passes when simulated from `startIdx`: `base` scaled, or with
+ * `extra`, topped up in that mix (D50).
+ */
+function minPortfolio(e: Engine, ctx: Context, base: State, startIdx: number, retirementOnly: boolean, extra?: Mix): number | null {
   const target = e.plan.assumptions.targetSuccess;
   const ok = (x: number, full: boolean) =>
-    passes(evaluate(e, ctx, { startIdx, startState: scaleState(base, x), retirementOnly }, full), target);
+    passes(evaluate(e, ctx, { startIdx, startState: scaleState(base, x, extra), retirementOnly }, full), target);
   let hi = Math.max(100_000, 25 * (ctx.scenario.baseSpending + ctx.healthcare[Math.min(startIdx, ctx.len - 1)]));
   while (!ok(hi, false)) {
     hi *= 2;
@@ -255,7 +274,8 @@ export function solveTier(e: Engine, tier: Tier): TierResult {
   if (tier === 'coast') {
     const coastYear = coastRetireYear(plan);
     const earliest = earliestYear(e, tier, e.startYear, Math.max(e.startYear, coastYear));
-    const fireNumber = minPortfolio(e, todayCtx, initialState(todayCtx), 0, false);
+    const coastMix = contributionMix(plan);
+    const fireNumber = minPortfolio(e, todayCtx, initialState(todayCtx), 0, false, coastMix);
     let successAtEarliest: Success | null = null;
     let penaltyRate: number | null = null;
     if (earliest !== null) {
@@ -266,7 +286,7 @@ export function solveTier(e: Engine, tier: Tier): TierResult {
     }
     return {
       tier, spending, currentBalance: current, successToday, simpleNumber, fireNumber, successAtEarliest, penaltyRate,
-      earliest: earliest === null ? null : agesAt(plan, earliest), projectedAtEarliest: null,
+      earliest: earliest === null ? null : agesAt(plan, earliest), projectedAtEarliest: null, coastMix,
     };
   }
 

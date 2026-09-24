@@ -6,7 +6,7 @@ import { examplePlan } from '../src/engine/defaults';
 import { constantPath, historicalPaths, MARKET, type ReturnPaths } from '../src/engine/returns';
 import { initialState, scaleState, simulatePath } from '../src/engine/simulate';
 import {
-  averageInflation, detailFor, evaluate, makeEngine, projectState, scenarioFor, solveTier,
+  averageInflation, contributionMix, detailFor, evaluate, makeEngine, projectState, scenarioFor, solveTier,
 } from '../src/engine/solve';
 import type { Plan } from '../src/engine/types';
 
@@ -106,7 +106,7 @@ describe('Coast FIRE', () => {
   test('the Coast number passes when you stop contributing today and 1% less does not', () => {
     const ctx = buildContext(plan, scenarioFor(plan, 'coast', plan.startYear));
     const base = initialState(ctx);
-    const run = (x: number) => evaluate(engine, ctx, { startState: scaleState(base, x) }, true);
+    const run = (x: number) => evaluate(engine, ctx, { startState: scaleState(base, x, contributionMix(plan)) }, true);
     expect(run(coast.fireNumber!).combined).toBeGreaterThanOrEqual(target);
     expect(run(coast.fireNumber! * 0.99).combined).toBeLessThan(target);
   });
@@ -118,6 +118,32 @@ describe('Coast FIRE', () => {
     const r = solveTier(makeEngine(p), 'coast');
     expect(r.currentBalance).toBe(0);
     expect(r.fireNumber).toBeGreaterThan(0);
+  });
+
+  test('a small cash balance does not price the whole Coast number as cash (fix 15, D50)', () => {
+    const zero = smallPlan();
+    for (const id of ['you', 'spouse'] as const) zero[id].balances = { pretax: 0, roth: 0, rothBasis: 0, hsa: 0 };
+    zero.household.taxable = zero.household.taxableBasis = zero.household.cash = 0;
+    const oneDollar = structuredClone(zero);
+    oneDollar.household.cash = 1;
+    const a = solveTier(makeEngine(zero), 'coast').fireNumber!;
+    const b = solveTier(makeEngine(oneDollar), 'coast').fireNumber!;
+    expect(Math.abs(b / a - 1)).toBeLessThan(0.03);
+  });
+
+  test('money needed beyond the current balances is added in the mix you contribute in; less is scaled down', () => {
+    const ctx = buildContext(plan, scenarioFor(plan, 'coast', plan.startYear));
+    const s = initialState(ctx); // example: 880k today
+    const mix = contributionMix(plan); // 25k pre-tax each, 15k brokerage
+    expect(mix.pretax[0]).toBeCloseTo(25 / 65, 12);
+    expect(mix.taxable).toBeCloseTo(15 / 65, 12);
+    const up = scaleState(s, 880_000 + 65_000, mix);
+    expect(up.pretax[0]).toBeCloseTo(s.pretax[0] + 25_000, 6);
+    expect(up.taxable).toBeCloseTo(s.taxable + 15_000, 6);
+    expect(up.taxableBasis).toBeCloseTo(s.taxableBasis + 15_000, 6);
+    expect(up.cash).toBe(s.cash);
+    const down = scaleState(s, 440_000, mix);
+    expect(down.cash).toBeCloseTo(s.cash / 2, 6);
   });
 });
 

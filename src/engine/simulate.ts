@@ -48,13 +48,34 @@ export function totalBalance(s: State): number {
   return s.cash + s.taxable + s.hsa + s.pretax[0] + s.pretax[1] + s.roth[0] + s.roth[1];
 }
 
+/** Shares of new money going to each account (sum 1); Roth money is contributions, brokerage money is basis. */
+export interface Mix {
+  pretax: [number, number];
+  roth: [number, number];
+  hsa: number;
+  taxable: number;
+}
+
 /**
- * Scale every balance (and basis) so the total equals `total`. A state with no money at all has no mix to
- * scale, so the total is placed in the taxable account at full basis (D50).
+ * A state holding `total` in all. Without `extra`, every balance (and basis) is scaled, and a state with no money
+ * at all puts the total in the taxable account at full basis (D50). With `extra`, money above today's total is
+ * added in that mix instead, so a small or all-cash balance doesn't set the mix of the whole amount (D50).
  */
-export function scaleState(s: State, total: number): State {
+export function scaleState(s: State, total: number, extra?: Mix): State {
   const out = cloneState(s);
   const current = totalBalance(s);
+  if (extra && total > current) {
+    const add = total - Math.max(0, current);
+    for (const i of [0, 1] as const) {
+      out.pretax[i] += add * extra.pretax[i];
+      out.roth[i] += add * extra.roth[i];
+      out.rothPrincipal[i] += add * extra.roth[i];
+    }
+    out.hsa += add * extra.hsa;
+    out.taxable += add * extra.taxable;
+    out.taxableBasis += add * extra.taxable;
+    return out;
+  }
   if (current <= 0) {
     out.taxable = out.taxableBasis = total;
     return out;

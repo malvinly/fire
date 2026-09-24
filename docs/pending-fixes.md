@@ -83,29 +83,6 @@ Example for the example plan:
 
 ## P2: narrower wrong answers, clarity gaps
 
-### 15. Coast number and today's account mix (accuracy)
-
-- **Problem:**
-  - Coast "Needed today" scales *today's* account mix up or down (`scaleState`).
-  - A tiny balance held all in cash therefore prices the whole number as T-bills.
-  - An all-zero balance uses the D50 rule (taxable at full basis), so the result jumps between $0 and $1.
-- **Where:** `scaleState` in `src/engine/simulate.ts:54`; `minPortfolio` in `src/engine/solve.ts:203`; D50.
-- **Evidence:**
-
-  | Balances today | Coast "Needed today" |
-  |---|---|
-  | All zero | $676k |
-  | $1 in cash only | **$3.02M** |
-  | $1 in HSA | $743k |
-  | $1 in pre-tax | $779k |
-
-  A realistic case: a $20k emergency fund and nothing invested gives $3.02M.
-- **Change:**
-  - When today's balance is small, or mostly cash, scale a standard mix instead: D50's taxable, or the
-    projected mix of contributions.
-  - Show which mix the number assumes. Update D50.
-- **Test:** Coast number with $1 in cash is within a few percent of the all-zero result.
-
 ### 16. Input ranges and warnings (robustness)
 
 - **Problem:** many fields accept values that give confident nonsense instead of a warning.

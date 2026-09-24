@@ -1,6 +1,7 @@
 import { useState, type ReactNode } from 'react';
 import { timingYear } from '../engine/context';
 import type { Detail, Success, Tier, TierResult } from '../engine/solve';
+import type { Mix } from '../engine/simulate';
 import type { Plan } from '../engine/types';
 import { accountLegend, AccountsChart, BAND_LABELS, BandsChart, useTheme, type Marker } from './charts';
 import { Help } from './fields';
@@ -15,6 +16,16 @@ function tierHelp(tier: Tier, plan: Plan): string {
   if (tier === 'traditional') return 'Retire on your normal retirement budget (the Traditional spending you entered).';
   if (tier === 'chubby') return 'Retire on a bigger, more comfortable budget (the Chubby spending you entered).';
   return `Stop saving now (employer matches stop too), keep working until ${plan.you.name} is ${plan.household.coastRetireAge} with your paychecks covering the bills, then retire on the Traditional budget.`;
+}
+
+/** How the Coast number counts money you don't have yet (D50). */
+function mixText(mix: Mix | undefined): string {
+  if (!mix) return '';
+  const parts = [
+    [mix.pretax[0] + mix.pretax[1], '401(k)/IRA'], [mix.roth[0] + mix.roth[1], 'Roth'], [mix.hsa, 'HSA'], [mix.taxable, 'brokerage'],
+  ] as const;
+  const list = parts.filter(([share]) => share > 0.005).map(([share, name]) => `${percent(share)} ${name}`).join(', ');
+  return ` If you have less, the difference is counted as if saved the way you contribute today: ${list}.`;
 }
 
 /** Names the last year searched, which is the younger spouse's age 75 or the year before the plan ends (D43). */
@@ -94,7 +105,7 @@ export function TierCard({ r, plan, selected, onSelect }: { r: TierResult | null
       <div className="stat-row">
         <div className="stat">
           <Label help={isCoast
-            ? 'The smallest total savings today that would let you stop saving now and still reach your target.'
+            ? `The smallest total savings today that would let you stop saving now and still reach your target.${mixText(r.coastMix)}`
             : 'The total savings (all accounts, today’s dollars) you need on the day you retire for your money to last at your target chance.'}>
             {isCoast ? 'Needed today to stop saving' : 'Savings needed when you retire'}
           </Label>
