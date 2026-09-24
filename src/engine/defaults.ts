@@ -37,7 +37,7 @@ export function fidelityDefaultSpending(plan: Plan): number {
   return Math.round(Math.max(0, plan.household.currentSpending - datedExpensesToday(plan)) * FIDELITY_SPENDING_FACTOR);
 }
 
-/** Chubby FIRE: 20% more than today — between Traditional (0.85×) and Fat FIRE (D48). */
+/** Chubby FIRE: 20% more than today — between Traditional (0.85×) and Fat FIRE (D57). */
 export const CHUBBY_SPENDING_FACTOR = 1.2;
 
 /** Default for Chubby FIRE spending: 1.2 × (current spending − dated expenses paid today), same base as Traditional. */
@@ -54,7 +54,7 @@ function person(name: string, birthYear: number): Person {
     contributions: { pretax: 20_000, employerMatch: 5_000, roth: 0, hsa: 0 },
     balances: { pretax: 300_000, roth: 50_000, rothBasis: 30_000, hsa: 0 },
     socialSecurity: { mode: 'manual', earnings: [], manualPia: 2_500, claimAge: 67 },
-    healthcare: { preMedicare: 9_000, medicare: 6_500 },
+    healthcare: { preMedicare: 16_000, medicare: 7_500 }, // 2026 US averages (D58)
   };
 }
 
@@ -73,7 +73,7 @@ export function examplePlan(startYear = new Date().getFullYear()): Plan {
       cashContribution: 0,
       currentSpending: 90_000,
       traditionalSpending: Math.round(90_000 * FIDELITY_SPENDING_FACTOR), // = fidelityDefaultSpending (no dated items)
-      chubbySpending: Math.round(90_000 * CHUBBY_SPENDING_FACTOR), // = chubbyDefaultSpending (no dated items) (D48)
+      chubbySpending: Math.round(90_000 * CHUBBY_SPENDING_FACTOR), // = chubbyDefaultSpending (no dated items) (D57)
       coastRetireAge: 65,
     },
     datedItems: [],

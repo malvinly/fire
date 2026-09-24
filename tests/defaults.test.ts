@@ -1,4 +1,4 @@
-// Default spending levels (D18, D48).
+// Default spending levels (D18, D57).
 import { describe, expect, test } from 'vitest';
 import { chubbyDefaultSpending, examplePlan, fidelityDefaultSpending } from '../src/engine/defaults';
 

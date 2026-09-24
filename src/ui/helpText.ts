@@ -46,9 +46,9 @@ export const HELP = {
 
   // Healthcare
   preMedicare:
-    'Yearly premiums plus out-of-pocket costs for an ACA marketplace plan at full price (subsidies aren’t modeled). To estimate, browse plans on healthcare.gov for your age and zip code with an income high enough to get no subsidy. Only counts in years you’re retired and under 65.',
+    'Yearly premiums plus out-of-pocket costs for an ACA marketplace plan at full price (subsidies aren’t modeled). Premiums rise with age, so use your average for the years between retiring and 65. 2026 US average benchmark silver premium: about $12,500/yr at 55, $16,000 at 60, $17,500 at 64; add $2–3k out-of-pocket (worst case $10,600). Prices vary a lot by state — browse plans on healthcare.gov for your age and zip code with an income high enough to get no subsidy. Only counts in years you’re retired and under 65.',
   medicare:
-    'Yearly Medicare Part B + Part D + Medigap (or Advantage) premiums plus out-of-pocket costs; medicare.gov’s plan finder gives prices. Only counts once you’re retired.',
+    'Yearly Medicare Part B + Part D + Medigap (or Advantage) premiums plus out-of-pocket costs. 2026 reference: Part B $2,435, Medigap Plan G about $2,650 at 65, Part D about $400, plus $1,500–2,000 for deductibles, copays, dental and vision — about $7,500 in all. medicare.gov’s plan finder gives prices. Only counts once you’re retired.',
 
   // Social Security
   ssMode:

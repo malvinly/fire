@@ -16,7 +16,7 @@ expected value **by hand from the official source** (show the arithmetic in a co
 whatever the engine now outputs. If your hand calculation disagrees with the engine, stop and report it:
 that is a bug, not a data update.
 
-**First, orient yourself.** Read `README.md`, `docs/DEVELOPMENT.md`, `docs/DECISIONS.md` (rows D10–D12, D24, D26, D31, D32),
+**First, orient yourself.** Read `README.md`, `docs/DEVELOPMENT.md`, `docs/DECISIONS.md` (rows D10–D12, D24, D26, D31, D32, D58),
 `scripts/build-market-data.ts`, `src/data/rules.ts`, `src/engine/defaults.ts` and
 `src/engine/assumptions.ts`. Note today's date; call the current year **Y**. Run `npm install` and
 `npm test` to confirm everything passes before you change anything.
@@ -75,6 +75,12 @@ examples in `tests/tax.test.ts`, which hard-code the brackets, deduction and 0% 
   (https://www.fidelity.com/bin-public/060_www_fidelity_com/documents/FI_Planner_Methodology.pdf) and
   retirement guidelines: planning age (96), confidence (90%), asset mix (70/25/5), spending factor
   (0.85), wage growth (1.5%). Change a default only if Fidelity changed it; note it in the report.
+- Example healthcare costs (D58: `healthcare` in `examplePlan`, and the `preMedicare` / `medicare` texts in
+  `src/ui/helpText.ts`). Pre-65: KFF's average benchmark silver premium for a 40-year-old for year Y
+  (search "KFF average benchmark premium Y"), scaled by the federal default age curve to ages 55/60/64;
+  keep the same method (average from a mid-50s retirement to 65, plus ~$2–3k out-of-pocket) and the ACA
+  out-of-pocket limit for Y. From 65: the Part B standard premium (CMS fact sheet), average Part D premium
+  and Medigap Plan G at 65. Round to the nearest $500.
 
 **6. Reference test vs. FI Calc** (`tests/historical.test.ts`)
 - Open https://ficalc.app with its defaults ($1,000,000, $40,000 constant-dollar inflation-adjusted,
@@ -84,7 +90,7 @@ examples in `tests/tax.test.ts`, which hard-code the brackets, deduction and 0% 
 
 **7. Text that states data values** — update by hand, then grep for the old numbers to catch leftovers:
 - `src/engine/assumptions.ts` (row texts, `DATA_VERSIONS.trusteesReport`).
-- `docs/DECISIONS.md`: D24–D26, D31–D32 and the "Data update history" table.
+- `docs/DECISIONS.md`: D24–D26, D31–D32, D58 and the "Data update history" table.
 - `README.md`: the market-data year range. `docs/DEVELOPMENT.md` (Tests section): the SSA worked example numbers and the FI Calc "121-of-125".
 - Source comments at the top of each block in `src/data/rules.ts`.
 - Example: `rg -n "2026|184,500|184_500|1,286|7,749|32,200|98,900" src docs README.md tests` and review every hit.

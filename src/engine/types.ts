@@ -96,7 +96,7 @@ export interface Plan {
     currentSpending: number;
     /** Traditional FIRE baseline retirement spending (excludes healthcare & dated items). */
     traditionalSpending: number;
-    /** Chubby FIRE spending; empty (null) skips the Chubby result. Default = current × 1.2 (D48). */
+    /** Chubby FIRE spending; empty (null) skips the Chubby result. Default = current × 1.2 (D57). */
     chubbySpending: number | null;
     /** Coast FIRE: age (of "you") at which work fully stops. */
     coastRetireAge: number;
