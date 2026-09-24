@@ -279,7 +279,7 @@ export default function App() {
                     </div>
                   </div>
                 )}
-                {detail && <DetailView plan={results.plan} detail={detail} loading={detailLoading} />}
+                {detail && <DetailView plan={results.plan} detail={detail} loading={detailLoading} simpleNumber={results.tiers[detail.tier]?.simpleNumber} />}
               </>
             )}
           </section>

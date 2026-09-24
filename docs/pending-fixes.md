@@ -79,32 +79,6 @@ Example for the example plan:
 
 ## P1: materially changes answers or breaks on plausible input
 
-### 7. Coast caveats and the 4% line (clarity)
-
-- **Problem:**
-  - "You can stop saving now" depends on both jobs covering all spending until the coast age.
-  - Stopping also drops the employer match: `contributing = false` zeroes it along with everything else.
-  - The card's "4% rule check" (a retirement-age figure) sits next to "Needed today" and reads as a
-    contradiction.
-- **Where:**
-  - Hero text: `src/ui/Results.tsx:75–76`. 4% line: `Results.tsx:129`.
-  - Match: `src/engine/context.ts:161–165`.
-  - Coast explanation: `tierHelp` in `src/ui/Results.tsx:13`.
-- **Evidence:** the example Coast card shows "You can stop saving now", "Needed today $783K" and
-  "4% rule check … $2.74M".
-- **Change:**
-  - Add a line to the [warnings panel](#where-warnings-go): "Coast assumes you both keep working until
-    {coast age} with pay covering all spending, and stopping saving includes giving up employer matches."
-  - Move the "4% rule check" line off **all** cards and into the detail view.
-    - Show it as a small stat, "Rule-of-thumb check (4% rule)", in the stats row of the savings chart panel
-      (`DetailView`, `src/ui/Results.tsx:192`).
-    - Show it for Traditional and Chubby only. For Coast it's a retirement-age figure that contradicts
-      "Needed today".
-    - The current card sentence (25 × (spending + first-year healthcare); ignores taxes and Social
-      Security) becomes its "?" help.
-    - The value is `simpleNumber` on the selected `TierResult`. Pass it into `DetailView`, or add it to
-      `Detail`.
-
 ### 8. Tax brokerage dividends and interest yearly (accuracy)
 
 - **Problem:**

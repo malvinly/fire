@@ -21,7 +21,7 @@ Key research points:
 
 ## Core design
 
-1. **Engine** — year-by-year simulation; FIRE numbers are solved outputs. 25× shown as a sanity check.
+1. **Engine** — year-by-year simulation; FIRE numbers are solved outputs. 25× shown as a sanity check in the detail view.
 2. **Success** — money never runs out before the *younger* spouse reaches the end age (default 96,
    editable). Target 90% (editable). Results show Fidelity's three market conditions as 50th/25th/10th
    percentile bands.

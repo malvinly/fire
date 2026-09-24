@@ -28,6 +28,22 @@ describe('early-withdrawal penalty rate (fix 6)', () => {
   });
 });
 
+describe('Coast assumptions (fix 7)', () => {
+  test('Coast names the year work stops and the employer matches given up', () => {
+    const plan = examplePlan(2026); // You born 1984, coast age 65 → 2049; $5,000 matches each
+    const lines = texts(beforeYouAct(plan, { coast: tier('coast', 2026, 774_400) }));
+    expect(lines).toContain('Coast assumes you both keep working until 2049 (You 65) with pay covering all spending, and that stopping saving includes giving up employer matches.');
+  });
+
+  test('without employer matches the line leaves them out; without a Coast result there is no line', () => {
+    const plan = examplePlan(2026);
+    plan.you.contributions.employerMatch = plan.spouse.contributions.employerMatch = 0;
+    expect(texts(beforeYouAct(plan, { coast: tier('coast', 2026, 774_400) }))).toContain(
+      'Coast assumes you both keep working until 2049 (You 65) with pay covering all spending.');
+    expect(texts(beforeYouAct(plan, { traditional: tier('traditional', 2039, 2_627_800) })).join(' ')).not.toContain('Coast');
+  });
+});
+
 describe('savings needed by the earliest date (fix 4)', () => {
   test('Traditional and Chubby share one line naming each year and amount', () => {
     const lines = beforeYouAct(examplePlan(2026), {

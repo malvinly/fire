@@ -14,7 +14,7 @@ export const TIER_NAMES: Record<Tier, string> = { traditional: 'Traditional FIRE
 function tierHelp(tier: Tier, plan: Plan): string {
   if (tier === 'traditional') return 'Retire on your normal retirement budget (the Traditional spending you entered).';
   if (tier === 'chubby') return 'Retire on a bigger, more comfortable budget (the Chubby spending you entered).';
-  return `Stop saving now, keep working until ${plan.you.name} is ${plan.household.coastRetireAge} with your paychecks covering the bills, then retire on the Traditional budget.`;
+  return `Stop saving now (employer matches stop too), keep working until ${plan.you.name} is ${plan.household.coastRetireAge} with your paychecks covering the bills, then retire on the Traditional budget.`;
 }
 
 function SuccessBadge({ s, target }: { s: Success | null; target: number }) {
@@ -123,10 +123,6 @@ export function TierCard({ r, plan, selected, onSelect }: { r: TierResult | null
           <div><MethodLine s={r.successAtEarliest} /></div>
         </div>
       )}
-      <div className="muted" style={{ fontSize: 12 }}>
-        4% rule check: 25 × (spending + first-year healthcare) = {moneyShort(r.simpleNumber)}. Ignores taxes and
-        Social Security; not used for your date.
-      </div>
     </div>
   );
 }
@@ -183,7 +179,8 @@ const COLUMNS: { label: string; help?: string }[] = [
   { label: 'Total savings (end of year)' },
 ];
 
-export function DetailView({ plan, detail, loading }: { plan: Plan; detail: Detail; loading: boolean }) {
+/** `simpleNumber`: the selected tier's 4% rule figure (a reference, shown for Traditional and Chubby only). */
+export function DetailView({ plan, detail, loading, simpleNumber }: { plan: Plan; detail: Detail; loading: boolean; simpleNumber?: number }) {
   const theme = useTheme();
   const target = plan.assumptions.targetSuccess;
   const retireYear = detail.scenario.retireYear;
@@ -215,6 +212,14 @@ export function DetailView({ plan, detail, loading }: { plan: Plan; detail: Deta
             </Label>
             <div className="value">{plan.you.name} {money(detail.pia[0])} · {plan.spouse.name} {money(detail.pia[1])}</div>
           </div>
+          {detail.tier !== 'coast' && simpleNumber !== undefined && (
+            <div className="stat">
+              <Label help="25 × (spending + first-year healthcare). Ignores taxes and Social Security; not used for your date or “Savings needed”.">
+                Rule-of-thumb check (4% rule)
+              </Label>
+              <div className="value">{moneyShort(simpleNumber)}</div>
+            </div>
+          )}
         </div>
         <div className="row" style={{ justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
           <MethodLine s={detail.success} />

@@ -20,7 +20,7 @@ function list(items: string[]): string {
   return items.length <= 1 ? items.join('') : `${items.slice(0, -1).join(', ')} and ${items[items.length - 1]}`;
 }
 
-export function beforeYouAct(_plan: Plan, tiers: Partial<Record<Tier, TierResult>>): WarningLine[] {
+export function beforeYouAct(plan: Plan, tiers: Partial<Record<Tier, TierResult>>): WarningLine[] {
   const lines: WarningLine[] = [];
   const retire = (['traditional', 'chubby'] as const)
     .map((t) => tiers[t])
@@ -42,6 +42,17 @@ export function beforeYouAct(_plan: Plan, tiers: Partial<Record<Tier, TierResult
     if (rate != null && rate > PENALTY_WARN) {
       lines.push({ key: `penalty-${t}`, text: `In ${percent(rate)} of markets the ${SHORT[t]} plan pays a 10% penalty on early 401(k)/IRA withdrawals.` });
     }
+  }
+  // Coast depends on both paychecks covering everything until the coast age, and stopping saving stops the
+  // employer match too (it is zeroed with every other contribution).
+  if (tiers.coast) {
+    const age = plan.household.coastRetireAge;
+    const matches = plan.you.contributions.employerMatch + plan.spouse.contributions.employerMatch > 0;
+    lines.push({
+      key: 'coast',
+      text: `Coast assumes you both keep working until ${plan.you.birthYear + age} (${plan.you.name} ${age}) with pay covering all spending` +
+        (matches ? ', and that stopping saving includes giving up employer matches.' : '.'),
+    });
   }
   return lines;
 }
