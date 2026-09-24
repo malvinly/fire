@@ -30,9 +30,6 @@ Both are left out on purpose; they don't match the kind of plan this tool is bui
   means not needing a paycheck: every plan must stand on savings and Social Security alone. Part-time
   work done later by choice is a bonus, not something the plan depends on.
 
-To explore either anyway, enter a higher Chubby spending (Fat) or add part-time pay as a dated income
-item (Barista).
-
 ## Start it
 
 Requires [Node.js](https://nodejs.org/) 22 or newer.
