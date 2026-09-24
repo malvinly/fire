@@ -69,6 +69,6 @@ export function beforeYouAct(plan: Plan, tiers: Partial<Record<Tier, TierResult>
   }
 
   // Always last (D75).
-  lines.push({ key: 'disclaimer', text: 'These are estimates, not financial advice.', link: 'limits' });
+  lines.push({ key: 'disclaimer', text: 'All amounts are in today’s dollars. These are estimates, not financial advice.', link: 'limits' });
   return lines;
 }

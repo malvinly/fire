@@ -87,15 +87,6 @@ Example for the example plan:
 
 ## P3: polish and rare edges
 
-### 19. Today's dollars and the Social Security label (clarity)
-
-- **Today's dollars:** the card figures (`src/ui/Results.tsx:83–120`) say "today's dollars" only in hover
-  help. Say it once, in the last line of the [warnings panel](#where-warnings-go) ("All amounts are in
-  today's dollars."), rather than adding labels to the cards.
-- **Social Security in statement mode:** the detail label (`Results.tsx:201`) says "based on working until
-  {year}". In statement mode the figure is exactly the entered `manualPia` (`src/engine/context.ts:88`), so
-  it doesn't depend on that year. Use different text in manual mode.
-
 ### 20. Worst-years table: show when retirement began (clarity)
 
 - **Problem:** rows are keyed to the plan's start year (whole-plan replay, D47). "Retiring into 1966"

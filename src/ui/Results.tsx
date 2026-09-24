@@ -213,6 +213,16 @@ function failureText(d: Detail): string | null {
     `From then on you’d live on Social Security, about ${moneyShort(f.socialSecurity)}/yr against about ${moneyShort(f.spending)}/yr of spending, unless you cut spending earlier.`;
 }
 
+/** Where each person's full-retirement-age benefit comes from: the earnings record depends on the retirement year, a statement estimate doesn't. */
+function piaHelp(plan: Plan, retireYear: number): string {
+  const source = (id: 'you' | 'spouse') => plan[id].socialSecurity.mode === 'manual'
+    ? 'the statement estimate you entered, which doesn’t change with the retirement year'
+    : `the earnings record, with work until ${retireYear}`;
+  const from = source('you') === source('spouse') ? `From ${source('you')}.` : `${plan.you.name}: from ${source('you')}. ${plan.spouse.name}: from ${source('spouse')}.`;
+  const wage = plan.assumptions.ssWageGrowth ? ' Raised for national wage growth above inflation (Assumptions).' : '';
+  return `Each person’s own monthly benefit at full retirement age (67 for most people). ${from}${wage} Before the adjustment for your claim age, the spousal top-up and the trust-fund cut.`;
+}
+
 /** `simpleNumber`: the selected tier's 4% rule figure (a reference, shown for Traditional and Chubby only). */
 export function DetailView({ plan, detail, loading, simpleNumber }: { plan: Plan; detail: Detail; loading: boolean; simpleNumber?: number }) {
   const theme = useTheme();
@@ -241,7 +251,7 @@ export function DetailView({ plan, detail, loading, simpleNumber }: { plan: Plan
             <div className="value">{percent(detail.penaltyRate, 1)}</div>
           </div>
           <div className="stat">
-            <Label help={`Each person’s own monthly benefit at full retirement age (67 for most people), based on working until ${retireYear}. Before the adjustment for your claim age, the spousal top-up and the trust-fund cut.`}>
+            <Label help={piaHelp(plan, retireYear)}>
               Social Security at full retirement age (monthly, today’s $)
             </Label>
             <div className="value">{plan.you.name} {money(detail.pia[0])} · {plan.spouse.name} {money(detail.pia[1])}</div>
