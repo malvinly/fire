@@ -30,7 +30,7 @@ export const DATA_VERSIONS = {
   rulesYear: RULES_YEAR,
   wageIndexYear: SOCIAL_SECURITY.awiLatestYear,
   trusteesReport: 2026,
-  engine: 2,
+  engine: 3,
 };
 
 export function describeAssumptions(plan: Plan): AssumptionRow[] {
@@ -85,8 +85,8 @@ export function describeAssumptions(plan: Plan): AssumptionRow[] {
       why: 'Coast = stop contributing now, keep working (paycheck covers spending) until this age, then Traditional spending.' },
     { group: 'Work & spending', label: 'While working', value: 'Paycheck covers all spending', status: 'fixed',
       why: 'The portfolio only receives contributions until the retirement date.', decision: 'D16' },
-    { group: 'Work & spending', label: 'Dated items', value: `${plan.datedItems.length} item(s), applied from the retirement date`, status: 'fixed',
-      why: 'Before retirement they are part of the paycheck budget. Fixed-dollar items shrink with inflation.', decision: 'D17, D19' },
+    { group: 'Work & spending', label: 'Dated items', value: `${plan.datedItems.length} item(s)`, status: 'fixed',
+      why: 'Ongoing items already paid today are part of the paycheck budget until retirement. Everything else dated before retirement is paid from (or saved to) cash and brokerage savings, with tax on any gains; a cost savings can’t cover counts as running out. Fixed-dollar items shrink with inflation.', decision: 'D17, D19' },
 
     // Healthcare
     { group: 'Healthcare', label: 'Healthcare inflation', value: `${pct(a.healthcareInflation)} above inflation`, status: st(a.healthcareInflation === d.healthcareInflation),

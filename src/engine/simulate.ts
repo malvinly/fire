@@ -292,12 +292,66 @@ export function simulatePath(ctx: Context, paths: ReturnPaths, p: number, opts: 
         s.taxable += saved;
         s.taxableBasis += saved;
       }
+      // Dated items not already in today's budget (D17): inflows are saved to taxable; costs come from cash, then
+      // taxable (paying the capital-gains tax on the sale). A cost savings can't cover fails the path.
+      const datedIn = ctx.realIn[t] + ctx.nominalIn[t] / priceLevel;
+      const datedOut = ctx.realOut[t] + ctx.nominalOut[t] / priceLevel;
+      let fromCash = 0;
+      let fromTaxable = 0;
+      let gain = 0;
+      let gainsFederal = 0;
+      let gainsState = 0;
+      let short = 0;
+      if (datedIn > datedOut) {
+        s.taxable += datedIn - datedOut;
+        s.taxableBasis += datedIn - datedOut;
+      } else if (datedOut > datedIn) {
+        fromCash = Math.min(datedOut - datedIn, s.cash);
+        s.cash -= fromCash;
+        const need = datedOut - datedIn - fromCash;
+        if (need > 0) {
+          const gainShare = s.taxable > 0 ? Math.max(0, 1 - s.taxableBasis / s.taxable) : 0;
+          const base = {
+            ordinary: ctx.wages[t] + rmd0 + rmd1, socialSecurity: ss, over65: ctx.over65Count[t], priceLevel,
+            stateRate: ctx.plan.assumptions.stateTaxRate,
+          };
+          const before = computeTax({ ...base, ltcg: 0 });
+          const gainsTax = (sold: number) => {
+            const after = computeTax({ ...base, ltcg: sold * gainShare });
+            return [after.federal - before.federal, after.state - before.state] as const;
+          };
+          // The sale also pays its own tax: iterate to a fixed point.
+          let sell = need;
+          for (let iter = 0; iter < 20; iter++) {
+            const [f, st] = gainsTax(Math.min(sell, s.taxable));
+            const next = need + f + st;
+            const converged = Math.abs(next - sell) < 0.5;
+            sell = next;
+            if (converged) break;
+          }
+          fromTaxable = Math.min(sell, s.taxable);
+          [gainsFederal, gainsState] = gainsTax(fromTaxable);
+          gain = fromTaxable * gainShare;
+          if (sell > s.taxable) short = Math.max(0, need + gainsFederal + gainsState - fromTaxable);
+          if (fromTaxable > 0) {
+            s.taxableBasis *= 1 - fromTaxable / s.taxable;
+            s.taxable -= fromTaxable;
+          }
+        }
+        if (short > 1 && failYear === null) failYear = ctx.years[t];
+      }
       if (records) {
         rec = blankRecord(ctx, t, true);
+        rec.spending = datedOut;
+        rec.otherIncome = datedIn;
         rec.socialSecurity = ss;
         rec.rmd = rmd0 + rmd1;
-        rec.federalTax = extraFederal;
-        rec.stateTax = extraState;
+        rec.withdrawals.cash = fromCash;
+        rec.withdrawals.taxable = fromTaxable;
+        rec.capitalGains = gain;
+        rec.federalTax = extraFederal + gainsFederal;
+        rec.stateTax = extraState + gainsState;
+        rec.shortfall = short;
       }
     } else {
       const inflow = ctx.realIn[t] + ctx.nominalIn[t] / priceLevel;

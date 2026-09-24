@@ -75,7 +75,7 @@ export const HELP = {
   itemFrequency: 'Every year, one time, or every N years (e.g. a car every 10 years).',
   itemAmount: 'The amount each time it happens — per year for “Every year”, per event otherwise. Today’s dollars, unless “Fixed dollars” is ticked.',
   itemStart:
-    'When it happens or begins, as a calendar year or someone’s age. Anything before your retirement year is ignored (your paycheck covers it); an ongoing item that started earlier still counts from retirement on.',
+    'When it happens or begins, as a calendar year or someone’s age. An ongoing item you already pay today is covered by your paycheck until you retire. Anything else before retirement is paid from (or, for income, saved to) your cash and brokerage accounts, with tax on any gains; if they can’t cover a cost, that market counts as running out.',
   itemEnd: 'The last year it applies. “Plan end” means it never stops.',
   itemEvery: 'e.g. 10 for a car every 10 years, starting in the Starts year.',
   itemWhen: 'The calendar year, or that person’s age that year.',

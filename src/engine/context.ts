@@ -29,8 +29,9 @@ export interface Context {
     cash: Float64Array;
   };
   baseSpending: Float64Array;
-  /** Dated items, retirement years only (D17). "real" amounts are today's dollars; "nominal" are fixed-dollar
-   *  amounts the simulation divides by the path's price level (D19). Out = expenses, In = income. */
+  /** Dated items (D17): every year from retirement on; while working, only items not already part of today's
+   *  budget. "real" amounts are today's dollars; "nominal" are fixed-dollar amounts the simulation divides by
+   *  the path's price level (D19). Out = expenses, In = income. */
   realOut: Float64Array;
   nominalOut: Float64Array;
   realIn: Float64Array;
@@ -62,6 +63,15 @@ export function planYears(plan: Plan): { startYear: number; endYear: number; len
 
 export function timingYear(plan: Plan, t: DatedTiming): number {
   return t.kind === 'year' ? t.year : plan[t.person].birthYear + t.age;
+}
+
+/**
+ * An ongoing item that is already running at the plan start (a mortgage, rent received) is part of today's
+ * budget: the paycheck and today's savings already reflect it, so it only counts from retirement on (D17).
+ */
+export function inTodaysBudget(plan: Plan, item: DatedItem): boolean {
+  return item.frequency === 'ongoing' && timingYear(plan, item.start) <= plan.startYear &&
+    (!item.end || timingYear(plan, item.end) >= plan.startYear);
 }
 
 function itemYears(plan: Plan, item: DatedItem, endYear: number): number[] {
@@ -174,11 +184,12 @@ export function buildContext(plan: Plan, scenario: Scenario): Context {
     ctx.socialSecurity[t] = (s1 + s2) * payableShare(year, a.ssTrustFund);
   }
 
-  // Dated items apply only from the retirement date on (D17).
+  // Dated items (D17): from the retirement date on; before it, only those not already in today's budget.
   for (const item of plan.datedItems) {
+    const fromIdx = inTodaysBudget(plan, item) ? retireIdx : 0;
     for (const y of itemYears(plan, item, endYear)) {
       const t = y - startYear;
-      if (t < retireIdx || t >= len) continue;
+      if (t < fromIdx || t >= len) continue;
       const target =
         item.direction === 'expense'
           ? item.fixedDollars ? ctx.nominalOut : ctx.realOut

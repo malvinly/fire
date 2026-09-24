@@ -244,7 +244,9 @@ export function DetailView({ plan, detail, loading }: { plan: Plan; detail: Deta
               {detail.worstHistorical.map((w) => (
                 <tr key={w.startYear}>
                   <td>{w.startYear}</td>
-                  <td>{w.success ? 'Money lasted' : `Ran out in ${w.failYear} (year ${w.failYear! - retireYear + 1} of retirement)`}</td>
+                  <td>{w.success ? 'Money lasted'
+                    : w.failYear! < retireYear ? `Ran out in ${w.failYear}, before retiring (a dated cost savings couldn’t cover)`
+                    : `Ran out in ${w.failYear} (year ${w.failYear! - retireYear + 1} of retirement)`}</td>
                   <td>{moneyShort(w.minBalance)}</td>
                   <td>{moneyShort(w.endBalance)}</td>
                 </tr>

@@ -27,10 +27,11 @@ export function DatedItemsEditor({ plan, update }: { plan: Plan; update: Update 
   return (
     <>
       <p className="muted">
-        Applied from the retirement date on, in today's dollars; anything dated before retirement is ignored
-        (your paycheck covers it). Tip: split a mortgage into principal & interest (fixed dollars, ends at payoff)
-        and property tax & insurance (rises with inflation, no end). Ongoing items you already pay today are
-        taken out of the Traditional and Chubby spending defaults automatically.
+        In today's dollars. Ongoing items you already pay today (e.g. a mortgage) are covered by your paycheck
+        until you retire and are taken out of the Traditional and Chubby spending defaults automatically. Anything
+        else dated before retirement (a roof, a car, a home sale) comes out of or goes into your cash and
+        brokerage savings that year. Tip: split a mortgage into principal & interest (fixed dollars, ends at
+        payoff) and property tax & insurance (rises with inflation, no end).
       </p>
       {plan.datedItems.map((it) => (
         <div key={it.id} className="item">

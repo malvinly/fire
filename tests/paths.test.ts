@@ -330,7 +330,57 @@ describe('healthcare', () => {
 });
 
 describe('dated items and contributions', () => {
-  test('income items reduce withdrawals; items before retirement are ignored', () => {
+  test('while working, dated items not in today\'s budget use savings: cash, then taxable with gains tax (D17)', () => {
+    const plan = retiree(45);
+    plan.you.salary = 150_000; // wages 150,000 → taxable income 150,000 − 32,200 = 117,800, above the 0% gains band
+    plan.assumptions.stateTaxRate = 0.05;
+    plan.household.cash = 10_000;
+    plan.household.taxable = 200_000;
+    plan.household.taxableBasis = 100_000; // half of any sale is gain
+    const item = (id: string, direction: 'expense' | 'income', amount: number, frequency: 'oneTime' | 'ongoing', year: number, end?: number) => ({
+      id, label: id, direction, amount, frequency, start: { kind: 'year' as const, year }, fixedDollars: false,
+      ...(end ? { end: { kind: 'year' as const, year: end } } : {}),
+    });
+    plan.datedItems = [
+      item('mortgage', 'expense', 20_000, 'ongoing', START - 5, START + 10), // already paid today: retirement only
+      item('roof', 'expense', 50_000, 'oneTime', START + 1),
+      item('hoa', 'expense', 5_000, 'ongoing', START + 2), // starts later: not in today's budget
+      item('sale', 'income', 30_000, 'oneTime', START + 2),
+    ];
+    const ctx = buildContext(plan, { stopContributingYear: START + 3, retireYear: START + 3, baseSpending: 0 });
+    expect([...ctx.realOut.slice(0, 4)]).toEqual([0, 50_000, 5_000, 25_000]);
+    expect(ctx.realIn[2]).toBe(30_000);
+    const recs = simulatePath(ctx, constantPath(ctx.len, 0), 0, { record: true }).records!;
+    // Year 1: the roof takes all 10,000 cash, then a taxable sale S pays the other 40,000 plus the sale's own tax.
+    // Gain = S/2, all taxed at 15% federal (above the 98,900 band) and 5% state:
+    //   S = 40,000 + 0.15 × S/2 + 0.05 × S/2 = 40,000 + 0.1 S → S = 44,444.44; federal 3,333.33; state 1,111.11.
+    expect(recs[1].working).toBe(true);
+    expect(recs[1].withdrawals.cash).toBe(10_000);
+    expect(recs[1].withdrawals.taxable).toBeCloseTo(44_444.44, 0);
+    expect(recs[1].capitalGains).toBeCloseTo(22_222.22, 0);
+    expect(recs[1].federalTax).toBeCloseTo(3_333.33, 0);
+    expect(recs[1].stateTax).toBeCloseTo(1_111.11, 0);
+    expect(recs[1].shortfall).toBe(0);
+    // Year 2: the 30,000 sale covers the 5,000 fee; the other 25,000 is saved to taxable at full basis.
+    // Taxable: 200,000 − 44,444.44 = 155,555.56, + 25,000 = 180,555.56 (0% returns).
+    expect(recs[2].balances.taxable).toBeCloseTo(180_555.56, 0);
+    expect(recs[2].balances.cash).toBe(0);
+  });
+
+  test('a cost before retirement that savings cannot cover fails the path (D17)', () => {
+    const plan = retiree(45);
+    plan.household.taxable = plan.household.taxableBasis = 10_000;
+    plan.datedItems = [
+      { id: 'r', label: 'roof', direction: 'expense', amount: 50_000, frequency: 'oneTime', start: { kind: 'year', year: START + 1 }, fixedDollars: false },
+    ];
+    const ctx = buildContext(plan, { stopContributingYear: START + 3, retireYear: START + 3, baseSpending: 0 });
+    const res = simulatePath(ctx, constantPath(ctx.len, 0), 0, { record: true });
+    expect(res.records![1].shortfall).toBeCloseTo(40_000, 6); // 50,000 − 10,000 taxable (no gain, no tax)
+    expect(res.success).toBe(false);
+    expect(res.failYear).toBe(START + 1);
+  });
+
+  test('income items reduce withdrawals; an ongoing item already running today counts only from retirement', () => {
     const plan = retiree(62);
     plan.you.balances.roth = plan.you.balances.rothBasis = 1_000_000;
     plan.datedItems = [
@@ -338,7 +388,7 @@ describe('dated items and contributions', () => {
     ];
     const ctx = buildContext(plan, { stopContributingYear: START + 1, retireYear: START + 1, baseSpending: 40_000 });
     const recs = simulatePath(ctx, constantPath(ctx.len, 0), 0, { record: true }).records!;
-    expect(recs[0].otherIncome).toBe(0); // working year: ignored
+    expect(recs[0].otherIncome).toBe(0); // working year: part of today's budget
     expect(recs[1].withdrawals.roth).toBeCloseTo(30_000, 6);
   });
 

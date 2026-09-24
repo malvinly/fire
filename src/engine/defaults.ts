@@ -1,5 +1,5 @@
 import { TRUST_FUND_DEFAULT } from '../data/rules';
-import { timingYear } from './context';
+import { inTodaysBudget } from './context';
 import type { Assumptions, Person, Plan } from './types';
 
 export const DEFAULT_ASSUMPTIONS: Assumptions = {
@@ -27,8 +27,7 @@ export const FIDELITY_SPENDING_FACTOR = 0.85;
  */
 export function datedExpensesToday(plan: Plan): number {
   return plan.datedItems
-    .filter((it) => it.direction === 'expense' && it.frequency === 'ongoing')
-    .filter((it) => timingYear(plan, it.start) <= plan.startYear && (!it.end || timingYear(plan, it.end) >= plan.startYear))
+    .filter((it) => it.direction === 'expense' && inTodaysBudget(plan, it))
     .reduce((sum, it) => sum + it.amount, 0);
 }
 
