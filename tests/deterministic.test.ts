@@ -1,7 +1,8 @@
 // Layer 1: fixed returns, no volatility — the engine must match hand arithmetic exactly.
 import { describe, expect, test } from 'vitest';
 import { constantPath } from '../src/engine/returns';
-import { buildContext } from '../src/engine/context';
+import { buildContext, itemYearsInPlan } from '../src/engine/context';
+import type { DatedItem, DatedTiming } from '../src/engine/types';
 import { initialState, simulatePath } from '../src/engine/simulate';
 import { ctxFor, noYields, simplePlan, START } from './helpers';
 
@@ -131,5 +132,22 @@ describe('amounts fixed in nominal dollars are deflated each year (D63)', () => 
     const rec = simulatePath(ctx28, path, 0, { startIdx: 5, startState: after5, record: true, stopIdx: 6 }).records![0];
     expect(Math.abs(rec.withdrawals.roth - rec.penaltyWithdrawals - seasoned)).toBeLessThan(1);
     expect(rec.penaltyWithdrawals).toBeGreaterThan(2_000);
+  });
+});
+
+describe('dated items outside the plan (fix 22)', () => {
+  const plan = simplePlan(); // plan 2026–2055
+  const item = (start: DatedTiming, end?: DatedTiming): DatedItem => ({
+    id: 'x', label: 'x', direction: 'expense', amount: 1_000, frequency: end ? 'ongoing' : 'oneTime', start, end, fixedDollars: false,
+  });
+
+  test('items that add nothing have no years in the plan', () => {
+    expect(itemYearsInPlan(plan, item({ kind: 'year', year: 2030 }, { kind: 'year', year: 2028 }))).toEqual([]); // ends before it starts
+    expect(itemYearsInPlan(plan, item({ kind: 'year', year: 2020 }))).toEqual([]); // one time, before the plan
+    expect(itemYearsInPlan(plan, item({ kind: 'age', person: 'you', age: 50 }))).toEqual([]); // at an age already passed
+  });
+
+  test('items inside the plan list their years, cut to the plan', () => {
+    expect(itemYearsInPlan(plan, item({ kind: 'year', year: 2054 }, { kind: 'year', year: 2070 }))).toEqual([2054, 2055]);
   });
 });

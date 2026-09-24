@@ -87,14 +87,6 @@ Example for the example plan:
 
 ## P3: polish and rare edges
 
-### 22. Warn on dated items outside the plan (robustness)
-
-- **Problem:** some items silently add $0: an ongoing item whose end is before its start, a one-time item in
-  a year before the plan, or an item at an age already passed.
-- **Where:** `itemYears` in `src/engine/context.ts:77`; `src/ui/DatedItemsEditor.tsx`.
-- **Change:** export a helper that returns the item's in-plan years, and show a warning in the editor when
-  there are none.
-
 ### 23. Recompute `searchPaths` from `paths` (robustness)
 
 - **Problem:** the path-count field keeps a running minimum of `searchPaths` on every keystroke. Typing

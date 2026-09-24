@@ -100,6 +100,12 @@ function itemYears(plan: Plan, item: DatedItem, endYear: number): number[] {
   return out;
 }
 
+/** The plan years an item falls in; empty when it adds nothing (ends before it starts, or lies outside the plan). */
+export function itemYearsInPlan(plan: Plan, item: DatedItem): number[] {
+  const { startYear, endYear } = planYears(plan);
+  return itemYears(plan, item, endYear).filter((y) => y >= startYear && y <= endYear);
+}
+
 function pia(person: Person, startYear: number, stopWorkYear: number, wageGrowth: number, ssWageGrowth: number): number {
   // A statement benefit is in today's wage terms too, so it scales the same way (D77).
   if (person.socialSecurity.mode === 'manual') return person.socialSecurity.manualPia * wageLevelAt60(ssWageGrowth, person.birthYear);

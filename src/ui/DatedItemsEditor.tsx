@@ -1,3 +1,4 @@
+import { itemYearsInPlan, planYears } from '../engine/context';
 import type { DatedItem, DatedTiming, Plan } from '../engine/types';
 import { Help, NumberField, SelectField, TextField } from './fields';
 import { HELP } from './helpText';
@@ -67,6 +68,7 @@ export function DatedItemsEditor({ plan, update }: { plan: Plan; update: Update 
             <input type="checkbox" checked={it.fixedDollars} onChange={(e) => edit(it.id, (x) => { x.fixedDollars = e.target.checked; })} />
             <Help text={HELP.itemFixed}>Fixed dollars (doesn't rise with inflation, e.g. mortgage payment)</Help>
           </label>
+          {outsidePlan(plan, it) && <p className="warn">{outsidePlan(plan, it)}</p>}
           {it.direction === 'income' && (
             <label className="check">
               <input type="checkbox" checked={it.taxable !== false} onChange={(e) => edit(it.id, (x) => { x.taxable = e.target.checked; })} />
@@ -78,6 +80,17 @@ export function DatedItemsEditor({ plan, update }: { plan: Plan; update: Update 
       <button className="btn small" onClick={() => update((d) => { d.datedItems.push(newItem(d)); })}>+ Add dated item</button>
     </>
   );
+}
+
+/** A warning when the item adds nothing to the plan, or null (D79). */
+function outsidePlan(plan: Plan, item: DatedItem): string | null {
+  try {
+    if (itemYearsInPlan(plan, item).length) return null;
+    const { startYear, endYear } = planYears(plan);
+    return `This item adds nothing: it has no year inside the plan (${startYear}–${endYear}). Check when it starts and ends.`;
+  } catch {
+    return null; // the plan itself is invalid; its own fields say why
+  }
 }
 
 function TimingField({ label, help, plan, value, onChange, optional }: {
