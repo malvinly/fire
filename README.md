@@ -19,6 +19,20 @@ Roth conversions, 59½ access rules, required withdrawals, and federal + state t
 
 Everything runs in your browser; your numbers never leave your computer.
 
+## Why no Fat FIRE or Barista FIRE
+
+Both are left out on purpose; they don't match the kind of plan this tool is built for.
+
+- **Fat FIRE** — funding a luxury retirement usually means saving very aggressively for years, putting
+  off travel, purchases and experiences until after work ends. This planner assumes the opposite
+  tradeoff: enjoy money along the way and retire comfortably. Traditional and Chubby cover that range.
+- **Barista FIRE** — relies on part-time work in retirement to cover part of spending. Here, retirement
+  means not needing a paycheck: every plan must stand on savings and Social Security alone. Part-time
+  work done later by choice is a bonus, not something the plan depends on.
+
+To explore either anyway, enter a higher Chubby spending (Fat) or add part-time pay as a dated income
+item (Barista).
+
 ## Start it
 
 Requires [Node.js](https://nodejs.org/) 22 or newer.
