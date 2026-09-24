@@ -417,3 +417,11 @@ the simulated markets from a wider set of countries, making the answer more caut
 Needs a free multi-country dataset with stocks, bonds, bills and inflation. The Jordà-Schularick-Taylor
 Macrohistory Database is one candidate. It would come in through `scripts/build-market-data.ts` and
 `market.json`, with the bootstrap in `src/engine/returns.ts` sampling from it.
+
+**Watch the page's size.** `src/data/market.json` (18 kB of US data) is bundled into the main page, not just the
+engine's worker, because the UI imports `MARKET` from `src/engine/returns.ts` for its first and last year
+(`App.tsx`, `helpText.ts`, `HowItWorks.tsx`, `assumptions.ts`). A multi-country dataset could be many times
+larger and would land there too. The build warns above 750 kB (`chunkSizeWarningLimit` in `vite.config.ts`;
+the main file was 507 kB after the v1 audit's fixes). Keep the new data out of the main page: export the year
+range as a small separate constant for the UI so only the worker loads the full data, and check the build
+output. Don't just raise the limit.
