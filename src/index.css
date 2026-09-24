@@ -72,7 +72,7 @@ button, input, select, textarea { font: inherit; color: inherit; }
   display: flex; align-items: center; gap: 16px; flex-wrap: wrap;
   padding: 10px 20px; border-bottom: 1px solid var(--border); background: var(--surface);
 }
-.topbar h1 { font-size: 17px; margin-right: 8px; }
+.topbar h1 { font-size: 17px; margin-right: 8px; display: flex; align-items: center; gap: 6px; }
 .topbar .spacer { flex: 1; }
 .tabs { display: flex; gap: 4px; }
 .tabs button { background: none; border: 0; padding: 6px 12px; border-radius: 8px; cursor: pointer; color: var(--text-2); }
