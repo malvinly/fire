@@ -100,7 +100,7 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .btn.primary:hover { filter: brightness(1.08); }
 .btn:disabled { opacity: 0.55; cursor: default; }
 .btn.small { padding: 3px 8px; font-size: 12px; }
-.link { background: none; border: 0; color: var(--accent); cursor: pointer; padding: 0; }
+.link { background: none; border: 0; color: var(--accent); cursor: pointer; padding: 0; text-align: left; }
 
 /* ---- Inputs panel ---- */
 details.section { border-bottom: 1px solid var(--border); padding: 8px 0; }
@@ -207,6 +207,6 @@ dialog::backdrop { background: rgba(0, 0, 0, 0.35); }
 .help-tip[hidden] { display: none; }
 
 /* ---- Control rows under a panel heading (not squeezed to the right) ---- */
-.control-row { display: flex; gap: 20px 28px; align-items: flex-end; flex-wrap: wrap; margin-top: 12px; }
+.control-row { display: flex; gap: 20px 28px; align-items: flex-start; flex-wrap: wrap; margin-top: 12px; }
 .control-row .field { min-width: 180px; }
 .stats-row { display: flex; gap: 12px 40px; flex-wrap: wrap; margin: 10px 0 6px; }

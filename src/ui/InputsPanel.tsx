@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { LIMITS, TRUST_FUND_DEFAULT } from '../data/rules';
-import { DEFAULT_ASSUMPTIONS, chubbyDefaultSpending, datedExpensesToday, fidelityDefaultSpending } from '../engine/defaults';
+import { CHUBBY_SPENDING_FACTOR, DEFAULT_ASSUMPTIONS, FIDELITY_SPENDING_FACTOR, chubbyDefaultSpending, datedExpensesToday, fidelityDefaultSpending } from '../engine/defaults';
 import { parseEarnings } from '../engine/earnings';
 import { computePia } from '../engine/socialSecurity';
 import type { BracketFill, Person, PersonId, Plan } from '../engine/types';
@@ -15,6 +15,9 @@ const PEOPLE: PersonId[] = ['you', 'spouse'];
 
 export function InputsPanel({ plan, update }: { plan: Plan; update: Update }) {
   const h = plan.household;
+  const dated = datedExpensesToday(plan);
+  // What the spending defaults multiply: today's spending, less dated items already being paid.
+  const spendingBase = dated ? `(${money(h.currentSpending)} − ${money(dated)} dated items)` : money(h.currentSpending);
   const a = plan.assumptions;
   const salaries = plan.you.salary + plan.spouse.salary;
   const hsaLimit = LIMITS.hsaFamily + PEOPLE.filter((id) => plan.startYear - plan[id].birthYear >= 55).length * LIMITS.hsaCatchUp;
@@ -98,7 +101,7 @@ export function InputsPanel({ plan, update }: { plan: Plan; update: Update }) {
         </p>
       </Section>
 
-      <Section title="Spending" icon="receipt" open>
+      <Section title="Spending" icon="receipt">
         <NumberField label="Current yearly spending (today)" help={HELP.currentSpending} value={h.currentSpending} onChange={(v) => update((d) => { d.household.currentSpending = v ?? 0; })}
           hint="Everything you spend today, including mortgage and any healthcare you pay yourself." />
         <NumberField label="Traditional FIRE: yearly retirement spending" help={HELP.traditionalSpending} value={h.traditionalSpending}
@@ -107,7 +110,7 @@ export function InputsPanel({ plan, update }: { plan: Plan; update: Update }) {
             <>
               Exclude healthcare and anything you add under Dated items (e.g. mortgage) — they're added separately.{' '}
               <button className="link" onClick={() => update((d) => { d.household.traditionalSpending = fidelityDefaultSpending(d); })}>
-                Use Fidelity default ({money(fidelityDefaultSpending(plan))} = 0.85 × (current − {money(datedExpensesToday(plan))} dated items paid today))
+                Use Fidelity default: {money(fidelityDefaultSpending(plan))} = {percent(FIDELITY_SPENDING_FACTOR)} × {spendingBase}
               </button>
               {' '}If today's spending includes healthcare you pay yourself, subtract that too.
             </>
@@ -119,7 +122,7 @@ export function InputsPanel({ plan, update }: { plan: Plan; update: Update }) {
             <>
               Same exclusions as above.{' '}
               <button className="link" onClick={() => update((d) => { d.household.chubbySpending = chubbyDefaultSpending(d); })}>
-                Use default ({money(chubbyDefaultSpending(plan))} = 1.2 × (current − {money(datedExpensesToday(plan))} dated items paid today))
+                Use default: {money(chubbyDefaultSpending(plan))} = {percent(CHUBBY_SPENDING_FACTOR)} × {spendingBase}
               </button>
               {' '}Clear it to skip Chubby FIRE.
             </>
