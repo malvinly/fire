@@ -13,7 +13,10 @@ import { BeforeYouAct, DetailView, TIER_NAMES, TierCard } from './ui/Results';
 import { SessionsDialog, type SessionMeta } from './ui/SessionsDialog';
 import { DRAFT_KEY, REJECTED_DRAFT_KEY, describeProblems, isStale, makeSession, type SessionFile } from './ui/sessions';
 import { beforeYouAct } from './ui/warnings';
-import { detail as fetchDetail, solveAll } from './worker/client';
+import { CancelledError, detail as fetchDetail, solveAll } from './worker/client';
+
+/** Wait this long after the last year-picker change before recalculating the detail view (D80). */
+const DETAIL_DELAY_MS = 250;
 
 
 interface Results {
@@ -118,7 +121,7 @@ export default function App() {
       setSelTier(pick.tier);
       setSelYear(defaultYear(snapshot, pick));
     } catch (e) {
-      if (running.current !== snapshot) return;
+      if (running.current !== snapshot || e instanceof CancelledError) return;
       running.current = null;
       // Clear the half-finished run so Calculate is usable again after fixing the input.
       setResults(null);
@@ -126,16 +129,19 @@ export default function App() {
     }
   };
 
-  // Fetch the detail view whenever the selection changes.
+  // Fetch the detail view whenever the selection changes, once the year picker has been still for a moment; a
+  // newer request cancels the one in progress (D80).
   useEffect(() => {
     if (!results?.done || selYear === null || !results.tiers[selTier]) return;
     let cancelled = false;
     setDetailLoading(true);
-    fetchDetail(results.plan, selTier, selYear)
-      .then((d) => { if (!cancelled) setDetail(d); })
-      .catch((e) => { if (!cancelled) setError(String(e)); })
-      .finally(() => { if (!cancelled) setDetailLoading(false); });
-    return () => { cancelled = true; };
+    const timer = setTimeout(() => {
+      fetchDetail(results.plan, selTier, selYear)
+        .then((d) => { if (!cancelled) setDetail(d); })
+        .catch((e) => { if (!cancelled && !(e instanceof CancelledError)) setError(String(e)); })
+        .finally(() => { if (!cancelled) setDetailLoading(false); });
+    }, DETAIL_DELAY_MS);
+    return () => { cancelled = true; clearTimeout(timer); };
   }, [results, selTier, selYear]);
 
   const selectTier = (t: Tier) => {

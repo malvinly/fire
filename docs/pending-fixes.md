@@ -87,18 +87,6 @@ Example for the example plan:
 
 ## P3: polish and rare edges
 
-### 24. Cancel superseded worker requests (robustness)
-
-- **Problem:**
-  - Stale results are discarded correctly, but superseded work still runs.
-  - Each year-picker change queues a full detail run on worker 0: 0.73 s at 10k markets, 4.9 s at 50k.
-  - A new Calculate waits behind old solves.
-- **Where:** `src/worker/client.ts` (it has `terminate` at ~line 34, used only on shutdown); the year picker
-  and detail effect in `src/App.tsx`.
-- **Evidence:** five "+" clicks at 50k markets queue ~25 s of work.
-- **Change:** when a request is superseded, terminate and respawn the worker (or drop queued requests), and
-  debounce the year picker.
-
 ---
 
 ## Checked and correct in v1

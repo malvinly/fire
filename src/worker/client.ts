@@ -1,4 +1,5 @@
-// Small pool of engine workers: the three tiers solve in parallel.
+// Small pool of engine workers: the three tiers solve in parallel. A request superseded by a newer one is
+// cancelled by replacing its worker, so old work never delays new work (D80).
 import type { Detail, Tier, TierResult } from '../engine/solve';
 import type { Plan } from '../engine/types';
 import type { WorkerRequest } from './engine.worker';
@@ -7,6 +8,14 @@ import type { WorkerRequest } from './engine.worker';
 type DistributiveOmit<T, K extends PropertyKey> = T extends unknown ? Omit<T, K> : never;
 type RequestBody = DistributiveOmit<WorkerRequest, 'id'>;
 type Pending = { resolve: (v: unknown) => void; reject: (e: Error) => void };
+
+/** The request was superseded by a newer one; nothing to report. */
+export class CancelledError extends Error {
+  constructor() {
+    super('Superseded by a newer request.');
+    this.name = 'CancelledError';
+  }
+}
 
 class EngineWorker {
   private worker!: Worker;
@@ -39,6 +48,16 @@ class EngineWorker {
     };
   }
 
+  /** Abandons whatever this worker is doing (a running calculation can't be interrupted, so the worker is replaced). */
+  cancel() {
+    if (this.pending.size === 0) return;
+    this.worker.terminate();
+    const err = new CancelledError();
+    for (const p of this.pending.values()) p.reject(err);
+    this.pending.clear();
+    this.start();
+  }
+
   request<T>(req: RequestBody): Promise<T> {
     const id = this.nextId++;
     return new Promise<T>((resolve, reject) => {
@@ -52,6 +71,7 @@ const pool = [new EngineWorker(), new EngineWorker(), new EngineWorker()];
 const TIERS: Tier[] = ['traditional', 'chubby', 'coast'];
 
 export async function solveAll(plan: Plan, onTier: (r: TierResult) => void): Promise<TierResult[]> {
+  for (const w of pool) w.cancel();
   const tiers = TIERS.filter((t) => t !== 'chubby' || (plan.household.chubbySpending ?? 0) > 0);
   return Promise.all(
     tiers.map((tier, i) =>
@@ -64,5 +84,6 @@ export async function solveAll(plan: Plan, onTier: (r: TierResult) => void): Pro
 }
 
 export function detail(plan: Plan, tier: Tier, year: number): Promise<Detail> {
+  pool[0].cancel();
   return pool[0].request<Detail>({ type: 'detail', plan, tier, year });
 }
