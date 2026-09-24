@@ -2,7 +2,7 @@
 // per-path loop in simulate.ts stays fast.
 
 import { LIMITS, UNIFORM_LIFETIME, rmdStartAge } from '../data/rules';
-import { annualBenefits, computePia, payableShare } from './socialSecurity';
+import { annualBenefits, computePia, payableShare, wageLevelAt60 } from './socialSecurity';
 import { bracketTop } from './tax';
 import type { DatedItem, DatedTiming, Person, Plan, Scenario } from './types';
 
@@ -100,11 +100,12 @@ function itemYears(plan: Plan, item: DatedItem, endYear: number): number[] {
   return out;
 }
 
-function pia(person: Person, startYear: number, stopWorkYear: number, wageGrowth: number): number {
-  if (person.socialSecurity.mode === 'manual') return person.socialSecurity.manualPia;
+function pia(person: Person, startYear: number, stopWorkYear: number, wageGrowth: number, ssWageGrowth: number): number {
+  // A statement benefit is in today's wage terms too, so it scales the same way (D77).
+  if (person.socialSecurity.mode === 'manual') return person.socialSecurity.manualPia * wageLevelAt60(ssWageGrowth, person.birthYear);
   const future = new Map<number, number>();
   for (let y = startYear; y < stopWorkYear; y++) future.set(y, person.salary * Math.pow(1 + wageGrowth, y - startYear));
-  return computePia(person.socialSecurity.earnings, future);
+  return computePia(person.socialSecurity.earnings, future, { wageGrowth: ssWageGrowth, birthYear: person.birthYear });
 }
 
 export function buildContext(plan: Plan, scenario: Scenario): Context {
@@ -150,8 +151,8 @@ export function buildContext(plan: Plan, scenario: Scenario): Context {
   };
 
   ctx.pia = [
-    pia(plan.you, startYear, scenario.retireYear, a.wageGrowth),
-    pia(plan.spouse, startYear, scenario.retireYear, a.wageGrowth),
+    pia(plan.you, startYear, scenario.retireYear, a.wageGrowth, a.ssWageGrowth),
+    pia(plan.spouse, startYear, scenario.retireYear, a.wageGrowth, a.ssWageGrowth),
   ];
   const claimants = people.map((p, i) => ({
     birthYear: p.birthYear,

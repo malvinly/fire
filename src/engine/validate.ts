@@ -153,6 +153,7 @@ export function fieldProblems(raw: unknown): string[] {
     c.num(a, 'seed', at, { int: true });
     c.num(a, 'stateTaxRate', at, rate);
     c.oneOf(a, 'bracketFill', at, ['none', '10', '12', '22', '24']);
+    c.num(a, 'ssWageGrowth', at, { min: -0.05, max: 0.05 });
     const tf = c.obj(a, 'ssTrustFund', at);
     if (tf) {
       c.num(tf, 'startYear', `${at}ssTrustFund.`, { int: true });

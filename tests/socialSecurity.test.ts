@@ -3,6 +3,8 @@
 import { describe, expect, test } from 'vitest';
 import { computePia, ownClaimFactor, payableShare, piaFromAime, spousalClaimFactor, annualBenefits } from '../src/engine/socialSecurity';
 import { TRUST_FUND_DEFAULT } from '../src/data/rules';
+import { buildContext } from '../src/engine/context';
+import { examplePlan } from '../src/engine/defaults';
 
 // Case A: born 1964, nominal covered earnings 1986-2025.
 const CASE_A: [number, number][] = [
@@ -71,5 +73,30 @@ describe('trust fund', () => {
     expect(payableShare(2032, TRUST_FUND_DEFAULT)).toBeCloseTo(0.78, 10);
     expect(payableShare(2066, TRUST_FUND_DEFAULT)).toBeCloseTo(0.7, 10);
     expect(payableShare(2150, TRUST_FUND_DEFAULT)).toBeCloseTo(0.62, 10);
+  });
+});
+
+describe('real growth of the national wage index (fix 17, D77)', () => {
+  const earnings = CASE_A.map(([year, amount]) => ({ year, amount }));
+  const future = new Map(Array.from({ length: 20 }, (_, i) => [2026 + i, 90_000] as [number, number]));
+
+  test('0% reproduces the benefit without the setting exactly', () => {
+    expect(computePia(earnings, future, { wageGrowth: 0, birthYear: 1964 })).toBe(computePia(earnings, future));
+  });
+
+  test('a statement benefit rises by (1 + g) for each year from the wage-index year to the year the person turns 60', () => {
+    const plan = examplePlan(2026); // both on statement benefits of $2,500; you born 1984
+    plan.assumptions.ssWageGrowth = 0.011;
+    const ctx = buildContext(plan, { stopContributingYear: 2040, retireYear: 2040, baseSpending: 0 });
+    expect(ctx.pia[0]).toBeCloseTo(2_500 * 1.011 ** (1984 + 60 - 2024), 6); // +24.4% at 42
+    expect(ctx.pia[1]).toBeCloseTo(2_500 * 1.011 ** (1986 + 60 - 2024), 6); // +27.2% at 40
+  });
+
+  test('from an earnings record, future pay counts relative to faster-growing national wages, so the rise is smaller', () => {
+    const young = CASE_A.map(([year, amount]) => ({ year: year + 20, amount })).filter((e) => e.year <= 2025);
+    const base = computePia(young, future);
+    const raised = computePia(young, future, { wageGrowth: 0.011, birthYear: 1984 });
+    expect(raised / base).toBeGreaterThan(1.05);
+    expect(raised / base).toBeLessThan(1.011 ** (1984 + 60 - 2024));
   });
 });

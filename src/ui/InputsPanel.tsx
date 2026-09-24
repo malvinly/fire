@@ -189,6 +189,9 @@ export function InputsPanel({ plan, update }: { plan: Plan; update: Update }) {
           <NumberField label="Raises above inflation" help={HELP.wageGrowth} kind="percent" {...GROWTH} value={a.wageGrowth} onChange={(v) => update((d) => { d.assumptions.wageGrowth = v ?? 0; })} />
           <NumberField label="Healthcare cost growth above inflation" help={HELP.healthcareInflation} kind="percent" {...GROWTH} value={a.healthcareInflation}
             warn={a.healthcareInflation > 0.1 ? 'Unusually high: it compounds every year.' : a.healthcareInflation < 0 ? 'Healthcare costs have usually risen faster than other prices.' : null} onChange={(v) => update((d) => { d.assumptions.healthcareInflation = v ?? 0; })} />
+          <NumberField label="Social Security wage growth above inflation" help={HELP.ssWageGrowth} kind="percent" min={-0.05} max={0.05}
+            rangeMessage="Must be between −5% and 5% a year." value={a.ssWageGrowth} step={0.1}
+            onChange={(v) => update((d) => { d.assumptions.ssWageGrowth = v ?? 0; })} />
           <NumberField label="State income tax in retirement" help={HELP.stateTax} kind="percent" {...RATE} value={a.stateTaxRate}
             warn={a.stateTaxRate > 0.15 ? 'Higher than any US state’s top rate (about 13–14%).' : null} onChange={(v) => update((d) => { d.assumptions.stateTaxRate = v ?? 0; })} />
           <SelectField<BracketFill> label="Yearly Roth conversions: fill up to" help={HELP.bracketFill} value={a.bracketFill}

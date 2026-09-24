@@ -33,7 +33,8 @@ Key research points:
 5. **Household** — two people, each with their own age, salary, accounts and Social Security, sharing one
    retirement year.
 6. **Healthcare** — per person, pre-65 (full-price ACA) and 65+ phases, +1.5%/yr above inflation.
-7. **Social Security** — computed from each earnings record (zeros after retirement) with manual fallback;
+7. **Social Security** — computed from each earnings record (zeros after retirement) with manual fallback; national wage
+   growth above inflation editable (default 0%);
    claim age 62–70; spousal benefit; trust-fund cut 78% (2032) → 62% (2100), per the 2026 Trustees Report.
 8. **Accounts** — pre-tax, Roth (contributions tracked), HSA per person; household taxable (with basis)
    and cash. Pre-59½ order: cash → taxable → Roth contributions → seasoned conversions → penalized pre-tax

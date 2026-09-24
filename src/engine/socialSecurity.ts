@@ -7,22 +7,32 @@ import type { EarningsYear } from './types';
  * calendar year; this function caps them at the taxable maximum. Years present in both use the history value.
  * Earnings are indexed to AWI[awiLatestYear] and the bend points must be the ones for first eligibility in
  * awiLatestYear + 2 — SSA derives both from the same wage index (see src/data/rules.ts).
+ * `wage`: real growth of the national wage index after awiLatestYear (D77). Later earnings then count relative to
+ * the higher wage level (the taxable maximum rises with it), and the benefit scales with the wage level in the
+ * year the person turns 60. Growth 0 gives exactly the result without it.
  */
-export function computePia(history: EarningsYear[], futureEarnings: Map<number, number>): number {
+export function computePia(history: EarningsYear[], futureEarnings: Map<number, number>, wage?: { wageGrowth: number; birthYear: number }): number {
   const { awi, awiLatestYear, taxableMax, bendPoints } = SOCIAL_SECURITY;
+  const g = wage?.wageGrowth ?? 0;
   const byYear = new Map<number, number>();
-  for (const [y, v] of futureEarnings) byYear.set(y, Math.min(v, taxableMax));
+  // The taxable maximum for year y follows the wage index two years earlier (2026's max is set from AWI 2024).
+  for (const [y, v] of futureEarnings) byYear.set(y, Math.min(v, taxableMax * Math.pow(1 + g, y - awiLatestYear - 2)));
   for (const e of history) byYear.set(e.year, e.amount);
   const indexed: number[] = [];
   for (const [y, v] of byYear) {
     if (v <= 0) continue;
-    const factor = y < awiLatestYear && awi[y] ? awi[awiLatestYear] / awi[y] : 1;
+    const factor = y < awiLatestYear && awi[y] ? awi[awiLatestYear] / awi[y] : 1 / Math.pow(1 + g, Math.max(0, y - awiLatestYear));
     indexed.push(v * factor);
   }
   indexed.sort((a, b) => b - a);
   const top35 = indexed.slice(0, 35).reduce((s, v) => s + v, 0);
   const aime = Math.floor(top35 / 420);
-  return piaFromAime(aime, bendPoints);
+  return piaFromAime(aime, bendPoints) * wageLevelAt60(g, wage?.birthYear ?? awiLatestYear + 60);
+}
+
+/** How much higher the national wage level is in the year a person turns 60 than in the wage-index year (D77). */
+export function wageLevelAt60(wageGrowth: number, birthYear: number): number {
+  return wageGrowth === 0 ? 1 : Math.pow(1 + wageGrowth, birthYear + 60 - SOCIAL_SECURITY.awiLatestYear);
 }
 
 export function piaFromAime(aime: number, [b1, b2]: readonly [number, number]): number {

@@ -22,23 +22,6 @@ None.
 
 ---
 
-## 1. Which way to correct
-
-**Question.** The review found errors in both directions. Some make the app too optimistic: fixes 1, 3 and
-8 (taxes on sales, dated income and dividends). One makes it too pessimistic: fix 17, where Social
-Security is understated because the app assumes national wages never grow faster than prices. The error
-is about 22% at age 40 and 11% at 50. Should the pessimistic error be fixed too, or left as extra caution?
-
-**Decided:** fix it, but keep today's behavior as the default. Fix 17 adds a visible "Social Security wage
-growth above inflation" setting in Assumptions (advanced), **defaulting to 0%**, which matches today. The
-How-this-works page and help text state the size of the effect and the Trustees' ~1.1% assumption as a
-reference.
-
-**Why:** the caution becomes something the user can see and change instead of a hidden error, while the
-default stays as cautious as v1. Fixes 1, 3 and 8 are wrong numbers and are fixed regardless.
-
-**Applies to:** fixes 1, 3, 8, 17.
-
 ## 2. Where new settings go
 
 **Question.** The planned work adds about six settings. The app already lets example values slip into

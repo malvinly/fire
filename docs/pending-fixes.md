@@ -83,34 +83,6 @@ Example for the example plan:
 
 ## P2: narrower wrong answers, clarity gaps
 
-### 17. Social Security wage growth (accuracy)
-
-- **Problem:**
-  - Earnings are indexed to a fixed wage-index year, with no real growth in the national wage index after
-    it (D24; leans conservative).
-  - The benefit formula scales with the wage-index level in the year a person turns 60. The benefit in
-    today's dollars is therefore understated by about (1 + real wage growth)^(years until 60).
-  - Manual mode has the same bias, because SSA statement figures are wage-indexed.
-  - Salaries in the model grow 1.5% real while the national index grows 0%, which is inconsistent.
-  - D24 calls the effect "slightly".
-- **Where:** `computePia` in `src/engine/socialSecurity.ts:11–25`; `SOCIAL_SECURITY` in
-  `src/data/rules.ts`; D24.
-- **Evidence:** *Estimate.* Real wage-index growth 1985–2024 was about 0.90%/yr (wage index ÷ CPI).
-  - Benefits come out ~22% low at age 40 and ~11% at 50.
-  - Raising the example PIA from $2,500 to $3,000 (+20%) cuts the Traditional FIRE number from $2,695,200 to
-    $2,563,300 (−4.9%). The retirement year is unchanged.
-- **Change** ([decision 1](pending-decisions.md#1-which-way-to-correct)): make the growth rate a visible
-  setting whose default keeps today's behavior.
-  - Add an `ssWageGrowth` assumption: "Social Security wage growth above inflation", **default 0%**, in
-    "Assumptions (advanced)" ([decision 2](pending-decisions.md#2-where-new-settings-go)).
-  - Multiply the benefit by (1 + g)^(birthYear + 60 − awiLatestYear), and grow the taxable maximum the same
-    way. At g = 0 the results must be identical to today's.
-  - Add a How-this-works row and help text stating the size of the effect and the Trustees' intermediate
-    assumption (~1.1%) as a reference. Update D24 to replace "slightly" with the size.
-  - This adds an `Assumptions` field; see step 5 of [How to work on an item](#how-to-work-on-an-item).
-- **Test:** g = 0 reproduces today's benefits exactly. g = 1.1% raises a 40-year-old's benefit by about
-  (1.011)^20 ≈ 24%.
-
 ---
 
 ## P3: polish and rare edges

@@ -16,6 +16,7 @@ export const DEFAULT_ASSUMPTIONS: Assumptions = {
   stateTaxRate: 0.05,
   bracketFill: '10', // decision 3 of the pending work (D29)
   ssTrustFund: { ...TRUST_FUND_DEFAULT },
+  ssWageGrowth: 0, // decision 1 of the pending work: as cautious as v1 (D77)
 };
 
 /** Fidelity: retirement spending about 15% below current spending. */

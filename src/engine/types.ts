@@ -84,6 +84,8 @@ export interface Assumptions {
   stateTaxRate: number;
   bracketFill: BracketFill;
   ssTrustFund: { startYear: number; startPct: number; endYear: number; endPct: number };
+  /** Real growth of the national wage index, which sets Social Security benefits (D77). Default 0. */
+  ssWageGrowth: number;
 }
 
 export interface Plan {
