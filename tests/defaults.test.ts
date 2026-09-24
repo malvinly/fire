@@ -1,10 +1,15 @@
 // Default spending levels (D18, D57).
 import { describe, expect, test } from 'vitest';
-import { DEFAULT_ASSUMPTIONS, chubbyDefaultSpending, examplePlan, fidelityDefaultSpending, untouchedSections } from '../src/engine/defaults';
+import { DEFAULT_ASSUMPTIONS, chubbyDefaultSpending, examplePlan, searchPathsFor, fidelityDefaultSpending, untouchedSections } from '../src/engine/defaults';
 
 describe('default spending', () => {
   test('Roth conversions fill the 10% bracket by default (decision 3, D29)', () => {
     expect(DEFAULT_ASSUMPTIONS.bracketFill).toBe('10');
+  });
+
+  test('the quick-search sample follows the number of markets, never a past keystroke (fix 23, D5)', () => {
+    expect(searchPathsFor(30_000)).toBe(2_000);
+    expect(searchPathsFor(1_000)).toBe(1_000);
   });
 
   test('example plan starts at the defaults', () => {

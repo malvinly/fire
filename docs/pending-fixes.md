@@ -87,15 +87,6 @@ Example for the example plan:
 
 ## P3: polish and rare edges
 
-### 23. Recompute `searchPaths` from `paths` (robustness)
-
-- **Problem:** the path-count field keeps a running minimum of `searchPaths` on every keystroke. Typing
-  30000 key by key clamps `searchPaths` to 500 on the first "3", and it never recovers.
-- **Where:** `src/ui/InputsPanel.tsx:181`.
-- **Evidence:** Chubby FIRE number $3,297,400 → $3,335,300.
-- **Change:** set `searchPaths = Math.min(DEFAULT_ASSUMPTIONS.searchPaths, paths)` (2,000) instead of the running
-  minimum.
-
 ### 24. Cancel superseded worker requests (robustness)
 
 - **Problem:**

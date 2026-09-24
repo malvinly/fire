@@ -19,6 +19,11 @@ export const DEFAULT_ASSUMPTIONS: Assumptions = {
   ssWageGrowth: 0, // decision 1 of the pending work: as cautious as v1 (D77)
 };
 
+/** The solver's quick-search sample for a number of markets: the default 2,000, or all of them if fewer (D5). */
+export function searchPathsFor(paths: number): number {
+  return Math.min(DEFAULT_ASSUMPTIONS.searchPaths, paths);
+}
+
 /** Fidelity: retirement spending about 15% below current spending. */
 export const FIDELITY_SPENDING_FACTOR = 0.85;
 
