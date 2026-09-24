@@ -1,5 +1,5 @@
 import { useId, useRef, useState, type ReactNode } from 'react';
-import { fieldBlock, parseFieldText } from './format';
+import { fieldBlock, parseFieldText, parseYearText } from './format';
 import { Icon, type IconName } from './icons';
 
 /**
@@ -115,6 +115,31 @@ export function NumberField({ label, value, onChange, kind = 'money', min, max, 
       {message && <span className="warn" role={blocked ? 'alert' : undefined}>{message}</span>}
       {hint && <span className="hint">{hint}</span>}
     </div>
+  );
+}
+
+/**
+ * The year picker's box. The typed text is kept locally so a year can be typed digit by digit; it is applied
+ * once it is a whole year within [min, max], and reverts to the current year on leaving the box (fix 27).
+ */
+export function YearInput({ id, value, min, max, onChange }: { id: string; value: number; min: number; max: number; onChange: (v: number) => void }) {
+  const [text, setText] = useState(String(value));
+  const [seen, setSeen] = useState(value);
+  // Show the new year when it changes from outside (− / +, "Back to earliest", switching FIRE type).
+  if (value !== seen) {
+    setSeen(value);
+    if (parseYearText(text, min, max) !== value) setText(String(value));
+  }
+  const commit = (t: string) => {
+    setText(t);
+    const v = parseYearText(t, min, max);
+    if (v === null) return;
+    setSeen(v);
+    onChange(v);
+  };
+  return (
+    <input id={id} type="number" style={{ width: 90 }} value={text} min={min} max={max}
+      onChange={(e) => commit(e.target.value)} onBlur={() => setText(String(value))} />
   );
 }
 

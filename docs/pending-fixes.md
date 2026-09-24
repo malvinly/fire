@@ -117,14 +117,6 @@ None pending.
   brokerage account, as the "Required withdrawal" column's help says).
 - **Change:** record the reinvested RMD surplus separately (or subtract it from "From 401(k)/IRA") and say where it went.
 
-### 27. Typing a year into the year picker (robustness)
-
-- **Problem:** the "Retire in" box accepts only complete, valid years, so typing a new year digit by digit is undone
-  at the first keystroke; only − / + and selecting-and-replacing work.
-- **Where:** `year-input` in `src/App.tsx:311`; the detail request waits 250 ms after the last change (D80).
-- **Change:** keep the typed text locally and apply it when it is a valid year, as `NumberField`
-  (`src/ui/fields.tsx`) does; reset the text on blur.
-
 ### 28. Detail view of a stale session (clarity)
 
 - **Problem:** opening a session whose results came from an older engine shows the saved cards, but the detail view

@@ -6,6 +6,7 @@ import type { Detail, Tier, TierResult } from './engine/solve';
 import { MARKET } from './engine/returns';
 import type { Plan } from './engine/types';
 import { LIMITS_GROUP } from './engine/assumptions';
+import { YearInput } from './ui/fields';
 import { HowItWorks } from './ui/HowItWorks';
 import { Icon, TIER_ICONS } from './ui/icons';
 import { InputsPanel } from './ui/InputsPanel';
@@ -308,8 +309,7 @@ export default function App() {
                           <label htmlFor="year-input">{selTier === 'coast' ? 'Stop saving in' : 'Retire in'}</label>
                           <div className="row">
                             <button className="btn" aria-label="One year earlier" onClick={() => setSelYear((y) => Math.max(results.plan.startYear, (y ?? 0) - 1))}>−</button>
-                            <input id="year-input" type="number" style={{ width: 90 }} value={selYear} min={results.plan.startYear} max={lastYear}
-                              onChange={(e) => { const v = Number(e.target.value); if (Number.isInteger(v) && v >= results.plan.startYear && v <= lastYear) setSelYear(v); }} />
+                            <YearInput id="year-input" value={selYear} min={results.plan.startYear} max={lastYear} onChange={setSelYear} />
                             <button className="btn" aria-label="One year later" disabled={selYear >= lastYear} onClick={() => setSelYear((y) => Math.min(lastYear, (y ?? 0) + 1))}>+</button>
                             <button className="btn" onClick={() => setSelYear(defaultYear(results.plan, selResult))}>Back to earliest</button>
                           </div>

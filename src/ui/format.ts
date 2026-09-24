@@ -31,6 +31,15 @@ export function parseFieldText(text: string, kind: 'money' | 'percent' | 'int' |
 }
 
 /**
+ * The year typed into the year picker, or null until it is a whole year within [min, max]. Digits on the way
+ * to a year ("20", "204") are kept as text but not applied (fix 27).
+ */
+export function parseYearText(text: string, min: number, max: number): number | null {
+  const v = parseFieldText(text, 'number');
+  return typeof v === 'number' && Number.isInteger(v) && v >= min && v <= max ? v : null;
+}
+
+/**
  * Why a typed value can't be accepted (impossible values are blocked, D76), or null.
  * `min`/`max` are in stored units; the message shows them as typed (percent × 100).
  */
