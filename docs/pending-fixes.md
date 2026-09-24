@@ -87,14 +87,6 @@ Example for the example plan:
 
 ## P3: polish and rare edges
 
-### 20. Worst-years table: show when retirement began (clarity)
-
-- **Problem:** rows are keyed to the plan's start year (whole-plan replay, D47). "Retiring into 1966"
-  therefore appears as start year 1953 for a 2039 retirement.
-- **Where:** `src/ui/Results.tsx:235`; the list is built in `detailFor` (`src/engine/solve.ts:315–321`).
-- **Change:** add a column for the market year retirement began: `startYear + (retireYear − plan.startYear)`.
-- **Related:** D47, [feature 5](pending-features.md#5-replay-any-historical-year).
-
 ### 21. Social Security first-year months (accuracy)
 
 - **Problem:** the first year of benefits pays `13 − birthMonth` months.

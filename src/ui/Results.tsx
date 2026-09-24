@@ -302,11 +302,18 @@ export function DetailView({ plan, detail, loading, simpleNumber }: { plan: Plan
               : 'Your plan is longer than any stretch of real history, so only simulated markets are used.'}
           </p>
           <table className="data">
-            <thead><tr><th>Start year</th><th>Outcome</th><th>Lowest savings</th><th>Savings at the end</th></tr></thead>
+            <thead>
+              <tr>
+                <th>Start year</th>
+                <th><Help text="The market year your first retired year gets in this replay: the start year plus the years until you retire.">Retiring into</Help></th>
+                <th>Outcome</th><th>Lowest savings</th><th>Savings at the end</th>
+              </tr>
+            </thead>
             <tbody>
               {detail.worstHistorical.map((w) => (
                 <tr key={w.startYear}>
                   <td>{w.startYear}</td>
+                  <td>{w.startYear + (retireYear - plan.startYear)}</td>
                   <td>{w.success ? 'Money lasted'
                     : w.failYear! < retireYear ? `Ran out in ${w.failYear}, before retiring (a dated cost savings couldn’t cover)`
                     : `Ran out in ${w.failYear} (year ${w.failYear! - retireYear + 1} of retirement)`}</td>
