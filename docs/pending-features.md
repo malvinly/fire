@@ -30,8 +30,9 @@ D65); any other field needs a line there and a check in `src/engine/validate.ts`
 | 3 | State tax exemptions for retirement withdrawals | Stop charging state tax on 401(k)/IRA money in states that don't tax it. |
 | 4 | Rule of 55 and 72(t) | Model the two legal ways to take 401(k)/IRA money before 59½ without the 10% penalty. |
 | 5 | Replay any historical year | Pick a real year, like 1966, and watch your plan go through it year by year. |
-| 6 | Fuller year-by-year table and CSV export | See the bad-market years and the working years, and download them to a spreadsheet. |
+| 6 | Fuller year-by-year table | See the bad-market years and the working years, not only the typical market's retired years. |
 | 7 | Upside on the chart | Show how much you might end with in good markets, not only typical and bad ones. |
+| 8 | Export a report for AI review | Download every calculated result as one Markdown file written for an AI chat to read and give feedback on. |
 
 ---
 
@@ -333,7 +334,7 @@ the market year retirement began, which this builds on.
 
 ---
 
-## 6. Fuller year-by-year table and CSV export
+## 6. Fuller year-by-year table
 
 ### What it is
 
@@ -348,39 +349,31 @@ hidden:
 - In the **bad market**, the brokerage can run dry, conversions get cut back and penalties get paid. You
   can see that only as colored bars in a chart, with no numbers.
 - **Working years** never appear, so for Coast FIRE the whole coasting period is invisible.
-- There is no way to get the numbers into Excel to check them.
 
 ### What you'd see
 
 Above the table:
 
-> Show: (•) Typical market ( ) Bad market (1 in 10)   [ ] Include working years   [Download CSV]
-
-The CSV contains exactly what the table shows, one row per year, ready for Excel or Google Sheets.
+> Show: (•) Typical market ( ) Bad market (1 in 10)   [ ] Include working years
 
 ### Why it's worth doing
 
-Auditability. People who keep their own spreadsheet will trust the date only if they can check it. The bad
-market is where the plan's weak spots are (running out of brokerage money, penalties), and today it has no
-table. ProjectionLab and cFIREsim both export.
+The bad market is where the plan's weak spots are (running out of brokerage money, penalties), and today it
+has no table. Seeing the working years makes Coast FIRE's coasting period, and the savings built before
+retirement, something you can check.
 
 ### Today
 
-A typical-market, retired-years-only table; no export of any kind.
+A typical-market, retired-years-only table.
 
 ### For implementers
 
 - **Where:** `DetailView` (`src/ui/Results.tsx:229`, rows filtered at `:233`, `COLUMNS` at `:184`);
-  `detail.medianPath` and `detail.p10Path` are both already computed. The CSV includes Reinvested (D83);
-  `reinvested` is missing in sessions saved before it existed, so leave the cell blank there, as the table
-  shows "—", not 0. Working years record Reinvested as 0 and have no wages or contributions columns, so the
-  caption's money-in = money-out identity doesn't hold for them; the caption needs a working-years version.
-  A stale session's saved detail already holds both `medianPath` and `p10Path`, so the toggle and export
-  work without recalculating (D85).
-- **First version:**
-  - A path toggle and a "working years" checkbox on the existing table.
-  - A client-side CSV builder over the visible `YearRecord[]`, downloaded via a Blob link.
-  - CSV files are already git-ignored (DEVELOPMENT.md → Privacy); session data never leaves the browser.
+  `detail.medianPath` and `detail.p10Path` are both already computed. Working years record Reinvested as 0
+  and have no wages or contributions columns, so the caption's money-in = money-out identity doesn't hold for
+  them; the caption needs a working-years version. A stale session's saved detail already holds both
+  `medianPath` and `p10Path`, so the toggle works without recalculating (D85).
+- **First version:** a path toggle and a "working years" checkbox on the existing table.
 - **Depends on:** D73, now landed ("typical" and "bad" follow the markets closest to those lines).
 
 ---
@@ -423,6 +416,117 @@ Only the 50th, 25th and 10th percentile lines.
   bands, and the chart and summary must work without them.
 - **First version:** add `p75` and `p90` to `bands`; draw them behind the existing zoom toggle; add the
   ending-balance summary from the final column.
+
+---
+
+## 8. Export a report for AI review
+
+### What it is
+
+A button that downloads everything the calculator worked out for your plan as one Markdown (`.md`) file,
+written for an AI chat (such as Claude or ChatGPT) to read. You attach the file to a chat and ask for
+feedback on your targets, your savings, when you can retire and where the plan is weak.
+
+The file is laid out for an AI, not for printing:
+
+- **Headings** for each part, so the AI can find and cite them.
+- **Tables** for numbers, with the unit in each column header.
+- **Exact whole-dollar amounts** ($2,518,400, not $2.52M), so the AI's arithmetic matches the app's.
+- **"Not available"** written out where there's no value, never a blank cell.
+- **A one-line explanation under each table** saying what it shows.
+
+### What you'd see
+
+A button in the top bar, next to **Sessions…**: **Export for AI review**. It's available only when the
+results on screen are a complete, current calculation. While it's unavailable it says why:
+
+- no results yet, or still calculating: "Calculate first";
+- the inputs have changed since the results were calculated: "Calculate again to export";
+- a saved session opened with the "older data or an older version" banner (D59): "Recalculate to export".
+  These results can't be recalculated as they are (D85), and a report mixing them with new detail would
+  describe two different calculations.
+
+Pressing it takes a few seconds (it works out the detail for every FIRE type, see below), then downloads
+`YYYY-MM-DD FIRE report.private.md`. The `.private.` in the name keeps the file out of git if it's saved inside
+the project (DEVELOPMENT.md → Privacy).
+
+The file contains, in order:
+
+1. **How to read this report.** A short guide for the AI, written so it doesn't misread the numbers:
+   - every amount is in today's dollars (after inflation);
+   - "success" means the money lasts until the younger person turns the plan-to age, and the success target
+     is the share of markets that must succeed (default 90%);
+   - each chance of success is the lower of two tests: simulated markets and real US history since 1871;
+   - "typical market" is the 50th percentile and "bad market" the 10th (1 in 10 do worse);
+   - what Coast, Traditional and Chubby FIRE each mean here;
+   - withdrawals that pay the 10% early-withdrawal penalty still count as successes (D68).
+2. **Your household.** Ages, salaries, contributions, balances by account, spending, healthcare, dated items,
+   and each person's Social Security claim age and the benefit calculated for it.
+3. **Assumptions.** Every row of How this works, marked default or changed, including "What this doesn't
+   model" (D75), so the AI knows the model's limits.
+4. **Results.** Each FIRE type's headline numbers in one table: spending, earliest date and ages, FIRE
+   number, current savings, chance of success today and at the earliest date, the 4% rule check (D44), and
+   the typical and bad-market balances at the earliest date.
+5. **Before you act on these numbers.** Every line of the warnings panel (D67).
+6. **One section per FIRE type**, at its earliest date:
+   - chance of success from each test;
+   - how often the early-withdrawal penalty is paid;
+   - savings over time (50th, 25th and 10th percentiles, every year);
+   - what happens in the markets that fail (D74);
+   - the worst historical starting years;
+   - the year-by-year tables for the typical and the bad market, working years included, with every column
+     the engine records.
+
+   If the detail view is open for a different year ("Try a different retirement year"), that detail comes
+   too, labelled with its year.
+7. **Questions to ask.** Suggested prompts, for example "Which inputs move my earliest date the most?", "How
+   exposed am I to a bad first decade of retirement?", "Is my Chubby spending realistic next to my current
+   spending?", "What would you check before relying on this?"
+
+**Privacy.** The report describes your finances, so it leaves out anything not needed to judge the plan:
+
+- the two people are called "You" and "Spouse", not by the names entered;
+- no session name or birth months;
+- Social Security appears as the calculated benefits, not the year-by-year earnings history.
+
+Dated items keep the labels you typed, since those tell the AI what each item is.
+
+### Why it's worth doing
+
+- The app gives numbers but can't talk them through. An AI chat can explain what drives your date, point out
+  weak spots, and suggest what to try next in the app. It can do that only if it has every number and knows
+  what each one means.
+- The explanation section keeps it from making the usual mistakes, such as treating today's dollars as future
+  dollars or a 90% target as a 90% forecast.
+- Copying numbers by hand from the cards and tables loses the detail and invites typos.
+
+### Today
+
+No export of any kind. A session file (`.json`) holds the inputs and saved results, but it has personal
+details (names, earnings history), holds detail for only one FIRE type, and doesn't say what its fields mean.
+
+### For implementers
+
+- **Where:**
+  - Button and when it's enabled: `src/App.tsx` (top bar; `staleData`, `inputsChanged`, `results.done`).
+  - Report builder: a new `src/ui/report.ts`, a plain function from the calculated plan (`results.plan`), the
+    `TierResult`s, a `Detail` per type, `beforeYouAct` (`src/ui/warnings.ts`) and `describeAssumptions`
+    (`src/engine/assumptions.ts`) to a string. Unit-tested, no React (D87).
+  - Download: a Blob link like `downloadJson` (`src/ui/sessions.ts:227`), with type `text/markdown`.
+- **First version:**
+  - For each FIRE type with an earliest date (Coast: its stop-saving year), request `detailFor` at that year.
+    Reuse the on-screen detail when it matches (`detailMatches`, `src/ui/sessions.ts:102`). Don't send these
+    through the single detail worker in `src/worker/client.ts`: any newer request replaces it (D80), so the
+    export and the on-screen detail would cancel each other. Use the solver workers or a dedicated request.
+  - A FIRE type without results (no earliest date in the searched years, or Chubby spending left empty) gets
+    a line saying so instead of a section.
+  - `reinvested` can be missing (D83); write "not available", not 0. Working years record Reinvested as 0
+    and have no wages or contributions columns; say so in the year-by-year table's explanation.
+  - Keep the "How to read this report" text next to the builder, with the plan-to age, success target and
+    market years filled in from the plan and `MARKET`, not hard-coded.
+- **Test:** with the example plan, the report has a section for each FIRE type and its numbers match the
+  `TierResult`s and `Detail`s; it contains neither person's name nor any earnings-history amount; a stale
+  or out-of-date result can't be exported. Check the file size on the example plan and note it here.
 
 ---
 

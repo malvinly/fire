@@ -139,7 +139,7 @@ export function describeAssumptions(plan: Plan): AssumptionRow[] {
       why: 'Holding bonds in retirement accounts and stocks in the brokerage account could lower taxes a little.', decision: 'D8' },
     { group: LIMITS_GROUP, label: 'Markets', value: `US history ${MARKET.firstYear}–${MARKET.lastYear} only`, status: 'fixed',
       why: 'US markets were among the best in the world over this period. Assuming lower returns than history, and comparing with a saved baseline, are planned.', decision: 'D10' },
-    { group: LIMITS_GROUP, label: 'Also planned', value: 'Replay one historical year; full year-by-year table and CSV; upside on the chart', status: 'fixed',
+    { group: LIMITS_GROUP, label: 'Also planned', value: 'Replay one historical year; full year-by-year table; upside on the chart; report export for AI review', status: 'fixed',
       why: 'Features not built yet; they add views, not changes to the results above.' },
   ];
 }
