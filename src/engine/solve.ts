@@ -61,6 +61,12 @@ export interface Detail {
   medianPath: YearRecord[];
   p10Path: YearRecord[];
   pia: [number, number];
+  /**
+   * The simulated markets that run out (D74): their share, the median calendar year money runs out, and that
+   * year's household Social Security and spending (today's dollars). Null when none fail; missing in sessions
+   * saved before it existed.
+   */
+  failures?: { share: number; medianYear: number; socialSecurity: number; spending: number } | null;
 }
 
 export interface Engine {
@@ -353,10 +359,26 @@ export function detailFor(e: Engine, tier: Tier, year: number): Detail {
         .slice(0, 5)
     : [];
 
+  // What the failing markets look like: when money runs out and what is left to live on then.
+  const failYears = boot.outcomes.map((o) => o.failYear).filter((y): y is number => y !== null).sort((a, b) => a - b);
+  let failures: Detail['failures'] = null;
+  if (failYears.length) {
+    const medianYear = failYears[Math.floor((failYears.length - 1) / 2)];
+    const t = medianYear - ctx.startYear;
+    const priceLevel = Math.pow(1 + averageInflation(), t); // fixed-dollar items at average inflation
+    failures = {
+      share: failYears.length / e.boot.n,
+      medianYear,
+      socialSecurity: ctx.socialSecurity[t],
+      spending: ctx.baseSpending[t] + ctx.healthcare[t] + ctx.realOut[t] + ctx.nominalOut[t] / priceLevel,
+    };
+  }
+
   return {
     tier,
     scenario,
     success,
+    failures,
     penaltyRate: boot.penaltyRate,
     years: ctx.years,
     bands,

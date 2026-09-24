@@ -83,24 +83,6 @@ Example for the example plan:
 
 ## P2: narrower wrong answers, clarity gaps
 
-### 12. Say what happens in the other 10% (clarity)
-
-- **Problem:** a 90% badge alone reads as a guarantee, or as a 1-in-10 chance of going broke soon after
-  retiring.
-- **Where:**
-  - The detail view's savings chart panel (`DetailView`, `src/ui/Results.tsx:182`).
-  - `SUCCESS_HELP` in `src/ui/helpText.ts`.
-  - Per-path `failYear` is in the `outcomes` returned by `successRate` (`src/engine/solve.ts:115–133`);
-    `detailFor` already has them for the chosen year.
-- **Evidence:** in the example plan, failures occur in retirement year 29 or later, leaving about $40k/yr of
-  Social Security against about $110k of spending.
-- **Change:**
-  - In `detailFor`, compute the median failure year among failed paths for the chosen year.
-  - Show a short explanation next to the savings chart, which shows those bad markets. Not on the card, and
-    not in the warnings panel ([decision 5](pending-decisions.md#5-precision-vs-hedging)). For example: "In
-    about 1 in 10 markets savings run out, typically in retirement year N or later. You'd then live on
-    Social Security (~$X/yr) unless you cut spending earlier."
-
 ### 13. Disclose limitations in the app (clarity)
 
 - **Problem:**

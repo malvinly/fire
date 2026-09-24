@@ -179,6 +179,18 @@ const COLUMNS: { label: string; help?: string }[] = [
   { label: 'Total savings (end of year)' },
 ];
 
+/** What the markets that fail look like (D74): when money runs out and what is left to live on then. */
+function failureText(d: Detail): string | null {
+  const f = d.failures;
+  if (!f) return null;
+  const n = f.medianYear - d.scenario.retireYear + 1;
+  if (n < 1) {
+    return `In ${percent(f.share)} of simulated markets your savings run out, half of those by ${f.medianYear}: before you retire, because a dated cost is more than your savings can pay.`;
+  }
+  return `In ${percent(f.share)} of simulated markets your savings run out, half of those not until retirement year ${n} (${f.medianYear}) or later. ` +
+    `From then on you’d live on Social Security, about ${moneyShort(f.socialSecurity)}/yr against about ${moneyShort(f.spending)}/yr of spending, unless you cut spending earlier.`;
+}
+
 /** `simpleNumber`: the selected tier's 4% rule figure (a reference, shown for Traditional and Chubby only). */
 export function DetailView({ plan, detail, loading, simpleNumber }: { plan: Plan; detail: Detail; loading: boolean; simpleNumber?: number }) {
   const theme = useTheme();
@@ -235,6 +247,7 @@ export function DetailView({ plan, detail, loading, simpleNumber }: { plan: Plan
           <span><i style={{ background: theme.band[2] }} />{BAND_LABELS.p10}</span>
           <span className="muted">Fidelity calls these average, below average and significantly below average markets.</span>
         </div>
+        {failureText(detail) && <p className="text-2" style={{ marginTop: 8 }}>{failureText(detail)}</p>}
       </div>
 
       <div className="two-col">

@@ -111,4 +111,4 @@ export const METHODS_HELP =
   `Simulated markets: thousands of made-up market histories (10,000 by default), each stitched together from random multi-year stretches of real US history since ${MARKET.firstYear}. Real past markets: your plan replayed through every actual stretch of history. Your result must pass both, so the lower number is the one that counts.`;
 
 export const SUCCESS_HELP =
-  'The share of markets in which you never run out of money before the younger of you reaches the “plan until” age (96 by default).';
+  'The share of markets in which you never run out of money before the younger of you reaches the “plan until” age (96 by default). It is not a guarantee: in the other markets savings run out, usually late in retirement, leaving Social Security to live on. The detail view below says when.';

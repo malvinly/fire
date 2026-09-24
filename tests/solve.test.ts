@@ -163,6 +163,17 @@ describe('detail view', () => {
     expect(Math.abs(at(d.p10Path) / d.bands.p10[t] - 1)).toBeLessThan(0.05);
   });
 
+  test('the markets that fail: their share, the median year money runs out, and Social Security then (fix 12)', () => {
+    const f = d.failures!;
+    expect(f.share).toBeCloseTo(1 - d.success.bootstrap, 12);
+    const ctx = buildContext(plan, d.scenario);
+    const fails = Array.from({ length: engine.boot.n }, (_, p) => simulatePath(ctx, engine.boot, p).failYear)
+      .filter((y): y is number => y !== null).sort((a, b) => a - b);
+    expect(f.medianYear).toBe(fails[Math.floor((fails.length - 1) / 2)]);
+    expect(f.socialSecurity).toBeCloseTo(ctx.socialSecurity[f.medianYear - plan.startYear], 6);
+    expect(f.spending).toBeGreaterThan(plan.household.traditionalSpending);
+  });
+
   test('worst historical windows: failures first, earliest failure first', () => {
     const w = d.worstHistorical;
     for (let i = 1; i < w.length; i++) {
