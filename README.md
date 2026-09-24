@@ -102,3 +102,7 @@ data only; flat state tax; no 72(t)/Rule of 55; no flexible-spending (guardrail)
 comparison view. See `docs/DESIGN.md` → "Deferred to v2".
 
 This is a personal planning tool, not financial advice.
+
+## License
+
+[MIT](LICENSE)
