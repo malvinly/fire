@@ -123,14 +123,14 @@ export function describeAssumptions(plan: Plan): AssumptionRow[] {
       why: 'Contributions are capped at these limits every year (catch-ups from 50, HSA from 55); money above a limit is not saved elsewhere. The limits stay flat in today’s dollars.', decision: 'D15' },
 
     // Limitations (D75)
-    { group: LIMITS_GROUP, label: 'Both of you alive to the end', value: 'Assumed; a survivor test is planned', status: 'fixed',
+    { group: LIMITS_GROUP, label: 'Both of you alive to the end', value: 'Assumed', status: 'fixed',
       why: 'If one of you dies first, the household loses the smaller Social Security check and files as single, with narrower tax brackets, while spending usually falls by less. Assuming both live leans optimistic.', decision: 'D13' },
     { group: LIMITS_GROUP, label: 'Separate retirement years', value: 'Not modeled', status: 'fixed',
       why: 'Both of you stop working in the same year.', decision: 'D13' },
-    { group: LIMITS_GROUP, label: 'Rule of 55 and 72(t)', value: 'Not modeled yet (planned)', status: 'fixed',
+    { group: LIMITS_GROUP, label: 'Rule of 55 and 72(t)', value: 'Not modeled', status: 'fixed',
       why: 'Taking 401(k)/IRA money before 59½ always pays the 10% penalty here, even where these IRS rules could avoid it (leans cautious).', decision: 'D68, D75' },
     { group: LIMITS_GROUP, label: 'State tax details', value: 'One flat rate', status: 'fixed',
-      why: 'No state exemptions for retirement income (planned) and no state-by-state rules. Social Security is never taxed by the state; Treasury interest is, which leans slightly cautious.', decision: 'D33, D70' },
+      why: 'No state exemptions for retirement income and no state-by-state rules. Social Security is never taxed by the state; Treasury interest is, which leans slightly cautious.', decision: 'D33, D70' },
     { group: LIMITS_GROUP, label: 'Medicare income surcharges (IRMAA)', value: 'Not modeled', status: 'fixed',
       why: 'Higher-income retirees pay more for Medicare; the model doesn’t charge it (optimistic for large withdrawals or conversions).', decision: 'D58, D75' },
     { group: LIMITS_GROUP, label: 'Flexible spending', value: 'Not modeled', status: 'fixed',
@@ -139,7 +139,7 @@ export function describeAssumptions(plan: Plan): AssumptionRow[] {
       why: 'Holding bonds in retirement accounts and stocks in the brokerage account could lower taxes a little.', decision: 'D8' },
     { group: LIMITS_GROUP, label: 'Markets', value: `US history ${MARKET.firstYear}–${MARKET.lastYear} only`, status: 'fixed',
       why: 'US markets were among the best in the world over this period. Assuming lower returns than history, and comparing with a saved baseline, are planned.', decision: 'D10' },
-    { group: LIMITS_GROUP, label: 'Also planned', value: 'Replay one historical year; full year-by-year table; upside on the chart; report export for AI review', status: 'fixed',
+    { group: LIMITS_GROUP, label: 'Also planned', value: 'Full year-by-year table; report export for AI review', status: 'fixed',
       why: 'Features not built yet; they add views, not changes to the results above.' },
   ];
 }

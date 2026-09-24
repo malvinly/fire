@@ -114,6 +114,6 @@ What the five-reviewer audit of v1 verified. Its fixes and the later ones are D6
 ## Planned changes
 
 Planned work is in [pending-features.md](pending-features.md), ordered by importance: new capabilities such
-as scenario comparison, survivor modeling, state tax exemptions, Rule of 55 and replaying a chosen historical
-year. Design choices already made for that work are D-rows in [DECISIONS.md](DECISIONS.md) (D81 for new
-settings, D67 for warnings). How to make a change is in [DEVELOPMENT.md](DEVELOPMENT.md#making-a-change).
+as comparing with a baseline, lower-than-history returns, a fuller year-by-year table and a report export for
+AI review. Design choices already made for that work are D-rows in [DECISIONS.md](DECISIONS.md) (D81 for new
+settings, D67 for warnings); features considered and declined are D89. How to make a change is in [DEVELOPMENT.md](DEVELOPMENT.md#making-a-change).
