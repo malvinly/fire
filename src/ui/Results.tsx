@@ -7,6 +7,7 @@ import { Help } from './fields';
 import { Icon, TIER_ICONS } from './icons';
 import { money, moneyShort, percent } from './format';
 import { METHODS_HELP, SUCCESS_HELP } from './helpText';
+import type { WarningLine } from './warnings';
 
 export const TIER_NAMES: Record<Tier, string> = { traditional: 'Traditional FIRE', chubby: 'Chubby FIRE', coast: 'Coast FIRE' };
 
@@ -109,9 +110,6 @@ export function TierCard({ r, plan, selected, onSelect }: { r: TierResult | null
             Expected by {r.earliest.year}: typical market · bad market (1 in 10)
           </Label>
           <div className="value">{moneyShort(r.projectedAtEarliest.p50)} · {moneyShort(r.projectedAtEarliest.p10)}</div>
-          <div className="muted" style={{ fontSize: 12 }}>
-            Your date already allows for bad markets while you save. “Savings needed” is what carries you from that date on.
-          </div>
         </div>
       )}
       <div className="stat">
@@ -129,6 +127,19 @@ export function TierCard({ r, plan, selected, onSelect }: { r: TierResult | null
         4% rule check: 25 × (spending + first-year healthcare) = {moneyShort(r.simpleNumber)}. Ignores taxes and
         Social Security; not used for your date.
       </div>
+    </div>
+  );
+}
+
+/** Cautions about the results, directly below the cards so they are read before acting (D67). */
+export function BeforeYouAct({ lines }: { lines: WarningLine[] }) {
+  if (!lines.length) return null;
+  return (
+    <div className="panel warnings">
+      <h2 className="with-icon"><Icon name="alert" />Before you act on these numbers</h2>
+      <ul>
+        {lines.map((l) => <li key={l.key}>{l.text}</li>)}
+      </ul>
     </div>
   );
 }

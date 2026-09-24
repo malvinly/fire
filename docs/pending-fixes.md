@@ -75,23 +75,6 @@ Example for the example plan:
 
 ## P0: wrong or dangerously misleading
 
-### 4. Replace "Your date already allows for bad markets while you save" (clarity)
-
-- **Problem:**
-  - The earliest date is a probability seen from today: in 90% of futures the plan works if you retire
-    then.
-  - The sentence reads as permission to retire on that date whatever the balance. A user who arrives with
-    less than "Savings needed" is well below target.
-- **Where:** `src/ui/Results.tsx:113` (Traditional/Chubby card). Background is in D54.
-- **Evidence:** Example plan, 2039. Arriving with the bad-market balance ($2.06M rather than the $2.70M
-  needed) passes in only **~63%** of markets. That was measured with `evaluate(..., { retirementOnly: true })`
-  from the projected 2039 account mix, scaled.
-- **Change:**
-  - Remove the sentence from the card.
-  - Add a line to the [warnings panel](#where-warnings-go) for Traditional and Chubby: "{Tier} {year} assumes
-    you'll have about {Savings needed} by then. Re-run each year with your real balances."
-- **Related:** D54.
-
 ### 5. Roth ladder default and help text (accuracy / clarity)
 
 - **Problem:**

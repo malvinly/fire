@@ -7,9 +7,10 @@ import type { Plan } from './engine/types';
 import { HowItWorks } from './ui/HowItWorks';
 import { Icon, TIER_ICONS } from './ui/icons';
 import { InputsPanel } from './ui/InputsPanel';
-import { DetailView, TIER_NAMES, TierCard } from './ui/Results';
+import { BeforeYouAct, DetailView, TIER_NAMES, TierCard } from './ui/Results';
 import { SessionsDialog, type SessionMeta } from './ui/SessionsDialog';
 import { isStale, makeSession, type SessionFile } from './ui/sessions';
+import { beforeYouAct } from './ui/warnings';
 import { detail as fetchDetail, solveAll } from './worker/client';
 
 const DRAFT_KEY = 'fire-planner:draft';
@@ -245,6 +246,8 @@ export default function App() {
                     ),
                   )}
                 </div>
+
+                {results.done && <BeforeYouAct lines={beforeYouAct(results.plan, results.tiers)} />}
 
                 {results.done && selResult && selYear !== null && (
                   <div className="panel">
