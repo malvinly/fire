@@ -8,6 +8,7 @@ import { Help } from './fields';
 import { Icon, TIER_ICONS } from './icons';
 import { money, moneyShort, nameIs, percent } from './format';
 import { METHODS_HELP, SUCCESS_HELP } from './helpText';
+import { buildPlaybook } from './playbook';
 import type { WarningLine } from './warnings';
 
 export const TIER_NAMES: Record<Tier, string> = { traditional: 'Traditional FIRE', chubby: 'Chubby FIRE', coast: 'Coast FIRE' };
@@ -216,6 +217,43 @@ const COLUMNS: { label: string; help?: string }[] = [
   { label: 'Total savings (end of year)' },
 ];
 
+/** The engine's withdrawal rules as a timeline of steps to follow, for a reader with no finance background (D93). */
+function PlaybookPanel({ plan, detail }: { plan: Plan; detail: Detail }) {
+  const pb = buildPlaybook(plan, detail);
+  return (
+    <div className="panel playbook">
+      <h2>What to do each year after you retire</h2>
+      <p className="text-2" style={{ marginTop: 4 }}>
+        The steps the calculator assumed when it worked out the results above, in plain words. Money in different kinds of accounts
+        is taxed differently, so the order you take it out changes how much tax you pay and whether you owe a penalty. Following this
+        order is what keeps the plan on track. It is the model’s plan, not personal advice: a tax preparer can check it against your
+        situation. The example lines come from one simulated market and will not match your real years; the steps are what to follow.
+      </p>
+      <div className="timeline">
+        {pb.phases.map((ph) => (
+          <div className="tl-item" key={ph.year}>
+            <div className="tl-year">{ph.year}</div>
+            <div className="tl-marker" aria-hidden />
+            <div className="tl-card">
+              <h3>{ph.title} <span className="ages">{ph.ages}</span></h3>
+              <ol className="steps">
+                {ph.steps.map((s, i) => (
+                  <li key={i}>
+                    <b>{s.action}</b>
+                    {s.items && <ol>{s.items.map((it, j) => <li key={j}>{it}</li>)}</ol>}
+                    {s.why && <p className="why">{s.why}</p>}
+                  </li>
+                ))}
+              </ol>
+              {ph.example && <p className="example">{ph.example}</p>}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 /** What the markets that fail look like (D74): when money runs out and what is left to live on then. */
 function failureText(d: Detail): string | null {
   const f = d.failures;
@@ -341,6 +379,8 @@ export function DetailView({ plan, detail, loading, simpleNumber }: { plan: Plan
           </table>
         </div>
       </div>
+
+      <PlaybookPanel plan={plan} detail={detail} />
 
       <div className="panel">
         <h2>Year by year in a typical market</h2>
