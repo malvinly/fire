@@ -1,7 +1,7 @@
 {
   "name": "fire-planner",
   "private": true,
-  "version": "0.1.0",
+  "version": "1.0.0",
   "license": "MIT",
   "type": "module",
   "description": "Personal FIRE calculator: Coast, Traditional and Chubby FIRE with bootstrap Monte Carlo and historical backtesting.",

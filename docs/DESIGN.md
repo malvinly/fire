@@ -27,7 +27,7 @@ Key research points:
    still counts, and the results say how often that happens (D68). Results show Fidelity's three market
    conditions as 50th/25th/10th percentile bands.
 3. **Returns** — block bootstrap (main) + every historical window (cross-check); **stricter of the two**.
-   US data only in v1. Real (today's) dollars throughout.
+   US data only (D89). Real (today's) dollars throughout.
 4. **FIRE types** — Traditional (default spending = 0.85 × current), Chubby (a higher spending level; default
    spending = 1.2 × current), both after taking out ongoing dated items already paid today (D18, D57); Coast (stop contributing now; work until a chosen age, default 65; then
    Traditional spending).

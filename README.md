@@ -116,14 +116,12 @@ Market history, tax brackets and Social Security rules change every year. See
 - [docs/DESIGN.md](docs/DESIGN.md) — what the calculator does and how each result is defined
 - [docs/DECISIONS.md](docs/DECISIONS.md) — every assumption and judgement call, and where to change it
 
-## Limitations (v1)
+## Limitations
 
 Both spouses assumed alive through the plan (no survivor modeling) and retiring in the same year; no ACA
 subsidies or IRMAA; US market data only; flat state tax; no 72(t)/Rule of 55; no flexible-spending
 (guardrail) rules; no plan comparison view. The app's **How this works** page lists these under "What this doesn't model". See
 [docs/pending-features.md](docs/pending-features.md) for planned work.
-
-This is a personal planning tool, not financial advice.
 
 ## License
 
