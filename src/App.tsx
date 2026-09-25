@@ -215,7 +215,7 @@ export default function App() {
   return (
     <div className="app">
       <header className="topbar">
-        <h1><img src="./favicon.svg" alt="" width={20} height={20} />FIRE Planner</h1>
+        <h1><button type="button" className="brand" onClick={() => setTab('plan')}><img src="./favicon.svg" alt="" width={20} height={20} />FIRE Planner</button></h1>
         <nav className="tabs" role="tablist">
           <button role="tab" aria-selected={tab === 'plan'} onClick={() => setTab('plan')}>Plan</button>
           <button role="tab" aria-selected={tab === 'how'} onClick={() => { setHowFocus(null); setTab('how'); }}>How this works</button>

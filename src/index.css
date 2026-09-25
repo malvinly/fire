@@ -73,6 +73,7 @@ button, input, select, textarea { font: inherit; color: inherit; }
   padding: 10px 20px; border-bottom: 1px solid var(--border); background: var(--surface);
 }
 .topbar h1 { font-size: 17px; margin-right: 8px; display: flex; align-items: center; gap: 6px; }
+.topbar .brand { display: flex; align-items: center; gap: 6px; background: none; border: 0; padding: 0; cursor: pointer; font-weight: inherit; } /* back to the Plan tab */
 .topbar .spacer { flex: 1; }
 .tabs { display: flex; gap: 4px; }
 .tabs button { background: none; border: 0; padding: 6px 12px; border-radius: 8px; cursor: pointer; color: var(--text-2); }
