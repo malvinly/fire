@@ -42,12 +42,12 @@ code comments cite) first. Planned work is in [pending-features.md](pending-feat
 3. **Make the change**, then run `npm run typecheck`, `npm run lint`, `npm test` and `npm run build` (lint
    has 8 older warnings; add none). For a UI change, check it in the browser: `.claude/launch.json` has
    `fire-dev` (the dev server on port 5391) and `fire-built` (the `dist/` preview on 4391). Commit each change
-   once its checks pass.
+   once its checks pass. Every push to `main` republishes the public site (D90).
 4. **Update the records:**
    - If results change for the same inputs, bump `DATA_VERSIONS.engine` in `src/engine/assumptions.ts`
      (D59) so saved sessions are flagged for recalculation, and refresh
      [Reproducing the numbers](#reproducing-the-numbers).
-   - Record any judgement call as a new D-number in DECISIONS.md (the next free number is **D89**). Update
+   - Record any judgement call as a new D-number in DECISIONS.md (the next free number is **D91**). Update
      an existing D-row if its behavior changes, and update the "Which way the assumptions lean" table.
    - If the change affects an assumption shown to users, update its row in `describeAssumptions` in
      `src/engine/assumptions.ts` (the "How this works" page) and its help text in `src/ui/helpText.ts`.
@@ -64,8 +64,9 @@ code comments cite) first. Planned work is in [pending-features.md](pending-feat
 
 ```
 src/
-  App.tsx        page layout, Calculate, banners, year picker, browser draft (loadDraft)
+  App.tsx        page layout, Calculate, banners, year picker, footer, browser draft (loadDraft)
   main.tsx       entry point
+  version.ts     app version (from package.json at build time) and the repository URL
   index.css      styles
   engine/        UI-free calculation engine (pure TypeScript, unit-tested)
     types.ts       Plan, assumption and result types
@@ -87,10 +88,11 @@ src/
   ui/              React components, charts, session files, input help text (helpText.ts), field and year
                    parsing (format.ts), the warnings panel's lines (warnings.ts)
 public/
-  Start FIRE Planner.cmd  double-click launcher, copied into dist/ by the build
+  Start FIRE Planner.cmd  double-click launcher, copied into dist/ by the build (not published to the site)
   serve.ps1               tiny localhost-only static server (Windows PowerShell, no Node) used by the launcher
   favicon.svg             app icon
-index.html
+index.html         page shell and metadata
+.github/workflows/pages.yml  tests, builds and publishes dist/ to GitHub Pages on every push to main (D90)
 data/raw/          downloaded spreadsheets for the data script (not committed, D12)
 .claude/launch.json  preview servers: fire-dev (5391) and fire-built (4391)
 scripts/
@@ -129,8 +131,8 @@ Layered so each kind of mistake has a test that can catch it:
 8. **Loading and the UI's logic** (`tests/sessions.test.ts`, `tests/warnings.test.ts`, `tests/format.test.ts`,
    `tests/client.test.ts`) — damaged files rejected and old ones migrated, a stale session's saved detail shown
    only for its own FIRE type and year (D85) and its versions kept when saved (D86), the warnings panel's
-   lines, field parsing and limits, the year picker's typed text (D84), and superseded worker requests
-   cancelled (D80).
+   lines, field parsing and limits, money boxes' separators and the pronoun for the default name (D90), the
+   year picker's typed text (D84), and superseded worker requests cancelled (D80).
 9. **Defaults and earnings records** (`tests/defaults.test.ts`, `tests/earnings.test.ts`) — the 10%
    bracket-fill default (D29), default spending levels (D18, D57), the quick-search sample (D5), fields and sections
    still holding example numbers (D64), and SSA earnings read from the XML statement or pasted rows (including CSV).
@@ -198,8 +200,8 @@ The "Before you act on these numbers" panel (D67) for the example plan:
 
 Market data, tax brackets, Social Security constants and the Trustees Report change every year.
 Paste [`UPDATE_DATA_PROMPT.md`](UPDATE_DATA_PROMPT.md) into a new LLM coding session in this folder;
-it refreshes the data, re-checks the reference tests by hand, and verifies the build. Afterwards,
-rebuild your permanent copy (see the README).
+it refreshes the data, re-checks the reference tests by hand, and verifies the build. Pushing `main`
+then republishes the public site; a local copy needs rebuilding (see the README).
 
 ## Privacy
 

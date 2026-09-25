@@ -47,9 +47,10 @@ Key research points:
 10. **Spending changes** — user-defined dated items (year or age; one-time / yearly / every N years;
     inflows allowed, taxed as income unless marked otherwise; fixed-dollar flag for mortgages). Before retirement, items already paid today are left
     to the paycheck; others are paid from (or saved to) cash and brokerage savings (D17).
-11. **App** — local TypeScript/React web app; engine UI-free in Web Workers; historical data bundled
-    and refreshed yearly by script.
-12. **Sessions** — one JSON file per session in a chosen folder (download and upload in browsers without
+11. **App** — TypeScript/React web app that runs entirely in the browser: published as a static site on
+    GitHub Pages and runnable locally (D90); engine UI-free in Web Workers; historical data bundled and
+    refreshed yearly by script.
+12. **Plans** (called "sessions" in the code and file format) — one JSON file per plan in a chosen folder (download and upload in browsers without
     folder access); Save / Save as new; unsaved work is kept as a browser draft. Results calculated with older
     data or an older engine are flagged "recalculate" (D59): until recalculated, only the saved detail view is
     shown, for the FIRE type and year it was saved for (D85), and saving them again keeps their old versions
@@ -78,7 +79,7 @@ Key research points:
   dollars) that passes when retirement starts then (retirement-only simulation). Account mix at that date
   comes from a projection at long-run average returns, scaled up or down; both methods start at average
   inflation (D51).
-- **Projected by then** — typical (50th) and significantly-below-average (10th percentile) balance at the
+- **Expected savings by then** — typical (50th) and significantly-below-average (10th percentile) balance at the
   earliest date from the whole-plan simulation. Shown next to the FIRE number so the date and the number
   can be read together (D54).
 - **Coast "earliest"** — smallest year contributions can stop while still working until the coast

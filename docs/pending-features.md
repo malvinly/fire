@@ -10,11 +10,11 @@ Each feature starts with a plain-language explanation of what it is and what you
 workflow for any change is in DEVELOPMENT.md: [Making a change](DEVELOPMENT.md#making-a-change)
 (tests, engine version, D-numbers, adding `Plan` fields safely) and
 [Reproducing the numbers](DEVELOPMENT.md#reproducing-the-numbers). Line numbers were checked at engine
-version 6; if they have moved, search for the name given. The v1 audit's fixes and the later ones have all
+version 7; if they have moved, search for the name given. The v1 audit's fixes and the later ones have all
 landed (D63–D87 in DECISIONS.md).
 
 Features are ordered by **importance**: how much each changes a typical user's answer. Numbers come from the
-current engine (version 6) on the example plan unless marked *estimate* or *v1*. Example screen text is illustrative; the final
+current engine (version 7) on the example plan unless marked *estimate* or *v1*. Example screen text is illustrative; the final
 wording is up to whoever builds it.
 
 **Any feature that adds a `Plan` or `Assumptions` field** must fill in that field's default for older
@@ -81,7 +81,7 @@ of your stocks are international. For example, with 70% in stocks and a third of
 
 ### For implementers
 
-- **Where:** results state in `src/App.tsx`; `TierCard` (`src/ui/Results.tsx:69`). `feeRate` is subtracted
+- **Where:** results state in `src/App.tsx`; `TierCard` (`src/ui/Results.tsx:70`). `feeRate` is subtracted
   in `realYears` (`src/engine/returns.ts:46`, used by the simulated and historical markets) and in
   `averageRealReturns` (`src/engine/solve.ts:232`, the FIRE number's projection in `projectState`). The fee
   leaves each market's 10-year yield (`bondYield`, D82) alone, so bond interest is taxed the same; whether
@@ -139,7 +139,7 @@ A typical-market, retired-years-only table.
 
 ### For implementers
 
-- **Where:** `DetailView` (`src/ui/Results.tsx:229`, rows filtered at `:233`, `COLUMNS` at `:184`);
+- **Where:** `DetailView` (`src/ui/Results.tsx:242`, rows filtered at `:246`, `COLUMNS` at `:197`);
   `detail.medianPath` and `detail.p10Path` are both already computed. Working years record Reinvested as 0
   and have no wages or contributions columns, so the caption's money-in = money-out identity doesn't hold for
   them; the caption needs a working-years version. A stale session's saved detail already holds both
@@ -167,7 +167,7 @@ The file is laid out for an AI, not for printing:
 
 ### What you'd see
 
-A button in the top bar, next to **Sessions…**: **Export for AI review**. It's available only when the
+A button in the top bar, next to **Plans…**: **Export for AI review**. It's available only when the
 results on screen are a complete, current calculation. While it's unavailable it says why:
 
 - no results yet, or still calculating: "Calculate first";
