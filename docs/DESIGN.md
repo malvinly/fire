@@ -90,16 +90,17 @@ Key research points:
 - **Detail view** — for a chosen FIRE type and year: bands, penalty-withdrawal rate, each person's Social
   Security at full retirement age, what happens in the markets that fail (D74), the 4% rule check
   (Traditional and Chubby), the "significantly below average" path's account balances, worst historical start
-  years, and a year-by-year table of the typical path's retired years. The typical and bad paths are the ones
-  closest to their bands over the first 10 retired years (D73). In the table, money in (Social Security, other
+  years, the "What to do each year after you retire" timeline (D93), and a year-by-year table of the typical
+  path's retired years. The typical and bad paths are the ones closest to their bands over the first 10 retired
+  years (D73). In the table, money in (Social Security, other
   income, the "From …" columns) equals spending, taxes and penalty plus "Reinvested": the unspent part of a
   required withdrawal, or income beyond the year's need, which goes into the brokerage account (D83). For a
   stale session, only the saved detail is shown, and only for the FIRE type and year it was saved for (D85).
 
 ## Checked and correct in v1
 
-What the five-reviewer audit of v1 verified. Its fixes and the later ones are D63–D87 in
-[DECISIONS.md](DECISIONS.md).
+What the five-reviewer audit of v1 verified. Its fixes are D63–D87 in [DECISIONS.md](DECISIONS.md); later
+corrections are D88 and D95.
 
 - **Arithmetic:** lump-sum and annuity growth match closed form to the cent; timing is consistently start of
   year (D7); fixed-dollar items are deflated correctly.

@@ -21,7 +21,7 @@ The dev server runs at http://localhost:5391 and reloads as you edit.
 |---|---|
 | `npm run dev` | Dev server with hot reload (port 5391) |
 | `npm run build` | Typecheck + production build into `dist/` |
-| `npm run preview` | Serve the built `dist/` folder (port 4391; same address as the `dist/` launcher) |
+| `npm run preview` | Serve the built `dist/` folder (port 4393; the `dist/` launcher uses 4391) |
 | `npm test` | All tests (Vitest) |
 | `npm run test:watch` | Tests in watch mode |
 | `npm run typecheck` | TypeScript only |
@@ -41,7 +41,7 @@ code comments cite) first. Planned work is in [pending-features.md](pending-feat
    can be unit-tested; React wiring is checked in the browser (D87).
 3. **Make the change**, then run `npm run typecheck`, `npm run lint`, `npm test` and `npm run build` (lint
    has 8 older warnings; add none). For a UI change, check it in the browser: `.claude/launch.json` has
-   `fire-dev` (the dev server on port 5391) and `fire-built` (the `dist/` preview on 4391). Commit each change
+   `fire-dev` (the dev server on port 5391) and `fire-built` (the `dist/` preview on 4393). Commit each change
    once its checks pass. Every push to `main` republishes the public site (D90).
 4. **Update the records:**
    - If results change for the same inputs, bump `DATA_VERSIONS.engine` in `src/engine/assumptions.ts`

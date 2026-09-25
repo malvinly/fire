@@ -106,7 +106,8 @@ Notes:
 - The built copy (port 4391), the development server (port 5391) and the public site count as different
   websites to the browser: each asks you to choose your plans folder once and keeps its own unsaved draft.
   Your plan files themselves are shared.
-- From a terminal, `npm run preview` serves the same `dist/` folder at the same address.
+- From a terminal, `npm run preview` serves the same `dist/` folder at http://localhost:4393, its own address with
+  its own draft and folder choice.
 
 ## Keeping the numbers current
 
