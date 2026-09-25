@@ -3,7 +3,7 @@ import { describe, expect, test } from 'vitest';
 import { examplePlan } from '../src/engine/defaults';
 import type { Detail } from '../src/engine/solve';
 import type { Plan, YearRecord } from '../src/engine/types';
-import { bracketTip, buildPlaybook, exampleLine } from '../src/ui/playbook';
+import { buildPlaybook, exampleLine } from '../src/ui/playbook';
 
 function record(year: number, plan: Plan, over: Partial<YearRecord> = {}): YearRecord {
   return {
@@ -18,7 +18,7 @@ function record(year: number, plan: Plan, over: Partial<YearRecord> = {}): YearR
 
 /** Only the fields the playbook reads: the scenario, the plan years and the typical market's records. */
 function detail(plan: Plan, retireYear: number, stopYear = retireYear, records: YearRecord[] = []): Detail {
-  const endYear = plan.spouse.birthYear + plan.assumptions.endAge;
+  const endYear = Math.max(plan.you.birthYear, plan.spouse.birthYear) + plan.assumptions.endAge; // the younger spouse, as planYears
   const years: number[] = [];
   for (let y = plan.startYear; y <= endYear; y++) years.push(y);
   const medianPath = years.map((y) => records.find((r) => r.year === y) ?? record(y, plan, { working: y < retireYear }));
@@ -31,6 +31,7 @@ function detail(plan: Plan, retireYear: number, stopYear = retireYear, records: 
 
 const titles = (plan: Plan, d: Detail) => buildPlaybook(plan, d).phases.map((p) => `${p.year} ${p.title}`);
 const stepText = (plan: Plan, d: Detail, year: number) => buildPlaybook(plan, d).phases.find((p) => p.year === year)!.steps.map((s) => `${s.action} ${s.why ?? ''}`).join(' ');
+const actions = (plan: Plan, d: Detail, year: number) => buildPlaybook(plan, d).phases.find((p) => p.year === year)!.steps.map((s) => s.action);
 
 describe('phases', () => {
   test('the example couple (born 1984 and 1986) retiring at 57 and 55 gets every milestone in order, merged when they share a year', () => {
@@ -58,6 +59,24 @@ describe('phases', () => {
     expect(order).toEqual(['Cash.', 'Brokerage. You pay tax only on the growth, at the low capital-gains rate.', 'The 401(k)/IRA, beyond the yearly amount above.', 'Roth.']);
     expect(stepText(plan, d, 2035)).toContain('Spend what you need from it and move whatever is left over into a Roth IRA');
     expect(stepText(plan, d, 2035)).toContain('Buy your own health insurance until Spouse turns 65');
+    // You turn 65 in the retirement year itself: the Medicare step joins the routine, just before the tax step.
+    const steps = actions(plan, d, 2035);
+    const medicare = steps.findIndex((s) => s.startsWith('You move to Medicare'));
+    expect(medicare).toBeGreaterThan(0);
+    expect(steps[medicare + 1]).toContain('Set aside the tax');
+  });
+
+  test('a spouse already past the required-withdrawal age on the day you retire gets that step in the routine, not a phase', () => {
+    const plan = examplePlan(2026);
+    plan.you.birthYear = 1960; // 75 in 2035
+    plan.spouse.birthYear = 1955; // 73 in 2028
+    const d = detail(plan, 2030);
+    expect(titles(plan, d)).toEqual(['2030 You retire', '2032 Social Security cut', '2035 You turn 75']);
+    const steps = actions(plan, d, 2030);
+    const rmd = steps.findIndex((s) => s.startsWith('Take the required minimum withdrawal from Spouse’s 401(k)/IRA every year'));
+    expect(steps[rmd - 1]).toBe('You both already collect Social Security.');
+    expect(steps[rmd + 1]).toContain('Set aside the tax');
+    expect(stepText(plan, d, 2030)).not.toContain('Apply for Social Security');
   });
 
   test('Coast gets a "stop saving" phase before retirement', () => {
@@ -94,7 +113,15 @@ describe('the retirement routine', () => {
       'If those run out while you are under 59½, the 401(k)/IRA is next, then Roth growth, both with the 10% penalty. The results above count how often that happens. (The IRS has exceptions, such as the Rule of 55, that the plan doesn’t count on.)',
     ]);
     expect(text).toContain('Buy your own health insurance until each of you turns 65');
-    expect(text).toContain('$32,000 a year');
+  });
+
+  test('healthcare figures include healthcare inflation, as the engine charges them', () => {
+    const plan = examplePlan(2026); // $16,000 each before 65, $7,500 after, rising 1.5% a year faster than prices
+    const d = detail(plan, 2041);
+    const text = stepText(plan, d, 2041);
+    expect(text).toContain('about $40,000 a year for it in 2041, in today’s dollars (it rises 1.5% a year faster than prices');
+    expect(text).not.toContain('$32,000');
+    expect(stepText(plan, d, 2049)).toContain('Health insurance for you goes from about $22,500 to about $10,600 a year in 2049, in today’s dollars.');
   });
 
   test('with conversions off there is no January step, and turning 60 only reorders the accounts', () => {
@@ -134,6 +161,52 @@ describe('households that lack an account kind (found in the planner review)', (
     expect(order[order.length - 1]).toContain('Roth growth is next, with the 10% penalty');
   });
 
+  test('one spouse over 60 with a 401(k)/IRA, the other under 60 with none: convert the leftover, no penalty line', () => {
+    const plan = examplePlan(2026);
+    plan.you.birthYear = 1970;
+    plan.spouse.birthYear = 1980;
+    plan.spouse.balances = { pretax: 0, roth: 0, rothBasis: 0, hsa: 0 };
+    plan.spouse.contributions = { pretax: 0, employerMatch: 0, roth: 0, hsa: 0 };
+    const d = detail(plan, 2032); // You 62, Spouse 52
+    const text = stepText(plan, d, 2032);
+    expect(text).toContain('Spend what you need from it and move whatever is left over into a Roth IRA.');
+    expect(text).not.toContain('Don’t spend');
+    const order = buildPlaybook(plan, d).phases[0].steps.find((s) => s.items)!.items!;
+    expect(order).toEqual(['Cash.', 'Brokerage. You pay tax only on the growth, at the low capital-gains rate.', 'Your 401(k)/IRA, beyond the yearly amount above.', 'Roth.']);
+  });
+
+  test('contributions that never happen do not count as having an account', () => {
+    const plan = examplePlan(2026);
+    plan.spouse.balances = { pretax: 0, roth: 0, rothBasis: 0, hsa: 0 }; // still contributes $25,000 a year, but saving stops at once
+    expect(titles(plan, detail(plan, 2041, 2026))).not.toContain('2046 Spouse turns 60');
+    expect(titles(plan, detail(plan, 2041))).toContain('2046 Spouse turns 60');
+  });
+
+  test('when Spouse is the older one: start with Spouse’s account, and "you are" under 59½', () => {
+    const plan = examplePlan(2026);
+    plan.you.birthYear = 1986;
+    plan.spouse.birthYear = 1984;
+    const d = detail(plan, 2045); // You 59, Spouse 61
+    const text = stepText(plan, d, 2045);
+    expect(text).toContain('Start with Spouse’s account, the older of you, because it opens up penalty-free first; then yours.');
+    expect(text).toContain('Don’t spend the part taken from your 401(k)/IRA while you are under 59½: move it straight into your Roth IRA');
+    expect(text).toContain('Spend what you need from Spouse’s withdrawal and convert only the leftover.');
+    const order = buildPlaybook(plan, d).phases[0].steps.find((s) => s.items)!.items!;
+    expect(order[order.length - 1]).toContain('If those run out while you are under 59½, your 401(k)/IRA is next');
+    expect(titles(plan, d)[1]).toBe('2046 You turn 60');
+  });
+
+  test('a couple born the same year: no "older of you", and the HSA step appears once', () => {
+    const plan = examplePlan(2026);
+    plan.spouse.birthYear = plan.you.birthYear; // both 1984
+    plan.you.balances.hsa = 20_000;
+    const d = detail(plan, 2041);
+    expect(stepText(plan, d, 2041)).toContain('Start with your account; then Spouse’s.');
+    expect(stepText(plan, d, 2041)).not.toContain('older of you');
+    expect(titles(plan, d)).toContain('2049 You turn 65 · Spouse turns 65');
+    expect(actions(plan, d, 2049).filter((s) => s.startsWith('HSA money can now also be spent'))).toHaveLength(1);
+  });
+
   test('with a ten-year age gap the penalty line names the younger spouse, not "you"', () => {
     const plan = examplePlan(2026);
     plan.you.birthYear = 1972;
@@ -149,7 +222,7 @@ describe('the routine also covers the budget, rebalancing and dated items', () =
     const steps = buildPlaybook(plan, detail(plan, 2041)).phases[0].steps.map((s) => s.action);
     expect(steps[0]).toBe('Live on about $76,500 a year plus healthcare, in today’s dollars.');
     expect(steps.slice(-2)).toEqual([
-      'Once a year, put every account back to 70% stocks / 25% bonds / 5% cash.',
+      'Once a year, put every invested account back to 70% stocks / 25% bonds / 5% cash (cash stays cash).',
       'Once a year, enter your real balances here and recalculate.',
     ]);
   });
@@ -174,36 +247,34 @@ describe('the routine also covers the budget, rebalancing and dated items', () =
     expect(routine[0]).toBe('Live on about $76,500 a year plus healthcare and your dated items, in today’s dollars.');
     expect(routine[1]).toBe('Plan for A car about every 10 years, about $35,000 each time.');
   });
-});
 
-describe('the bracket tip', () => {
-  test('required withdrawals usually taxed at 22% while converting at 10% suggest the 22% fill, on the first RMD phase', () => {
+  test('a recurring cost that ends before retirement is not in the routine', () => {
     const plan = examplePlan(2026);
-    const d = detail(plan, 2041, 2041, [
-      record(2059, plan, { rmd: 60_000, taxableIncome: 120_000, capitalGains: 5_000 }),
-      record(2060, plan, { rmd: 60_000, taxableIncome: 125_000, capitalGains: 5_000 }),
-      record(2061, plan, { rmd: 200_000, taxableIncome: 250_000, capitalGains: 5_000 }),
-    ]);
-    const phases = buildPlaybook(plan, d).phases;
-    const tipped = phases.filter((p) => p.tip);
-    expect(tipped.map((p) => p.year)).toEqual([2059]);
-    expect(tipped[0].tip).toContain('requires from 2059 on are usually taxed at 22%, while you convert at 10% today');
-    expect(tipped[0].tip).toContain('“fill up to the 22% bracket”');
+    plan.datedItems = [
+      { id: 't', label: 'Tuition', direction: 'expense', amount: 20_000, frequency: 'recurring', start: { kind: 'year', year: 2030 }, end: { kind: 'year', year: 2040 }, everyYears: 2, fixedDollars: false },
+    ];
+    expect(actions(plan, detail(plan, 2041), 2041).some((s) => s.includes('Tuition'))).toBe(false);
+    plan.datedItems[0].end = { kind: 'year', year: 2041 };
+    expect(actions(plan, detail(plan, 2041), 2041)).toContain('Plan for Tuition about every 2 years, about $20,000 each time.');
   });
 
-  test('no tip when the withdrawals stay in the fill bracket, when nothing is required, or when they land below the next option', () => {
+  test('an ongoing cost starting after retirement, income that ends, recurring income and a one-time cost', () => {
     const plan = examplePlan(2026);
-    expect(bracketTip('10', [record(2059, plan, { rmd: 40_000, taxableIncome: 20_000 })])).toBeNull();
-    expect(bracketTip('10', [record(2059, plan, { rmd: 0, taxableIncome: 200_000 })])).toBeNull();
-    expect(bracketTip('22', [record(2059, plan, { rmd: 40_000, taxableIncome: 150_000 })])).toBeNull();
-    expect(bracketTip('24', [record(2059, plan, { rmd: 40_000, taxableIncome: 450_000 })])).toBeNull();
-  });
-
-  test('with conversions off the tip says so and suggests the bracket the withdrawals land in', () => {
-    const plan = examplePlan(2026);
-    const tip = bracketTip('none', [record(2059, plan, { rmd: 40_000, taxableIncome: 60_000 })]);
-    expect(tip!.text).toContain('usually taxed at 12%, while Yearly Roth conversions are off');
-    expect(tip!.text).toContain('12% bracket');
+    plan.datedItems = [
+      { id: 'c', label: 'Care', direction: 'expense', amount: 20_000, frequency: 'ongoing', start: { kind: 'year', year: 2045 }, fixedDollars: false },
+      { id: 'w', label: 'Consulting', direction: 'income', amount: 30_000, frequency: 'ongoing', start: { kind: 'year', year: 2042 }, end: { kind: 'year', year: 2047 }, fixedDollars: false, taxable: true },
+      { id: 'r', label: 'Royalties', direction: 'income', amount: 5_000, frequency: 'recurring', start: { kind: 'year', year: 2043 }, everyYears: 3, fixedDollars: false, taxable: true },
+      { id: 'o', label: 'a new roof', direction: 'expense', amount: 25_000, frequency: 'oneTime', start: { kind: 'year', year: 2050 }, fixedDollars: false },
+    ];
+    const d = detail(plan, 2041);
+    const t = titles(plan, d);
+    expect(t).toContain('2045 Care starts');
+    expect(t).toContain('2048 Consulting ends');
+    expect(t).toContain('2050 Pay for a new roof');
+    expect(actions(plan, d, 2045)).toContain('Care: about $20,000 a year more to cover.');
+    expect(actions(plan, d, 2048)).toContain('Consulting stops: about $30,000 a year less coming in.');
+    expect(actions(plan, d, 2043)[0]).toBe('Royalties: about $5,000 every 3 years. Whatever you don’t need goes into the brokerage account.');
+    expect(actions(plan, d, 2050)).toContain('Pay for a new roof: about $25,000.');
   });
 });
 
@@ -224,7 +295,19 @@ describe('example lines from the typical market', () => {
   test('the social security claim quotes the first full year, since the claim year is prorated', () => {
     const plan = examplePlan(2026);
     const d = detail(plan, 2041, 2041, [record(2051, plan, { socialSecurity: 15_000 }), record(2052, plan, { socialSecurity: 30_000 })]);
-    expect(stepText(plan, d, 2051)).toContain('it brings in about $30K a year');
+    expect(stepText(plan, d, 2051)).toContain('From then on it adds about $30K a year in today’s dollars, so you take that much less from the accounts.');
+    expect(stepText(plan, d, 2051)).toContain('The amount already assumes only 73% of the full benefit is paid by then');
+  });
+
+  test('each claim quotes what it adds, not the household total', () => {
+    const plan = examplePlan(2026); // You claim in 2051, Spouse in 2053
+    const d = detail(plan, 2041, 2041, [
+      record(2051, plan, { socialSecurity: 15_000 }), record(2052, plan, { socialSecurity: 30_000 }),
+      record(2053, plan, { socialSecurity: 40_000 }), record(2054, plan, { socialSecurity: 55_000 }),
+    ]);
+    expect(stepText(plan, d, 2051)).toContain('it adds about $30K a year');
+    expect(stepText(plan, d, 2053)).toContain('it adds about $25K a year');
+    expect(stepText(plan, d, 2053)).not.toContain('$55K');
   });
 
   test('a required withdrawal is shown as part of the 401(k)/IRA money', () => {

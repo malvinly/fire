@@ -185,7 +185,7 @@ function consumeConversions(s: State, i: 0 | 1, t: number, amount: number) {
  * Fill `d` with withdrawals that cover `need` (D27, D28). Reads `s`, `d.rmd` and `d.fillTarget`; writes the
  * rest of `d`. Order: RMDs and spendable bracket fill → cash → taxable → pre-tax (past 59½) → Roth (all past
  * 59½; seasoned principal before) → pre-tax with penalty (reclaiming this year's conversion first) → early
- * Roth → HSA.
+ * Roth → HSA. src/ui/playbook.ts restates this order for the user in plain language (D93): mirror a change there.
  */
 function planDraws(ctx: Context, s: State, t: number, need: number, hsaMedical: number, order: readonly [0 | 1, 0 | 1], d: Draws) {
   const access = [ctx.access[0][t], ctx.access[1][t]];
@@ -465,6 +465,8 @@ export function simulatePath(ctx: Context, paths: ReturnPaths, p: number, opts: 
         rec.shortfall = short;
       }
     } else {
+      // The HSA-first, RMD and bracket-fill rules below are restated for the user in plain language in
+      // src/ui/playbook.ts (D93): mirror a change there.
       const inflow = ctx.realIn[t] + ctx.nominalIn[t] / priceLevel;
       const outflow = ctx.baseSpending[t] + ctx.realOut[t] + ctx.nominalOut[t] / priceLevel;
       const hc = ctx.healthcare[t];

@@ -217,7 +217,10 @@ const COLUMNS: { label: string; help?: string }[] = [
   { label: 'Total savings (end of year)' },
 ];
 
-/** The engine's withdrawal rules as a timeline of steps to follow, for a reader with no finance background (D93). */
+/**
+ * The engine's withdrawal rules as a timeline of steps to follow, for a reader with no finance background (D93).
+ * Its example lines say "the table below", so this panel must stay above the year-by-year table.
+ */
 function PlaybookPanel({ plan, detail }: { plan: Plan; detail: Detail }) {
   const pb = buildPlaybook(plan, detail);
   return (
@@ -246,7 +249,6 @@ function PlaybookPanel({ plan, detail }: { plan: Plan; detail: Detail }) {
                 ))}
               </ol>
               {ph.example && <p className="example">{ph.example}</p>}
-              {ph.tip && <p className="tip"><b>Tip.</b> {ph.tip}</p>}
             </div>
           </div>
         ))}

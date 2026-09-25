@@ -47,10 +47,14 @@ code comments cite) first. Planned work is in [pending-features.md](pending-feat
    - If results change for the same inputs, bump `DATA_VERSIONS.engine` in `src/engine/assumptions.ts`
      (D59) so saved sessions are flagged for recalculation, and refresh
      [Reproducing the numbers](#reproducing-the-numbers).
-   - Record any judgement call as a new D-number in DECISIONS.md (the next free number is **D92**). Update
+   - Record any judgement call as a new D-number in DECISIONS.md (the next free number is **D94**). Update
      an existing D-row if its behavior changes, and update the "Which way the assumptions lean" table.
    - If the change affects an assumption shown to users, update its row in `describeAssumptions` in
      `src/engine/assumptions.ts` (the "How this works" page) and its help text in `src/ui/helpText.ts`.
+   - If the withdrawal order (`planDraws` in `src/engine/simulate.ts`), the milestone ages, or the bracket-fill,
+     RMD or HSA rules change, update the steps in `src/ui/playbook.ts` (D93), then run
+     `tests/playbook-engine.test.ts` and review the diff of `tests/__snapshots__/playbook-profiles.test.ts.snap`
+     before accepting it with `-u`.
    - Remove a finished item from pending-features.md.
 5. **Adding a field to `Plan`** (`src/engine/types.ts`) needs care. Session files (`schemaVersion: 1`,
    `src/ui/sessions.ts`) and the browser draft (`loadDraft` in `src/App.tsx`) are loaded as saved. A new
@@ -87,7 +91,8 @@ src/
   worker/          engine workers off the main thread: one per FIRE type, one for the detail view (D80)
   ui/              React components (About.tsx, HowItWorks.tsx, InputsPanel.tsx, Results.tsx…), charts, session
                    files, input help text (helpText.ts), field and year parsing (format.ts), the warnings
-                   panel's lines (warnings.ts), the dark/light choice (theme.ts)
+                   panel's lines (warnings.ts), the dark/light choice (theme.ts), and playbook.ts (the "What to do
+                   each year after you retire" timeline: restates the engine's withdrawal rules, D93)
 public/
   Start FIRE Planner.cmd  double-click launcher, copied into dist/ by the build (not published to the site)
   serve.ps1               tiny localhost-only static server (Windows PowerShell, no Node) used by the launcher

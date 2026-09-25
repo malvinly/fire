@@ -28,6 +28,7 @@ D65); any other field needs a line there and a check in `src/engine/validate.ts`
 | 1 | Compare with a baseline, and "what if returns are lower" | See how a change moves your answer, and test a worse-than-history future. |
 | 2 | Fuller year-by-year table | See the bad-market years and the working years, not only the typical market's retired years. |
 | 3 | Export a report for AI review | Download every calculated result as one Markdown file written for an AI chat to read and give feedback on. |
+| 4 | Measured Roth-conversion bracket suggestion | Recalculate at each bracket option and say which gives your plan the best chance and the most left in a bad market. |
 
 ---
 
@@ -257,3 +258,65 @@ details (names, earnings history), holds detail for only one FIRE type, and does
 - **Test:** with the example plan, the report has a section for each FIRE type and its numbers match the
   `TierResult`s and `Detail`s; it contains neither person's name nor any earnings-history amount; a stale
   or out-of-date result can't be exported. Check the file size on the example plan and note it here.
+
+---
+
+## 4. Measured Roth-conversion bracket suggestion
+
+### What it is
+
+Every retired year, the plan takes money out of the 401(k)/IRA up to the top of a chosen tax bracket and converts
+what spending doesn't need to Roth (D29). The setting is **Yearly Roth conversions: fill up to** under
+Assumptions (advanced), with the options Off, 10%, 12%, 22% and 24%. It defaults to 10% because 10% did best when
+measured on the example plan.
+
+The best bracket differs by household. A large pre-tax balance can face required withdrawals (RMDs) later that
+are taxed at 24% or more, and then converting more each year, at a higher rate now, can leave more money overall.
+This feature works the answer out for your plan: it recalculates the detail at each bracket option and says which
+one gives the best chance your money lasts and the most left at the end in a bad market.
+
+### What you'd see
+
+In the "What to do each year after you retire" timeline, in the first phase where the IRS requires withdrawals
+(or under the detail view's stats), a line naming the option that does better than your current setting:
+
+> Filling the 12% bracket instead: chance your money lasts 91% (now 94%), bad-market end savings $410K (now $365K)
+
+If one option gives the best chance and another the most bad-market end savings, both are named. Nothing is
+shown when the current setting is already best on both. The app still doesn't change the setting itself: a
+trade-off like the one above is the reader's call.
+
+### Why it's worth doing
+
+- The setting applies one bracket to every household, but the right one depends on the size of the pre-tax
+  balance, Social Security and spending. Few users will try every option and compare the results by hand.
+- The choice matters. On the example plan at its 2040 date, 10% gives a 93.6% chance and $1.29M at the end of a
+  bad market; Off gives 93.4% and $1.26M, 12% gives 93.0% and $1.03M, and 22% gives 91.2% and $0.37M. Numbers
+  for a household with a large pre-tax balance, the case this feature is for, are not measured yet (*estimate*).
+- A heuristic tip was tried and removed (D93). It compared the tax rate on the bad market's required withdrawals
+  with the fill rate. On the example plan it suggested 22%, which contradicts D29's measured result, and when the
+  two rates were equal it still said paying the rate now can beat paying it later, an advantage that does not
+  exist. Measuring each option avoids both problems.
+
+### Today
+
+- The setting defaults to 10% (D29). Plans saved with the old default keep 12%.
+- To compare options, the user changes the setting, recalculates, and writes down the chance of success and the
+  bad-market line for each one.
+
+### For implementers
+
+- **Where:**
+  - `detailFor` in `src/engine/solve.ts` gives a detail's chance of success (`success.combined`) and the
+    bad-market line (`bands.p10`; its last value is the end savings).
+  - The detail worker in `src/worker/client.ts`: a newer request replaces the current one (D80), so the extra
+    runs must be part of the same request or use the solver workers.
+  - Results state in `src/App.tsx`; the timeline builder `buildPlaybook` in `src/ui/playbook.ts`.
+- **First version:**
+  - When the detail is calculated, rerun it at each other bracket option (Off, 10, 12, 22, 24) with every other
+    input unchanged. The quick-search sample (`searchPaths`, D5) is enough for the comparison; re-check the winner
+    on all markets before showing it.
+  - Show the line in the timeline's first required-withdrawal phase or under the detail's stats, not on the result
+    cards (D67). No new setting.
+- **Test:** on the example plan the comparison agrees with D29: 10% beats 12% and Off, on both the chance of
+  success and the bad-market end savings (engine 7 numbers above).
