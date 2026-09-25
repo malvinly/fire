@@ -194,7 +194,7 @@ table.data td { font-variant-numeric: tabular-nums; }
 .tag.changed { border-color: var(--accent); color: var(--accent); }
 
 /* ---- Dialog ---- */
-dialog { border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface); color: var(--text); padding: 20px; min-width: min(560px, 92vw); }
+dialog { border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface); color: var(--text); padding: 20px; width: min(600px, 92vw); }
 dialog::backdrop { background: rgba(0, 0, 0, 0.35); }
 .session-list { display: grid; gap: 6px; max-height: 50vh; overflow: auto; margin: 12px 0; }
 .session-item { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 8px 10px; border: 1px solid var(--border); border-radius: 8px; cursor: pointer; background: var(--page); text-align: left; }
@@ -208,6 +208,7 @@ dialog::backdrop { background: rgba(0, 0, 0, 0.35); }
   display: inline-flex; align-items: center; justify-content: center; flex: none;
 }
 .help-btn:hover, .help-btn:focus-visible { border-color: var(--accent); color: var(--accent); outline: none; }
+.empty .help-btn { cursor: default; vertical-align: -3px; } /* the same mark, shown in the intro text as an example */
 .help-tip {
   position: fixed; z-index: 50; width: 300px; padding: 10px 12px; border-radius: 8px;
   background: var(--surface); color: var(--text); border: 1px solid var(--axis);

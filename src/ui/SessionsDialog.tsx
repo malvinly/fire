@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, type MouseEvent } from 'react';
 import {
   downloadSession, ensurePermission, fileNameFor, folderSupported, listSessions, parseSession, pickFolder,
   rememberedFolder, writeSession, type DirHandle, type SessionFile, type SessionListing,
@@ -91,8 +91,15 @@ export function SessionsDialog({ open, onClose, meta, makeFile, onSaved, onOpen,
     }
   };
 
+  // A click on the backdrop lands on the dialog element itself, outside its box: close, like Escape does.
+  const onBackdropClick = (e: MouseEvent<HTMLDialogElement>) => {
+    if (e.target !== e.currentTarget) return;
+    const r = e.currentTarget.getBoundingClientRect();
+    if (e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom) onClose();
+  };
+
   return (
-    <dialog ref={ref} onClose={onClose} aria-labelledby="sessions-title">
+    <dialog ref={ref} onClose={onClose} onClick={onBackdropClick} aria-labelledby="sessions-title">
       <div style={{ display: 'grid', gap: 12 }}>
         <div className="panel-head" style={{ marginBottom: 0 }}>
           <h2 id="sessions-title">Your plans</h2>

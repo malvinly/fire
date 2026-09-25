@@ -280,8 +280,9 @@ export default function App() {
               <div className="empty">
                 <h2>Enter your numbers on the left, then press Calculate.</h2>
                 <p style={{ marginTop: 8 }}>
-                  The left side is filled with example numbers — replace them with yours. Hover the “?” next to any
-                  label to see what goes there. Calculating takes about 10 seconds: each FIRE type is tested against{' '}
+                  The left side is filled with example numbers. Replace them with yours, and hover the{' '}
+                  <span className="help-btn" aria-label="question mark">?</span> next to any label to see what goes there.
+                  Calculating takes about 10 seconds: each FIRE type is tested against{' '}
                   {plan.assumptions.paths.toLocaleString()} simulated markets and every real stretch of market history since&nbsp;{MARKET.firstYear}.
                 </p>
                 <p style={{ marginTop: 12 }}>
