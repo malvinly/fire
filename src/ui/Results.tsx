@@ -15,11 +15,11 @@ export const TIER_NAMES: Record<Tier, string> = { traditional: 'Traditional FIRE
 function tierHelp(tier: Tier, plan: Plan): string {
   if (tier === 'traditional') return 'When you could stop working for good and live on savings plus Social Security, spending your Traditional budget each year.';
   if (tier === 'chubby') return 'When you could stop working for good and live on savings plus Social Security, spending your bigger Chubby budget each year.';
-  return `When you could stop adding to savings (employer matches stop too) but keep working, with paychecks covering the bills until ${plan.you.name} is ${plan.household.coastRetireAge}. ` +
-    'After that, savings pay for the same Traditional budget. It comes sooner than Traditional because the money grows untouched longer and has fewer years to last.';
+  return `Stop adding to savings (employer matches stop too) but keep working until ${plan.you.name} is ${plan.household.coastRetireAge}, with paychecks covering the bills. ` +
+    'After that, savings pay the same Traditional budget. It comes sooner than Traditional because the money grows untouched longer and has fewer years to last.';
 }
 
-/** How the Coast number counts money you don't have yet (D50). */
+/** How the Coast number counts money you don't have yet (D50); shown only when today's total is below it. */
 function mixText(mix: Mix | undefined): string {
   if (!mix) return '';
   const parts = [
@@ -82,6 +82,7 @@ export function TierCard({ r, plan, selected, onSelect }: { r: TierResult | null
   const extras = plan.datedItems.length ? ' + healthcare + dated items' : ' + healthcare';
   const coastYear = plan.you.birthYear + plan.household.coastRetireAge;
   const endAge = plan.assumptions.endAge;
+  const verb = isCoast ? 'stop saving' : 'retire';
   return (
     <div className={`card${selected ? ' selected' : ''}`} role="button" tabIndex={0} onClick={onSelect}
       onKeyDown={(e) => e.target === e.currentTarget && (e.key === 'Enter' || e.key === ' ') && onSelect()} aria-pressed={selected}>
@@ -91,11 +92,7 @@ export function TierCard({ r, plan, selected, onSelect }: { r: TierResult | null
       </div>
       <div>
         <div className="kicker">
-          <Help text={isCoast
-            ? `The first year you could stop saving and, working until ${coastYear}, still have a ${percent(target)} chance your money lasts, simulated from today.`
-            : `The first year where your plan, simulated from today with your current saving, lasts in at least ${percent(target)} of markets.`}>
-            {isCoast ? 'Earliest year you can stop saving' : `Earliest year you can retire (${percent(target)} chance or better)`}
-          </Help>
+          {isCoast ? 'Earliest year you can stop saving' : `Earliest year you can retire (${percent(target)} chance or better)`}
         </div>
         <div className="hero">
           {coasting ? 'You can stop saving now' : r.earliest ? r.earliest.year : 'Not reachable'}{' '}
@@ -118,9 +115,9 @@ export function TierCard({ r, plan, selected, onSelect }: { r: TierResult | null
       <div className="stat-row">
         <div className="stat">
           <Label help={isCoast
-            ? `The smallest total savings today that would let you stop saving now and still have a ${percent(target)} chance your money lasts.${mixText(r.coastMix)}`
+            ? `The smallest total savings today that would let you stop saving now and still have a ${percent(target)} chance your money lasts.${coasting ? '' : mixText(r.coastMix)}`
             : r.earliest
-              ? `The total across all accounts you’d need in ${r.earliest.year} to retire then with a ${percent(target)} chance your money lasts, in today’s dollars. Compare it with “Expected by ${r.earliest.year}” below to see how much room a typical or bad market leaves.`
+              ? `The total across all accounts you’d need in ${r.earliest.year} to retire then with a ${percent(target)} chance your money lasts, in today’s dollars. Compare it with the expected savings below.`
               : `The total across all accounts you’d need on the day you retire for a ${percent(target)} chance your money lasts, in today’s dollars.`}>
             {isCoast ? 'Needed today to stop saving' : 'Savings needed when you retire'}
           </Label>
@@ -138,25 +135,24 @@ export function TierCard({ r, plan, selected, onSelect }: { r: TierResult | null
       )}
       {r.projectedAtEarliest && r.earliest && (
         <div className="stat">
-          <Label help="What your savings are expected to be by then if markets are typical, or bad (only 1 in 10 simulated markets do worse). Today’s dollars.">
-            Expected by {r.earliest.year}: typical market · bad market (1 in 10)
-          </Label>
-          <div className="value">{moneyShort(r.projectedAtEarliest.p50)} · {moneyShort(r.projectedAtEarliest.p10)}</div>
+          <div className="label">Expected savings by {r.earliest.year}</div>
+          <div className="value">
+            {moneyShort(r.projectedAtEarliest.p50)} <span className="muted">typical</span> · {moneyShort(r.projectedAtEarliest.p10)} <span className="muted">bad market (1 in 10)</span>
+          </div>
         </div>
       )}
       <div className="stat">
-        <Label help={`If you ${isCoast ? 'stop saving' : 'quit'} this year instead of waiting. Shows how far you are from ready today. It’s the share of markets where your money lasts until the younger of you is ${endAge}.`}>
-          {isCoast ? 'Chance your money lasts if you stop saving this year' : 'Chance your money lasts if you retire this year'}
+        <Label help={`Share of markets in which your money never runs out before the younger of you is ${endAge}. Not a guarantee: in the other markets savings run out, usually late in retirement, leaving Social Security to live on. “This year” shows how far you are from ready today.`}>
+          Chance your money lasts
         </Label>
-        <SuccessBadge s={r.successToday} target={target} />
+        <div className="chance-row"><span className="label">if you {verb} this year</span><SuccessBadge s={r.successToday} target={target} /></div>
+        {r.successAtEarliest && r.earliest && (
+          <>
+            <div className="chance-row"><span className="label">if you {verb} in {r.earliest.year}</span><SuccessBadge s={r.successAtEarliest} target={target} /></div>
+            <div className="method-line"><MethodLine s={r.successAtEarliest} /></div>
+          </>
+        )}
       </div>
-      {r.successAtEarliest && r.earliest && (
-        <div className="stat">
-          <Label help={`The same test at your earliest year. It’s at or above your ${percent(target)} target by definition. The line below shows which market test set the date.`}>…if you {isCoast ? 'stop saving' : 'retire'} in {r.earliest.year}</Label>
-          <SuccessBadge s={r.successAtEarliest} target={target} />
-          <div><MethodLine s={r.successAtEarliest} /></div>
-        </div>
-      )}
     </div>
   );
 }
@@ -238,7 +234,7 @@ function piaHelp(plan: Plan, retireYear: number): string {
     : `the earnings record, with work until ${retireYear}`;
   const from = source('you') === source('spouse') ? `From ${source('you')}.` : `${plan.you.name}: from ${source('you')}. ${plan.spouse.name}: from ${source('spouse')}.`;
   const wage = plan.assumptions.ssWageGrowth ? ' Raised for national wage growth above inflation (Assumptions).' : '';
-  return `Each person’s own monthly benefit at full retirement age (67 for most people). ${from}${wage} Before the adjustment for your claim age, the spousal top-up and the trust-fund cut.`;
+  return `Each person’s own monthly benefit at full retirement age (67 for most people). ${from}${wage} Before your claim age, spousal top-up and trust-fund adjustments.`;
 }
 
 /** `simpleNumber`: the selected tier's 4% rule figure (a reference, shown for Traditional and Chubby only). */

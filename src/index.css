@@ -108,7 +108,8 @@ details.section > summary { cursor: pointer; font-weight: 600; padding: 6px 0; l
 details.section > summary::before { content: '▸'; color: var(--muted); transition: transform 0.15s; }
 details.section[open] > summary::before { transform: rotate(90deg); }
 .example-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); flex: none; }
-.example-legend { font-size: 12.5px; color: var(--text-2); margin: 0 0 6px; display: flex; align-items: center; gap: 8px; }
+.inputs p { font-size: 12px; } /* notes between 12px labels and 11.5px hints; the fields set their own sizes */
+.example-legend { color: var(--text-2); margin: 0 0 6px; display: flex; align-items: center; gap: 8px; }
 .icon-line { width: 16px; height: 16px; flex: none; color: var(--text-2); }
 .with-icon { display: flex; align-items: center; gap: 8px; }
 .btn.with-icon { display: inline-flex; gap: 5px; }
@@ -151,6 +152,8 @@ details.section[open] > summary::before { transform: rotate(90deg); }
 .stat-row { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px 16px; }
 .stat .label { font-size: 12px; color: var(--muted); }
 .stat .value { font-weight: 600; }
+.chance-row { display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap; }
+.method-line { margin-top: 6px; font-size: 12px; }
 .progress { height: 8px; border-radius: 4px; background: var(--surface-2); overflow: hidden; }
 .progress > div { height: 100%; background: var(--accent); border-radius: 4px; }
 .status { display: inline-flex; gap: 6px; align-items: center; font-size: 12.5px; }

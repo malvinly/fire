@@ -3,7 +3,7 @@
 
 import { TRUST_FUND_DEFAULT } from '../data/rules';
 import { DATA_VERSIONS } from '../engine/assumptions';
-import { CHUBBY_SPENDING_FACTOR, FIDELITY_SPENDING_FACTOR } from '../engine/defaults';
+import { CHUBBY_SPENDING_FACTOR } from '../engine/defaults';
 import { MARKET } from '../engine/returns';
 
 const tf = TRUST_FUND_DEFAULT;
@@ -13,7 +13,7 @@ export const HELP = {
   // People
   name: 'Used only for labels on screen.',
   birthYear:
-    'Sets your age in each year. You get penalty-free 401(k)/IRA access from the calendar year you turn 60 (59½ rounded up) and Medicare-age costs from the year you turn 65.',
+    'Sets your age in each year. Penalty-free 401(k)/IRA withdrawals start the calendar year you turn 60, and Medicare-age healthcare costs the year you turn 65.',
   birthMonth: 'Used only to time your first Social Security payment.',
   salary:
     'Yearly pay before taxes and deductions, including a regular bonus. Used to project your Social Security benefit, to show your savings rate, and to tax any Social Security received while you still work. It does not set your spending or contributions. Enter 0 if this person doesn’t work.',
@@ -25,7 +25,7 @@ export const HELP = {
     'Total now in all traditional (not Roth) retirement accounts: 401(k), 403(b), 457(b), traditional/rollover IRA, SEP. Check your latest statements.',
   rothBalance: 'Total now in all Roth accounts, including growth. Check your latest statements.',
   rothBasis:
-    'The part of your Roth balance you put in yourself (not growth). You can take it out anytime without tax or penalty. Add up your Roth IRA contributions over the years (your broker or Form 5498 shows them), plus Roth conversions done 5+ years ago. If unsure, enter 0 — the cautious choice.',
+    'The part of your Roth balance you put in yourself (not growth). You can take it out anytime without tax or penalty. Add up your Roth IRA contributions over the years (your broker lists them), plus Roth conversions done 5+ years ago. If unsure, enter 0 — the cautious choice.',
   hsaBalance: 'Your current HSA balance. The model pays healthcare costs from the HSA first.',
   taxable:
     'Regular (non-retirement) investment accounts: brokerage, mutual funds, vested company stock. Invested with the same stock/bond mix as everything else. Its dividends and interest are taxed every year.',
@@ -48,15 +48,15 @@ export const HELP = {
     'Everything your household spends in a year, including mortgage and any healthcare you pay yourself; leave out savings and taxes taken from your paycheck. A year of bank/card statements or a budgeting app is the easiest source. On its own it doesn’t change results — it feeds the “Use Fidelity default” button.',
   traditionalSpending:
     'What you expect to spend per year once retired, in today’s dollars and before taxes (the model adds taxes). Leave out healthcare and dated items — they’re added on top. Coast FIRE also uses this after you stop working. If unsure, use the Fidelity default button.',
-  chubbySpending: `A more comfortable retirement budget, with the same rules as Traditional. Default is a step up from today: ${CHUBBY_SPENDING_FACTOR} × current spending, vs Fidelity’s ${FIDELITY_SPENDING_FACTOR} × for Traditional (both after taking out ongoing dated items you already pay today). Clear it to skip the Chubby result.`,
+  chubbySpending: `A more comfortable retirement budget, with the same rules as Traditional. The default is ${pct(CHUBBY_SPENDING_FACTOR - 1)} above today’s spending. Clear it to skip the Chubby result.`,
   coastAge:
     'If you stopped saving now, the age at which you’d both finally stop working. Until then your paychecks cover all spending; after that, Traditional spending applies. Default 65.',
 
   // Healthcare
   preMedicare:
-    'Yearly premiums plus out-of-pocket costs for an ACA marketplace plan at full price (subsidies aren’t modeled). Premiums rise with age, so use your average for the years between retiring and 65. 2026 US average benchmark silver premium: about $12,500/yr at 55, $16,000 at 60, $17,500 at 64; add $2–3k out-of-pocket (worst case $10,600). Prices vary a lot by state — browse plans on healthcare.gov for your age and zip code with an income high enough to get no subsidy. Only counts in years you’re retired and under 65.',
+    'Yearly premiums plus out-of-pocket costs for an ACA marketplace plan at full price (subsidies aren’t modeled). Premiums rise with age, so use your average for the years between retiring and 65: the 2026 US average benchmark silver premium is about $12,500/yr at 55, $16,000 at 60 and $17,500 at 64, plus $2–3k out-of-pocket. Prices vary a lot by state, so browse plans on healthcare.gov for your age and zip code. Only counts in years you’re retired and under 65.',
   medicare:
-    'Yearly Medicare Part B + Part D + Medigap (or Advantage) premiums plus out-of-pocket costs. 2026 reference: Part B $2,435, Medigap Plan G about $2,650 at 65, Part D about $400, plus $1,500–2,000 for deductibles, copays, dental and vision — about $7,500 in all. medicare.gov’s plan finder gives prices. Only counts once you’re retired.',
+    'Yearly Medicare Part B + Part D + Medigap (or Advantage) premiums plus out-of-pocket costs. 2026 reference: about $7,500 in all — Part B $2,435, Medigap Plan G about $2,650 at 65, Part D about $400, plus $1,500–2,000 for deductibles, copays, dental and vision. medicare.gov’s plan finder gives prices. Only counts once you’re retired.',
 
   // Social Security
   ssMode:
@@ -75,12 +75,12 @@ export const HELP = {
   itemFrequency: 'Every year, one time, or every N years (e.g. a car every 10 years).',
   itemAmount: 'The amount each time it happens — per year for “Every year”, per event otherwise. Today’s dollars, unless “Fixed dollars” is ticked.',
   itemStart:
-    'When it happens or begins, as a calendar year or someone’s age. An ongoing item you already pay today is covered by your paycheck until you retire. Anything else before retirement is paid from (or, for income, saved to, after its income tax) your cash and brokerage accounts, with tax on any gains; if they can’t cover a cost, that market counts as running out.',
+    'When it happens or begins, as a calendar year or someone’s age. An ongoing cost you already pay today comes out of your paycheck until you retire. Other items before retirement are paid from your cash and brokerage accounts (income is added to them after tax), with tax on any gains. A cost those accounts can’t cover counts as running out of money.',
   itemEnd: 'The last year it applies. “Plan end” means it never stops.',
   itemEvery: 'e.g. 10 for a car every 10 years, starting in the Starts year.',
   itemWhen: 'The calendar year, or that person’s age that year.',
   itemTaxable:
-    'Ticked: the model adds this money to that year’s taxable income (federal and state), on top of your withdrawals and Roth conversions, and it uses up room in the conversion bracket. Right for a pension, part-time or consulting pay, rental profit, annuity payments or inherited IRA withdrawals. Enter the amount before tax. Untick for money that isn’t income: selling your home (a married couple usually owes no tax on up to $500,000 of gain), a cash gift or an inheritance of cash.',
+    'Ticked: the model adds this money to that year’s taxable income (federal and state), on top of your withdrawals and Roth conversions. Right for a pension, part-time or consulting pay, rental profit, annuity payments or inherited IRA withdrawals. Enter the amount before tax. Untick for money that isn’t income: selling your home (a married couple usually owes no tax on up to $500,000 of gain), a cash gift or an inheritance of cash.',
   itemFixed:
     'Tick for payments that stay the same in actual dollars, like a fixed-rate mortgage or a fixed pension — their real value shrinks each year with inflation. Leave unticked for costs that rise with prices (property tax, insurance).',
 
@@ -95,9 +95,9 @@ export const HELP = {
   healthcareInflation: 'How much faster than general prices healthcare costs rise each year. Default 1.5%.',
   stateTax: 'A flat rate on your taxable retirement income, not counting Social Security. Use the rate of the state you expect to retire in (0 for no-income-tax states). Default 5%.',
   bracketFill:
-    'Each retired year, the model takes 401(k)/IRA money up to the top of this federal tax bracket. What you don’t spend moves to Roth (a “Roth conversion”) and can be spent tax- and penalty-free 5 years later. That only helps you retire early if the 5 years end before the calendar year its owner turns 60 (59½); 401(k)/IRA money is taken from the older of you first. After 60, conversions mainly lower later required withdrawals and taxes, but they cost tax now. The “Roth available” column in the year-by-year table shows when converted money becomes usable. Off = no conversions. Default 10%, which did better than 12% or Off on the example plan.',
+    'Each retired year, the model takes 401(k)/IRA money up to the top of this federal tax bracket. What you don’t spend moves to Roth (a “Roth conversion”) and can be spent tax- and penalty-free 5 years later. That only helps you retire early if the 5 years end before the calendar year its owner turns 60. After 60, conversions mainly lower later required withdrawals and taxes, but they cost tax now. Off = no conversions. Default 10%.',
   ssWageGrowth:
-    'How much faster than prices the national average wage grows. Social Security benefits are set by the national wage level in the year you turn 60, so faster wage growth means higher benefits in today’s dollars. Default 0% (the cautious choice; it matches statement estimates, which assume no growth). At 1.1% — the Social Security Trustees’ intermediate assumption — a statement benefit rises about 27% for someone now 40 and 14% for someone now 50; from 1985 to 2024 the real growth was about 0.9% a year. With an earnings record the rise is a little smaller, because future pay counts against the higher wage level.',
+    'How much faster than prices the national average wage grows. Social Security benefits follow the national wage level in the year you turn 60, so faster wage growth means higher benefits in today’s dollars. Default 0%, the cautious choice, which matches statement estimates. At 1.1% (the Social Security Trustees’ intermediate assumption) a benefit is about 27% higher for someone now 40 and 14% for someone now 50.',
   paths: 'How many simulated markets to test. More gives steadier results but takes longer. Default 10,000 (500 to 50,000).',
   blockLength:
     'Each simulated market is stitched together from random stretches of real history this many years long, so crashes and recoveries stay together. Default 5.',
