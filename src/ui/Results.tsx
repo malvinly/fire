@@ -317,12 +317,12 @@ export function DetailView({ plan, detail, loading, simpleNumber }: { plan: Plan
               ? `Your plan replayed as if it began in each of ${detail.historicalCount} past years. “1966” means your first plan year gets 1966’s markets and inflation, and so on.`
               : 'Your plan is longer than any stretch of real history, so only simulated markets are used.'}
           </p>
-          <table className="data">
+          <table className="data wrap">
             <thead>
               <tr>
                 <th>Start year</th>
                 <th><Help text="The market year your first retired year gets in this replay: the start year plus the years until you retire.">Retiring into</Help></th>
-                <th>Outcome</th><th>Lowest savings</th><th>Savings at the end</th>
+                <th>Money</th><th>Lowest savings</th><th>End savings</th>
               </tr>
             </thead>
             <tbody>
@@ -330,7 +330,7 @@ export function DetailView({ plan, detail, loading, simpleNumber }: { plan: Plan
                 <tr key={w.startYear}>
                   <td>{w.startYear}</td>
                   <td>{w.startYear + (retireYear - plan.startYear)}</td>
-                  <td>{w.success ? 'Money lasted'
+                  <td className={w.success ? undefined : 'wrap'}>{w.success ? 'Lasted'
                     : w.failYear! < retireYear ? `Ran out in ${w.failYear}, before retiring (a dated cost savings couldn’t cover)`
                     : `Ran out in ${w.failYear} (year ${w.failYear! - retireYear + 1} of retirement)`}</td>
                   <td>{moneyShort(w.minBalance)}</td>

@@ -175,6 +175,7 @@ details.section[open] > summary::before { transform: rotate(90deg); }
 
 table.data { width: 100%; border-collapse: collapse; font-size: 12.5px; }
 table.data th, table.data td { padding: 5px 8px; text-align: right; border-bottom: 1px solid var(--grid); white-space: nowrap; }
+table.data.wrap th, table.data.wrap td.wrap { white-space: normal; } /* Worst-years table: five columns in a half-width panel; headers and "Ran out" sentences wrap, numbers and labels do not */
 table.data th:first-child, table.data td:first-child { text-align: left; }
 table.data th { color: var(--text-2); font-weight: 600; position: sticky; top: 0; background: var(--surface); }
 table.data td { font-variant-numeric: tabular-nums; }
