@@ -66,27 +66,64 @@ function person(name: string, birthYear: number): Person {
   };
 }
 
+/** Input sections (named as in the inputs panel) whose number fields are checked against the example plan (D64). */
+export const EXAMPLE_SECTIONS = ['People', 'Balances', 'Yearly contributions', 'Spending', 'Healthcare', 'Social Security'] as const;
+export type ExampleSection = (typeof EXAMPLE_SECTIONS)[number];
+
+export interface ExampleStatus {
+  /** The example plan's number for every checked field path (e.g. `spouse.balances.roth`, `household.cash`). */
+  examples: Map<string, number>;
+  /** The checked fields whose value still equals the example's. */
+  fields: Set<string>;
+  /** How many such fields each section holds. */
+  counts: Record<ExampleSection, number>;
+}
+
 /**
- * Input sections (named as in the inputs panel) where a person's or the household's part still equals the
- * example plan, so example numbers would silently flow into results (D64).
+ * Number fields still holding the example plan's value, so example numbers would silently flow into results
+ * (D64). Fields whose example value is 0 are skipped: a real 0 would otherwise look like an example, and a 0
+ * can only understate results. The statement benefit counts only while the benefit comes from the statement.
+ * Assumptions, claim ages, names and dated items are not checked: their defaults are deliberate. A checked box
+ * left empty goes back to its example number (`NumberField`).
  */
-export function untouchedSections(plan: Plan): string[] {
+export function exampleStatus(plan: Plan): ExampleStatus {
   const ex = examplePlan(plan.startYear);
-  const same = (a: unknown, b: unknown) => JSON.stringify(a) === JSON.stringify(b);
-  const anyPerson = (part: (p: Person) => unknown) => (['you', 'spouse'] as const).some((id) => same(part(plan[id]), part(ex[id])));
+  const examples = new Map<string, number>();
+  const fields = new Set<string>();
+  const counts = Object.fromEntries(EXAMPLE_SECTIONS.map((s) => [s, 0])) as Record<ExampleSection, number>;
+  const check = (section: ExampleSection, path: string, value: number | null, example: number | null) => {
+    if (example === 0 || example === null) return;
+    examples.set(path, example);
+    if (value !== example) return;
+    fields.add(path);
+    counts[section]++;
+  };
+  for (const id of ['you', 'spouse'] as const) {
+    const p = plan[id];
+    const e = ex[id];
+    check('People', `${id}.birthYear`, p.birthYear, e.birthYear);
+    check('People', `${id}.salary`, p.salary, e.salary);
+    for (const k of ['pretax', 'roth', 'rothBasis', 'hsa'] as const) check('Balances', `${id}.balances.${k}`, p.balances[k], e.balances[k]);
+    for (const k of ['pretax', 'employerMatch', 'roth', 'hsa'] as const) {
+      check('Yearly contributions', `${id}.contributions.${k}`, p.contributions[k], e.contributions[k]);
+    }
+    for (const k of ['preMedicare', 'medicare'] as const) check('Healthcare', `${id}.healthcare.${k}`, p.healthcare[k], e.healthcare[k]);
+    if (p.socialSecurity.mode === 'manual') {
+      check('Social Security', `${id}.socialSecurity.manualPia`, p.socialSecurity.manualPia, e.socialSecurity.manualPia);
+    }
+  }
   const h = plan.household;
   const eh = ex.household;
-  const sections: [string, boolean][] = [
-    // Salary alone, or birth year alone: moving the plan start shifts the example's birth years but not its salaries.
-    ['People', anyPerson((p) => p.salary) || anyPerson((p) => p.birthYear)],
-    ['Balances', anyPerson((p) => p.balances) || same([h.taxable, h.taxableBasis, h.cash], [eh.taxable, eh.taxableBasis, eh.cash])],
-    ['Yearly contributions', anyPerson((p) => p.contributions) ||
-      same([h.taxableContribution, h.cashContribution], [eh.taxableContribution, eh.cashContribution])],
-    ['Spending', same([h.currentSpending, h.traditionalSpending, h.chubbySpending], [eh.currentSpending, eh.traditionalSpending, eh.chubbySpending])],
-    ['Healthcare', anyPerson((p) => p.healthcare)],
-    ['Social Security', anyPerson((p) => [p.socialSecurity.mode, p.socialSecurity.manualPia, p.socialSecurity.earnings.length])],
-  ];
-  return sections.filter(([, untouched]) => untouched).map(([name]) => name);
+  for (const k of ['taxable', 'taxableBasis', 'cash'] as const) check('Balances', `household.${k}`, h[k], eh[k]);
+  for (const k of ['taxableContribution', 'cashContribution'] as const) check('Yearly contributions', `household.${k}`, h[k], eh[k]);
+  for (const k of ['currentSpending', 'traditionalSpending', 'chubbySpending'] as const) check('Spending', `household.${k}`, h[k], eh[k]);
+  return { examples, fields, counts };
+}
+
+/** Sections (named as in the inputs panel) with at least one field still holding the example's number (D64). */
+export function untouchedSections(plan: Plan): string[] {
+  const { counts } = exampleStatus(plan);
+  return EXAMPLE_SECTIONS.filter((s) => counts[s] > 0);
 }
 
 /** Example plan shown on first launch. Every number is a placeholder to overwrite. */

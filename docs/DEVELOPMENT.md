@@ -132,8 +132,8 @@ Layered so each kind of mistake has a test that can catch it:
    lines, field parsing and limits, the year picker's typed text (D84), and superseded worker requests
    cancelled (D80).
 9. **Defaults and earnings records** (`tests/defaults.test.ts`, `tests/earnings.test.ts`) — the 10%
-   bracket-fill default (D29), default spending levels (D18, D57), the quick-search sample (D5), sections still
-   holding example numbers (D64), and SSA earnings read from the XML statement or pasted rows (including CSV).
+   bracket-fill default (D29), default spending levels (D18, D57), the quick-search sample (D5), fields and sections
+   still holding example numbers (D64), and SSA earnings read from the XML statement or pasted rows (including CSV).
 
 ## Reproducing the numbers
 

@@ -72,8 +72,10 @@ Notes:
 
 ## Using it
 
-- **Enter your numbers** on the left. The left side starts with example numbers; hover the **?** next to
-  any label to see what it means and where to find it. Press **Calculate** (about 5–10 seconds).
+- **Enter your numbers** on the left. The left side starts with example numbers: a box still holding the
+  example's number has a blue edge, and a section with any left has a blue dot. Empty a box to put the
+  example's number back. Hover the **?**
+  next to any label to see what it means and where to find it. Press **Calculate** (about 5–10 seconds).
 - **Sessions** — `Sessions…` → choose a folder once, ideally **outside this project folder** (e.g.
   `Documents\fire-sessions`); session files contain your financial details. *Save* updates the current
   session; *Save as new* makes a copy. Next year: open last year's session, *Save as new*

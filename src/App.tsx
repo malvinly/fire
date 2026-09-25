@@ -206,6 +206,7 @@ export default function App() {
   const tierOrder: Tier[] = ['traditional', 'chubby', 'coast'];
   const thisYear = new Date().getFullYear();
   const selResult = results?.tiers[selTier];
+  // Any section with a field still holding the example's number shows the legend above the inputs (D64).
   const exampleSections = untouchedSections(plan);
   // The year picker stops the year before the plan ends (D76).
   const lastYear = results ? planEndYear(results.plan) - 1 : 0;
@@ -233,6 +234,9 @@ export default function App() {
       ) : (
         <main className="main">
           <aside className="inputs" aria-label="Inputs">
+            {exampleSections.length > 0 && (
+              <p className="example-legend"><span className="example-dot" aria-hidden="true" /> Marked boxes still hold example numbers. Swap in your own.</p>
+            )}
             <InputsPanel plan={plan} update={update} />
           </aside>
           <section className="results" aria-label="Results">
@@ -241,12 +245,6 @@ export default function App() {
               <div className="banner">
                 The draft that couldn't be loaded is kept in this browser until another one is set aside.
                 <button className="btn small" onClick={() => downloadJson('unsaved plan (could not be loaded).json', draft.rejectedText!)}>Download it</button>
-              </div>
-            )}
-            {exampleSections.length > 0 && (
-              <div className="banner warn">
-                <Icon name="alert" /> Still example numbers: {exampleSections.join(', ')}. Results use them until you replace
-                them with yours.
               </div>
             )}
             {plan.startYear < thisYear && (

@@ -54,9 +54,11 @@ interface NumberFieldProps {
   /** A value that is accepted but unusual. */
   warn?: string | null;
   allowEmpty?: boolean;
+  /** The example plan's number for this field (D64): the box is marked while it still holds it, and goes back to it when left empty. */
+  example?: number;
 }
 
-export function NumberField({ label, value, onChange, kind = 'money', min, max, rangeMessage, check, step, hint, help, warn, allowEmpty }: NumberFieldProps) {
+export function NumberField({ label, value, onChange, kind = 'money', min, max, rangeMessage, check, step, hint, help, warn, allowEmpty, example }: NumberFieldProps) {
   const id = useId();
   const scale = kind === 'percent' ? 100 : 1;
   const toText = (v: number | null) => (v === null ? '' : String(+(v * scale).toFixed(kind === 'percent' ? 3 : 2)));
@@ -94,23 +96,37 @@ export function NumberField({ label, value, onChange, kind = 'money', min, max, 
     onChange(v);
   };
   const message = blocked ?? warn;
+  const isExample = example !== undefined && value === example;
+  const leave = () => {
+    setFocused(false);
+    setBlocked(null);
+    if (example !== undefined && !allowEmpty && parseFieldText(text, kind) === null) {
+      // Emptied and left: back to the example's number rather than the last accepted one (D64).
+      setSeen(example);
+      onChange(example);
+      setText(toText(example));
+    } else {
+      setText(toText(value));
+    }
+  };
 
   const unit = kind === 'money' ? ' ($)' : kind === 'percent' ? ' (%)' : '';
   return (
-    <div className={`field${message ? ' invalid' : ''}`}>
+    <div className={`field${message ? ' invalid' : ''}${isExample ? ' example' : ''}`}>
       <Label htmlFor={id} text={`${label}${unit}`} help={help} />
       <input
         id={id}
         type="number"
         inputMode="decimal"
         data-1p-ignore
+        title={isExample ? 'Still the example number' : undefined}
         value={text}
         min={min === undefined ? undefined : min * scale}
         max={max === undefined ? undefined : max * scale}
         step={step ?? (kind === 'money' ? 100 : kind === 'percent' ? 0.1 : 1)}
         onChange={(e) => commit(e.target.value)}
         onFocus={() => setFocused(true)}
-        onBlur={() => { setFocused(false); setBlocked(null); setText(toText(value)); }}
+        onBlur={leave}
         aria-invalid={blocked ? true : undefined}
       />
       {message && <span className="warn" role={blocked ? 'alert' : undefined}>{message}</span>}
@@ -178,10 +194,11 @@ export function TextField({ label, value, onChange, help }: { label: string; val
   );
 }
 
-export function Section({ title, icon, open, children }: { title: string; icon?: IconName; open?: boolean; children: ReactNode }) {
+/** `flag`: when set, the header shows a dot with this text as its tooltip and accessible name (D64). */
+export function Section({ title, icon, open, flag, children }: { title: string; icon?: IconName; open?: boolean; flag?: string; children: ReactNode }) {
   return (
     <details className="section" open={open}>
-      <summary>{icon && <Icon name={icon} />}{title}</summary>
+      <summary>{icon && <Icon name={icon} />}{title}{flag && <span className="example-dot" role="img" aria-label={flag} title={flag} />}</summary>
       <div className="section-body">{children}</div>
     </details>
   );
