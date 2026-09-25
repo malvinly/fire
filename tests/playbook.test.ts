@@ -3,7 +3,7 @@ import { describe, expect, test } from 'vitest';
 import { examplePlan } from '../src/engine/defaults';
 import type { Detail } from '../src/engine/solve';
 import type { Plan, YearRecord } from '../src/engine/types';
-import { buildPlaybook, exampleLine } from '../src/ui/playbook';
+import { bracketTip, buildPlaybook, exampleLine } from '../src/ui/playbook';
 
 function record(year: number, plan: Plan, over: Partial<YearRecord> = {}): YearRecord {
   return {
@@ -173,6 +173,37 @@ describe('the routine also covers the budget, rebalancing and dated items', () =
     const routine = buildPlaybook(plan, d).phases[0].steps.map((s) => s.action);
     expect(routine[0]).toBe('Live on about $76,500 a year plus healthcare and your dated items, in today’s dollars.');
     expect(routine[1]).toBe('Plan for A car about every 10 years, about $35,000 each time.');
+  });
+});
+
+describe('the bracket tip', () => {
+  test('required withdrawals usually taxed at 22% while converting at 10% suggest the 22% fill, on the first RMD phase', () => {
+    const plan = examplePlan(2026);
+    const d = detail(plan, 2041, 2041, [
+      record(2059, plan, { rmd: 60_000, taxableIncome: 120_000, capitalGains: 5_000 }),
+      record(2060, plan, { rmd: 60_000, taxableIncome: 125_000, capitalGains: 5_000 }),
+      record(2061, plan, { rmd: 200_000, taxableIncome: 250_000, capitalGains: 5_000 }),
+    ]);
+    const phases = buildPlaybook(plan, d).phases;
+    const tipped = phases.filter((p) => p.tip);
+    expect(tipped.map((p) => p.year)).toEqual([2059]);
+    expect(tipped[0].tip).toContain('requires from 2059 on are usually taxed at 22%, while you convert at 10% today');
+    expect(tipped[0].tip).toContain('“fill up to the 22% bracket”');
+  });
+
+  test('no tip when the withdrawals stay in the fill bracket, when nothing is required, or when they land below the next option', () => {
+    const plan = examplePlan(2026);
+    expect(bracketTip('10', [record(2059, plan, { rmd: 40_000, taxableIncome: 20_000 })])).toBeNull();
+    expect(bracketTip('10', [record(2059, plan, { rmd: 0, taxableIncome: 200_000 })])).toBeNull();
+    expect(bracketTip('22', [record(2059, plan, { rmd: 40_000, taxableIncome: 150_000 })])).toBeNull();
+    expect(bracketTip('24', [record(2059, plan, { rmd: 40_000, taxableIncome: 450_000 })])).toBeNull();
+  });
+
+  test('with conversions off the tip says so and suggests the bracket the withdrawals land in', () => {
+    const plan = examplePlan(2026);
+    const tip = bracketTip('none', [record(2059, plan, { rmd: 40_000, taxableIncome: 60_000 })]);
+    expect(tip!.text).toContain('usually taxed at 12%, while Yearly Roth conversions are off');
+    expect(tip!.text).toContain('12% bracket');
   });
 });
 

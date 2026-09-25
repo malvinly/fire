@@ -1,0 +1,763 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`the playbook for twelve household profiles > A. The example plan 1`] = `
+"traditional, retire 2039
+
+## 2039 · You retire (You 55 · Spouse 53)
+1. Live on about $76,500 a year plus healthcare, in today’s dollars.
+   (This is the budget the results are based on. Raise it with inflation each year: every figure here is in today’s dollars. Spending more than this, especially in the first years or in a bad market, is what runs money out early.)
+2. Buy your own health insurance until each of you turns 65, when Medicare takes over.
+   (The plan budgets about $32,000 a year for it in today's dollars, at full price with no subsidy, on top of your regular spending.)
+3. Each January, take money out of the 401(k)/IRA up to the top of the 10% tax bracket.
+   (This money is taxed whenever it comes out. Taking some every year while your income is low means it is taxed at the lowest rate, instead of piling up and being taxed at a higher rate later. For 2026 the top of the bracket is about $57,000 of income for a married couple (the $32,200 standard deduction plus the $24,800 bracket), minus any other income you already expect that year, such as Social Security, a pension or interest. Look the numbers up each year; the IRS raises them with inflation. Start with your account, the older of you, because it opens up penalty-free first; then Spouse’s.)
+4. Don’t spend it while you are both under 59½: move it straight into a Roth IRA and write down the year.
+   (Ask the brokerage for a “Roth conversion”. Spending that money would cost a 10% penalty; converting it costs only the income tax, and after 5 years it can be spent with no tax or penalty at all.)
+5. For everything else you need this year, take money in this order, moving to the next account only when the one before is empty:
+   a. Cash.
+   b. Brokerage. You pay tax only on the growth, at the low capital-gains rate.
+   c. Roth: only what you put in yourself, and conversions that are 5 or more years old. The growth and newer conversions stay put.
+   d. If those run out while you are under 59½, the 401(k)/IRA is next, then Roth growth, both with the 10% penalty. The results above count how often that happens. (The IRS has exceptions, such as the Rule of 55, that the plan doesn’t count on.)
+   (Cash and brokerage cost the least tax to spend. Roth money grows tax-free, so it is worth the most if it is left alone the longest.)
+6. Set aside the tax on what you take out, and pay it with your return in April or in four estimated payments during the year.
+   (The money you take out has to cover the tax on it too; the plan’s withdrawals include it.)
+7. Once a year, put every account back to 70% stocks / 25% bonds / 5% cash.
+   (The results assume this mix in every account, every year. Drifting toward more stocks raises the risk in a bad market; toward less lowers growth.)
+8. Once a year, enter your real balances here and recalculate.
+   (Markets will not follow any single simulated path. If the chance your money lasts falls, spending is the lever to adjust early.)
+> In the typical market of the table below, 2039: spent $115K; $36K from cash; $85K from brokerage; $51K moved from 401(k)/IRA to Roth; $5K in taxes.
+
+## 2044 · You turn 60 (You 60 · Spouse 58)
+1. Your 401(k)/IRA and all of your Roth can now be used with no penalty.
+   (The IRS rule is 59½; the plan counts the year you turn 60.)
+2. From now on, spend what you need from the yearly withdrawal and move only the leftover into Roth. In the order above, your 401(k)/IRA now comes after brokerage and before Roth.
+   (Before 59½, spending that money cost a 10% penalty. Now it doesn’t, so it is cheaper to spend than Roth money, which keeps growing tax-free.)
+> In the typical market of the table below, 2044: spent $118K; $68K from brokerage; $56K from 401(k)/IRA; $5K in taxes.
+
+## 2046 · Spouse turns 60 (You 62 · Spouse 60)
+1. Spouse’s 401(k)/IRA and all of Spouse’s Roth can now be used with no penalty.
+   (The IRS rule is 59½; the plan counts the year Spouse turns 60.)
+2. From now on, spend what you need from the yearly withdrawal and move only the leftover into Roth. In the order above, Spouse’s 401(k)/IRA now comes after brokerage and before Roth.
+   (Before 59½, spending that money cost a 10% penalty. Now it doesn’t, so it is cheaper to spend than Roth money, which keeps growing tax-free.)
+> In the typical market of the table below, 2046: spent $120K; $137K from 401(k)/IRA; $18K in taxes.
+
+## 2049 · You turn 65 (You 65 · Spouse 63)
+1. You move to Medicare. Sign up in the 3 months before the birthday.
+   (Signing up late carries a lifelong penalty. Health insurance for you goes from about $16,000 to about $7,500 a year (today's dollars).)
+> In the typical market of the table below, 2049: spent $110K; $125K from 401(k)/IRA; $15K in taxes.
+
+## 2051 · You start Social Security (age 67) · Spouse turns 65 (You 67 · Spouse 65)
+1. Apply for Social Security up to 4 months before you turn 67.
+   (From then on it brings in about $22K a year in today's dollars, so you take that much less from the accounts. It also counts as income, so there is less room under the 10% bracket and the yearly 401(k)/IRA withdrawal shrinks. The amount already assumes a cut to 78% of the full benefit, in case Congress does not fix the shortfall in Social Security’s trust fund. If it does, you will get more.)
+2. Spouse moves to Medicare. Sign up in the 3 months before the birthday.
+   (Signing up late carries a lifelong penalty. Health insurance for Spouse goes from about $16,000 to about $7,500 a year (today's dollars).)
+> In the typical market of the table below, 2051: spent $98K; $11K from Social Security; $99K from 401(k)/IRA; $11K in taxes.
+
+## 2053 · Spouse starts Social Security (age 67) (You 69 · Spouse 67)
+1. Apply for Social Security up to 4 months before Spouse turns 67.
+   (From then on it brings in about $44K a year in today's dollars, so you take that much less from the accounts. It also counts as income, so there is less room under the 10% bracket and the yearly 401(k)/IRA withdrawal shrinks. The amount already assumes a cut to 78% of the full benefit, in case Congress does not fix the shortfall in Social Security’s trust fund. If it does, you will get more.)
+> In the typical market of the table below, 2053: spent $99K; $33K from Social Security; $76K from 401(k)/IRA; $10K in taxes.
+
+## 2059 · You turn 75 (You 75 · Spouse 73)
+1. Take the required minimum withdrawal from your 401(k)/IRA every year before December 31. Spend it first; whatever you don’t need goes into the brokerage account.
+   (The IRS now requires it (a “required minimum distribution”, or RMD): about 4% of the balance at first and a slightly bigger share each year, from an IRS table. Your brokerage will tell you the exact figure. Missing it costs a 25% penalty.)
+> In the typical market of the table below, 2059: spent $101K; $43K from Social Security; $67K from 401(k)/IRA; $3K of that required by the IRS; $9K in taxes.
+
+## 2061 · Spouse turns 75 (You 77 · Spouse 75)
+1. Take the required minimum withdrawal from Spouse’s 401(k)/IRA every year before December 31. Spend it first; whatever you don’t need goes into the brokerage account.
+   (The IRS now requires it (a “required minimum distribution”, or RMD): about 4% of the balance at first and a slightly bigger share each year, from an IRS table. Your brokerage will tell you the exact figure. Missing it costs a 25% penalty.)
+> In the typical market of the table below, 2061: spent $102K; $43K from Social Security; $69K from 401(k)/IRA; $57K of that required by the IRS; $9K in taxes.
+TIP: Even in a bad market (1 in 10), the withdrawals the IRS requires from 2061 on are usually taxed at 22%, while you convert at 10% today. Try “fill up to the 22% bracket” under Assumptions → Yearly Roth conversions, then compare the chance your money lasts and the end savings. Paying 22% now can beat paying 22% later on a bigger balance. The extra income can also cost health-insurance subsidies before 65 and raise Medicare premiums after, which the plan doesn’t count.
+"
+`;
+
+exports[`the playbook for twelve household profiles > B. Modest income, small balances, retiring at 66 and 64 1`] = `
+"traditional, retire 2050
+
+## 2050 · You retire (You 66 · Spouse 64)
+1. Live on about $51,000 a year plus healthcare, in today’s dollars.
+   (This is the budget the results are based on. Raise it with inflation each year: every figure here is in today’s dollars. Spending more than this, especially in the first years or in a bad market, is what runs money out early.)
+2. Buy your own health insurance until Spouse turns 65, when Medicare takes over.
+   (The plan budgets about $16,000 a year for it in today's dollars, at full price with no subsidy, on top of your regular spending.)
+3. Each January, take money out of the 401(k)/IRA up to the top of the 10% tax bracket.
+   (This money is taxed whenever it comes out. Taking some every year while your income is low means it is taxed at the lowest rate, instead of piling up and being taxed at a higher rate later. For 2026 the top of the bracket is about $57,000 of income for a married couple (the $32,200 standard deduction plus the $24,800 bracket), minus any other income you already expect that year, such as Social Security, a pension or interest. Look the numbers up each year; the IRS raises them with inflation. Start with your account, the older of you, because it opens up penalty-free first; then Spouse’s.)
+4. Spend what you need from it and move whatever is left over into a Roth IRA.
+   (A “Roth conversion”: the money grows tax-free from then on, and it shrinks the withdrawals the IRS will require later.)
+5. For everything else you need this year, take money in this order, moving to the next account only when the one before is empty:
+   a. Cash.
+   b. Brokerage. You pay tax only on the growth, at the low capital-gains rate.
+   c. The 401(k)/IRA, beyond the yearly amount above.
+   d. Roth.
+   (Cash and brokerage cost the least tax to spend. Roth money grows tax-free, so it is worth the most if it is left alone the longest.)
+6. Set aside the tax on what you take out, and pay it with your return in April or in four estimated payments during the year.
+   (The money you take out has to cover the tax on it too; the plan’s withdrawals include it.)
+7. Once a year, put every account back to 70% stocks / 25% bonds / 5% cash.
+   (The results assume this mix in every account, every year. Drifting toward more stocks raises the risk in a bad market; toward less lowers growth.)
+8. Once a year, enter your real balances here and recalculate.
+   (Markets will not follow any single simulated path. If the chance your money lasts falls, spending is the lever to adjust early.)
+> In the typical market of the table below, 2050: spent $85K; $19K from cash; $15K from brokerage; $54K from 401(k)/IRA; $4K in taxes.
+
+## 2051 · You start Social Security (age 67) · Spouse turns 65 (You 67 · Spouse 65)
+1. Apply for Social Security up to 4 months before you turn 67.
+   (From then on it brings in about $18K a year in today's dollars, so you take that much less from the accounts. It also counts as income, so there is less room under the 10% bracket and the yearly 401(k)/IRA withdrawal shrinks. The amount already assumes a cut to 78% of the full benefit, in case Congress does not fix the shortfall in Social Security’s trust fund. If it does, you will get more.)
+2. Spouse moves to Medicare. Sign up in the 3 months before the birthday.
+   (Signing up late carries a lifelong penalty. Health insurance for Spouse goes from about $16,000 to about $7,500 a year (today's dollars).)
+> In the typical market of the table below, 2051: spent $73K; $9K from Social Security; $17K from brokerage; $50K from 401(k)/IRA; $4K in taxes.
+
+## 2053 · Spouse starts Social Security (age 67) (You 69 · Spouse 67)
+1. Apply for Social Security up to 4 months before Spouse turns 67.
+   (From then on it brings in about $33K a year in today's dollars, so you take that much less from the accounts. It also counts as income, so there is less room under the 10% bracket and the yearly 401(k)/IRA withdrawal shrinks. The amount already assumes a cut to 78% of the full benefit, in case Congress does not fix the shortfall in Social Security’s trust fund. If it does, you will get more.)
+> In the typical market of the table below, 2053: spent $73K; $25K from Social Security; $15K from brokerage; $36K from 401(k)/IRA; $3K in taxes.
+
+## 2059 · You turn 75 (You 75 · Spouse 73)
+1. Take the required minimum withdrawal from your 401(k)/IRA every year before December 31. Spend it first; whatever you don’t need goes into the brokerage account.
+   (The IRS now requires it (a “required minimum distribution”, or RMD): about 4% of the balance at first and a slightly bigger share each year, from an IRS table. Your brokerage will tell you the exact figure. Missing it costs a 25% penalty.)
+> In the typical market of the table below, 2059: spent $76K; $33K from Social Security; $5K from brokerage; $43K from 401(k)/IRA; $43K of that required by the IRS; $5K in taxes.
+TIP: Even in a bad market (1 in 10), the withdrawals the IRS requires from 2059 on are usually taxed at 12%, while you convert at 10% today. Try “fill up to the 12% bracket” under Assumptions → Yearly Roth conversions, then compare the chance your money lasts and the end savings. Paying 12% now can beat paying 12% later on a bigger balance. The extra income can also cost health-insurance subsidies before 65 and raise Medicare premiums after, which the plan doesn’t count.
+
+## 2061 · Spouse turns 75 (You 77 · Spouse 75)
+1. Take the required minimum withdrawal from Spouse’s 401(k)/IRA every year before December 31. Spend it first; whatever you don’t need goes into the brokerage account.
+   (The IRS now requires it (a “required minimum distribution”, or RMD): about 4% of the balance at first and a slightly bigger share each year, from an IRS table. Your brokerage will tell you the exact figure. Missing it costs a 25% penalty.)
+> In the typical market of the table below, 2061: spent $76K; $32K from Social Security; $102K from 401(k)/IRA; $102K of that required by the IRS; $43K not needed and reinvested; $15K in taxes.
+"
+`;
+
+exports[`the playbook for twelve household profiles > C. High income, $2.4M pre-tax, retiring at 50 and 48 with an HSA 1`] = `
+"traditional, retire 2034
+
+## 2034 · You retire (You 50 · Spouse 48)
+1. Live on about $153,000 a year plus healthcare, in today’s dollars.
+   (This is the budget the results are based on. Raise it with inflation each year: every figure here is in today’s dollars. Spending more than this, especially in the first years or in a bad market, is what runs money out early.)
+2. Pay medical bills from the HSA before any other account.
+   (That money is never taxed when it goes to healthcare, and no other account works that way.)
+3. Buy your own health insurance until each of you turns 65, when Medicare takes over.
+   (The plan budgets about $32,000 a year for it in today's dollars, at full price with no subsidy, on top of your regular spending.)
+4. Each January, take money out of the 401(k)/IRA up to the top of the 10% tax bracket.
+   (This money is taxed whenever it comes out. Taking some every year while your income is low means it is taxed at the lowest rate, instead of piling up and being taxed at a higher rate later. For 2026 the top of the bracket is about $57,000 of income for a married couple (the $32,200 standard deduction plus the $24,800 bracket), minus any other income you already expect that year, such as Social Security, a pension or interest. Look the numbers up each year; the IRS raises them with inflation. Start with your account, the older of you, because it opens up penalty-free first; then Spouse’s.)
+5. Don’t spend it while you are both under 59½: move it straight into a Roth IRA and write down the year.
+   (Ask the brokerage for a “Roth conversion”. Spending that money would cost a 10% penalty; converting it costs only the income tax, and after 5 years it can be spent with no tax or penalty at all.)
+6. For everything else you need this year, take money in this order, moving to the next account only when the one before is empty (the HSA stays for medical bills):
+   a. Cash.
+   b. Brokerage. You pay tax only on the growth, at the low capital-gains rate.
+   c. Roth: only what you put in yourself, and conversions that are 5 or more years old. The growth and newer conversions stay put.
+   d. If those run out while you are under 59½, the 401(k)/IRA is next, then Roth growth, both with the 10% penalty. The results above count how often that happens. (The IRS has exceptions, such as the Rule of 55, that the plan doesn’t count on.)
+   (Cash and brokerage cost the least tax to spend. Roth money grows tax-free, so it is worth the most if it is left alone the longest.)
+7. Set aside the tax on what you take out, and pay it with your return in April or in four estimated payments during the year.
+   (The money you take out has to cover the tax on it too; the plan’s withdrawals include it.)
+8. Once a year, put every account back to 70% stocks / 25% bonds / 5% cash.
+   (The results assume this mix in every account, every year. Drifting toward more stocks raises the risk in a bad market; toward less lowers growth.)
+9. Once a year, enter your real balances here and recalculate.
+   (Markets will not follow any single simulated path. If the chance your money lasts falls, spending is the lever to adjust early.)
+> In the typical market of the table below, 2034: spent $189K; $36K from the HSA; $98K from cash; $61K from brokerage; $37K moved from 401(k)/IRA to Roth; $6K in taxes.
+
+## 2044 · You turn 60 (You 60 · Spouse 58)
+1. Your 401(k)/IRA and all of your Roth can now be used with no penalty.
+   (The IRS rule is 59½; the plan counts the year you turn 60.)
+2. From now on, spend what you need from the yearly withdrawal and move only the leftover into Roth. In the order above, your 401(k)/IRA now comes after brokerage and before Roth.
+   (Before 59½, spending that money cost a 10% penalty. Now it doesn’t, so it is cheaper to spend than Roth money, which keeps growing tax-free.)
+> In the typical market of the table below, 2044: spent $195K; $161K from brokerage; $46K from 401(k)/IRA; $12K in taxes.
+
+## 2046 · Spouse turns 60 (You 62 · Spouse 60)
+1. Spouse’s 401(k)/IRA and all of Spouse’s Roth can now be used with no penalty.
+   (The IRS rule is 59½; the plan counts the year Spouse turns 60.)
+2. From now on, spend what you need from the yearly withdrawal and move only the leftover into Roth. In the order above, Spouse’s 401(k)/IRA now comes after brokerage and before Roth.
+   (Before 59½, spending that money cost a 10% penalty. Now it doesn’t, so it is cheaper to spend than Roth money, which keeps growing tax-free.)
+> In the typical market of the table below, 2046: spent $196K; $165K from brokerage; $40K from 401(k)/IRA; $10K in taxes.
+
+## 2049 · You turn 65 (You 65 · Spouse 63)
+1. You move to Medicare. Sign up in the 3 months before the birthday.
+   (Signing up late carries a lifelong penalty. Health insurance for you goes from about $16,000 to about $7,500 a year (today's dollars).)
+> In the typical market of the table below, 2049: spent $186K; $110K from brokerage; $91K from 401(k)/IRA; $15K in taxes.
+
+## 2051 · You start Social Security (age 67) · Spouse turns 65 (You 67 · Spouse 65)
+1. Apply for Social Security up to 4 months before you turn 67.
+   (From then on it brings in about $33K a year in today's dollars, so you take that much less from the accounts. It also counts as income, so there is less room under the 10% bracket and the yearly 401(k)/IRA withdrawal shrinks. The amount already assumes a cut to 78% of the full benefit, in case Congress does not fix the shortfall in Social Security’s trust fund. If it does, you will get more.)
+2. Spouse moves to Medicare. Sign up in the 3 months before the birthday.
+   (Signing up late carries a lifelong penalty. Health insurance for Spouse goes from about $16,000 to about $7,500 a year (today's dollars).)
+3. HSA money can now also be spent on anything else.
+   (Once you are both 65 it is taxed like 401(k)/IRA money, with no penalty. The plan still uses it for medical bills first.)
+> In the typical market of the table below, 2051: spent $175K; $17K from Social Security; $193K from 401(k)/IRA; $35K in taxes.
+
+## 2053 · Spouse starts Social Security (age 67) (You 69 · Spouse 67)
+1. Apply for Social Security up to 4 months before Spouse turns 67.
+   (From then on it brings in about $66K a year in today's dollars, so you take that much less from the accounts. It also counts as income, so there is less room under the 10% bracket and the yearly 401(k)/IRA withdrawal shrinks. The amount already assumes a cut to 78% of the full benefit, in case Congress does not fix the shortfall in Social Security’s trust fund. If it does, you will get more.)
+> In the typical market of the table below, 2053: spent $175K; $50K from Social Security; $157K from 401(k)/IRA; $32K in taxes.
+
+## 2059 · You turn 75 (You 75 · Spouse 73)
+1. Take the required minimum withdrawal from your 401(k)/IRA every year before December 31. Spend it first; whatever you don’t need goes into the brokerage account.
+   (The IRS now requires it (a “required minimum distribution”, or RMD): about 4% of the balance at first and a slightly bigger share each year, from an IRS table. Your brokerage will tell you the exact figure. Missing it costs a 25% penalty.)
+> In the typical market of the table below, 2059: spent $178K; $65K from Social Security; $143K from 401(k)/IRA; $101K of that required by the IRS; $31K in taxes.
+TIP: Even in a bad market (1 in 10), the withdrawals the IRS requires from 2059 on are usually taxed at 35%, while you convert at 10% today. Try “fill up to the 24% bracket” under Assumptions → Yearly Roth conversions, then compare the chance your money lasts and the end savings. Paying 24% now can beat paying 35% later on a bigger balance. The extra income can also cost health-insurance subsidies before 65 and raise Medicare premiums after, which the plan doesn’t count.
+
+## 2061 · Spouse turns 75 (You 77 · Spouse 75)
+1. Take the required minimum withdrawal from Spouse’s 401(k)/IRA every year before December 31. Spend it first; whatever you don’t need goes into the brokerage account.
+   (The IRS now requires it (a “required minimum distribution”, or RMD): about 4% of the balance at first and a slightly bigger share each year, from an IRS table. Your brokerage will tell you the exact figure. Missing it costs a 25% penalty.)
+> In the typical market of the table below, 2061: spent $178K; $65K from Social Security; $365K from 401(k)/IRA; $365K of that required by the IRS; $156K not needed and reinvested; $96K in taxes.
+"
+`;
+
+exports[`the playbook for twelve household profiles > D. Single earner; the spouse has no salary and no accounts 1`] = `
+"traditional, retire 2041
+
+## 2041 · You retire (You 57 · Spouse 55)
+1. Live on about $76,500 a year plus healthcare, in today’s dollars.
+   (This is the budget the results are based on. Raise it with inflation each year: every figure here is in today’s dollars. Spending more than this, especially in the first years or in a bad market, is what runs money out early.)
+2. Buy your own health insurance until each of you turns 65, when Medicare takes over.
+   (The plan budgets about $32,000 a year for it in today's dollars, at full price with no subsidy, on top of your regular spending.)
+3. Each January, take money out of the 401(k)/IRA up to the top of the 10% tax bracket.
+   (This money is taxed whenever it comes out. Taking some every year while your income is low means it is taxed at the lowest rate, instead of piling up and being taxed at a higher rate later. For 2026 the top of the bracket is about $57,000 of income for a married couple (the $32,200 standard deduction plus the $24,800 bracket), minus any other income you already expect that year, such as Social Security, a pension or interest. Look the numbers up each year; the IRS raises them with inflation.)
+4. Don’t spend it while you are both under 59½: move it straight into a Roth IRA and write down the year.
+   (Ask the brokerage for a “Roth conversion”. Spending that money would cost a 10% penalty; converting it costs only the income tax, and after 5 years it can be spent with no tax or penalty at all.)
+5. For everything else you need this year, take money in this order, moving to the next account only when the one before is empty:
+   a. Cash.
+   b. Brokerage. You pay tax only on the growth, at the low capital-gains rate.
+   c. Roth: only what you put in yourself, and conversions that are 5 or more years old. The growth and newer conversions stay put.
+   d. If those run out while you are under 59½, the 401(k)/IRA is next, then Roth growth, both with the 10% penalty. The results above count how often that happens. (The IRS has exceptions, such as the Rule of 55, that the plan doesn’t count on.)
+   (Cash and brokerage cost the least tax to spend. Roth money grows tax-free, so it is worth the most if it is left alone the longest.)
+6. Set aside the tax on what you take out, and pay it with your return in April or in four estimated payments during the year.
+   (The money you take out has to cover the tax on it too; the plan’s withdrawals include it.)
+7. Once a year, put every account back to 70% stocks / 25% bonds / 5% cash.
+   (The results assume this mix in every account, every year. Drifting toward more stocks raises the risk in a bad market; toward less lowers growth.)
+8. Once a year, enter your real balances here and recalculate.
+   (Markets will not follow any single simulated path. If the chance your money lasts falls, spending is the lever to adjust early.)
+> In the typical market of the table below, 2041: spent $117K; $27K from cash; $95K from brokerage; $48K moved from 401(k)/IRA to Roth; $6K in taxes.
+
+## 2044 · You turn 60 (You 60 · Spouse 58)
+1. Your 401(k)/IRA and all of your Roth can now be used with no penalty.
+   (The IRS rule is 59½; the plan counts the year you turn 60.)
+2. From now on, spend what you need from the yearly withdrawal and move only the leftover into Roth. In the order above, your 401(k)/IRA now comes after brokerage and before Roth.
+   (Before 59½, spending that money cost a 10% penalty. Now it doesn’t, so it is cheaper to spend than Roth money, which keeps growing tax-free.)
+> In the typical market of the table below, 2044: spent $118K; $75K from brokerage; $49K from 401(k)/IRA; $6K in taxes.
+
+## 2049 · You turn 65 (You 65 · Spouse 63)
+1. You move to Medicare. Sign up in the 3 months before the birthday.
+   (Signing up late carries a lifelong penalty. Health insurance for you goes from about $16,000 to about $7,500 a year (today's dollars).)
+> In the typical market of the table below, 2049: spent $110K; $59K from brokerage; $56K from 401(k)/IRA; $5K in taxes.
+
+## 2051 · You start Social Security (age 67) · Spouse turns 65 (You 67 · Spouse 65)
+1. Apply for Social Security up to 4 months before you turn 67.
+   (From then on it brings in about $22K a year in today's dollars, so you take that much less from the accounts. It also counts as income, so there is less room under the 10% bracket and the yearly 401(k)/IRA withdrawal shrinks. The amount already assumes a cut to 78% of the full benefit, in case Congress does not fix the shortfall in Social Security’s trust fund. If it does, you will get more.)
+2. Spouse moves to Medicare. Sign up in the 3 months before the birthday.
+   (Signing up late carries a lifelong penalty. Health insurance for Spouse goes from about $16,000 to about $7,500 a year (today's dollars).)
+> In the typical market of the table below, 2051: spent $98K; $11K from Social Security; $42K from brokerage; $49K from 401(k)/IRA; $4K in taxes.
+
+## 2053 · Spouse starts Social Security (age 67) (You 69 · Spouse 67)
+1. Apply for Social Security up to 4 months before Spouse turns 67.
+   (From then on it brings in about $33K a year in today's dollars, so you take that much less from the accounts. It also counts as income, so there is less room under the 10% bracket and the yearly 401(k)/IRA withdrawal shrinks. The amount already assumes a cut to 78% of the full benefit, in case Congress does not fix the shortfall in Social Security’s trust fund. If it does, you will get more.)
+> In the typical market of the table below, 2053: spent $99K; $27K from Social Security; $20K from brokerage; $58K from 401(k)/IRA; $7K in taxes.
+
+## 2059 · You turn 75 (You 75 · Spouse 73)
+1. Take the required minimum withdrawal from your 401(k)/IRA every year before December 31. Spend it first; whatever you don’t need goes into the brokerage account.
+   (The IRS now requires it (a “required minimum distribution”, or RMD): about 4% of the balance at first and a slightly bigger share each year, from an IRS table. Your brokerage will tell you the exact figure. Missing it costs a 25% penalty.)
+> In the typical market of the table below, 2059: spent $101K; $32K from Social Security; $309K from 401(k)/IRA; $309K of that required by the IRS; $167K not needed and reinvested; $74K in taxes.
+TIP: Even in a bad market (1 in 10), the withdrawals the IRS requires from 2059 on are usually taxed at 22%, while you convert at 10% today. Try “fill up to the 22% bracket” under Assumptions → Yearly Roth conversions, then compare the chance your money lasts and the end savings. Paying 22% now can beat paying 22% later on a bigger balance. The extra income can also cost health-insurance subsidies before 65 and raise Medicare premiums after, which the plan doesn’t count.
+"
+`;
+
+exports[`the playbook for twelve household profiles > E. Roth only: no pre-tax money at all 1`] = `
+"traditional, retire 2038
+
+## 2038 · You retire (You 54 · Spouse 52)
+1. Live on about $76,500 a year plus healthcare, in today’s dollars.
+   (This is the budget the results are based on. Raise it with inflation each year: every figure here is in today’s dollars. Spending more than this, especially in the first years or in a bad market, is what runs money out early.)
+2. Buy your own health insurance until each of you turns 65, when Medicare takes over.
+   (The plan budgets about $32,000 a year for it in today's dollars, at full price with no subsidy, on top of your regular spending.)
+3. For everything else you need this year, take money in this order, moving to the next account only when the one before is empty:
+   a. Cash.
+   b. Brokerage. You pay tax only on the growth, at the low capital-gains rate.
+   c. Roth: only what you put in yourself, and conversions that are 5 or more years old. The growth and newer conversions stay put.
+   d. If those run out while you are under 59½, Roth growth is next, with the 10% penalty. The results above count how often that happens. (The IRS has exceptions, such as the Rule of 55, that the plan doesn’t count on.)
+   (Cash and brokerage cost the least tax to spend. Roth money grows tax-free, so it is worth the most if it is left alone the longest.)
+4. Set aside the tax on what you take out, and pay it with your return in April or in four estimated payments during the year.
+   (The money you take out has to cover the tax on it too; the plan’s withdrawals include it.)
+5. Once a year, put every account back to 70% stocks / 25% bonds / 5% cash.
+   (The results assume this mix in every account, every year. Drifting toward more stocks raises the risk in a bad market; toward less lowers growth.)
+6. Once a year, enter your real balances here and recalculate.
+   (Markets will not follow any single simulated path. If the chance your money lasts falls, spending is the lever to adjust early.)
+> In the typical market of the table below, 2038: spent $115K; $28K from cash; $88K from brokerage; $1K in taxes.
+
+## 2044 · You turn 60 (You 60 · Spouse 58)
+1. Your Roth, growth included, can now be used with no penalty.
+   (The IRS rule is 59½; the plan counts the year you turn 60.)
+> In the typical market of the table below, 2044: spent $118K; $118K from Roth.
+
+## 2046 · Spouse turns 60 (You 62 · Spouse 60)
+1. Spouse’s Roth, growth included, can now be used with no penalty.
+   (The IRS rule is 59½; the plan counts the year Spouse turns 60.)
+> In the typical market of the table below, 2046: spent $120K; $120K from Roth.
+
+## 2049 · You turn 65 (You 65 · Spouse 63)
+1. You move to Medicare. Sign up in the 3 months before the birthday.
+   (Signing up late carries a lifelong penalty. Health insurance for you goes from about $16,000 to about $7,500 a year (today's dollars).)
+> In the typical market of the table below, 2049: spent $110K; $110K from Roth.
+
+## 2051 · You start Social Security (age 67) · Spouse turns 65 (You 67 · Spouse 65)
+1. Apply for Social Security up to 4 months before you turn 67.
+   (From then on it brings in about $22K a year in today's dollars, so you take that much less from the accounts. The amount already assumes a cut to 78% of the full benefit, in case Congress does not fix the shortfall in Social Security’s trust fund. If it does, you will get more.)
+2. Spouse moves to Medicare. Sign up in the 3 months before the birthday.
+   (Signing up late carries a lifelong penalty. Health insurance for Spouse goes from about $16,000 to about $7,500 a year (today's dollars).)
+> In the typical market of the table below, 2051: spent $98K; $11K from Social Security; $87K from Roth.
+
+## 2053 · Spouse starts Social Security (age 67) (You 69 · Spouse 67)
+1. Apply for Social Security up to 4 months before Spouse turns 67.
+   (From then on it brings in about $44K a year in today's dollars, so you take that much less from the accounts. The amount already assumes a cut to 78% of the full benefit, in case Congress does not fix the shortfall in Social Security’s trust fund. If it does, you will get more.)
+> In the typical market of the table below, 2053: spent $99K; $33K from Social Security; $66K from Roth.
+"
+`;
+
+exports[`the playbook for twelve household profiles > F. Already 63 and 61, retiring now; one already collects Social Security; the trust-fund cut is ahead 1`] = `
+"traditional, retire 2026
+
+## 2026 · You retire (You 63 · Spouse 61)
+1. Live on about $76,500 a year plus healthcare, in today’s dollars.
+   (This is the budget the results are based on. Raise it with inflation each year: every figure here is in today’s dollars. Spending more than this, especially in the first years or in a bad market, is what runs money out early.)
+2. Buy your own health insurance until each of you turns 65, when Medicare takes over.
+   (The plan budgets about $32,000 a year for it in today's dollars, at full price with no subsidy, on top of your regular spending.)
+3. Each January, take money out of the 401(k)/IRA up to the top of the 10% tax bracket.
+   (This money is taxed whenever it comes out. Taking some every year while your income is low means it is taxed at the lowest rate, instead of piling up and being taxed at a higher rate later. For 2026 the top of the bracket is about $57,000 of income for a married couple (the $32,200 standard deduction plus the $24,800 bracket), minus any other income you already expect that year, such as Social Security, a pension or interest. Look the numbers up each year; the IRS raises them with inflation. Start with your account, the older of you, because it opens up penalty-free first; then Spouse’s.)
+4. Spend what you need from it and move whatever is left over into a Roth IRA.
+   (A “Roth conversion”: the money grows tax-free from then on, and it shrinks the withdrawals the IRS will require later.)
+5. For everything else you need this year, take money in this order, moving to the next account only when the one before is empty:
+   a. Cash.
+   b. Brokerage. You pay tax only on the growth, at the low capital-gains rate.
+   c. The 401(k)/IRA, beyond the yearly amount above.
+   d. Roth.
+   (Cash and brokerage cost the least tax to spend. Roth money grows tax-free, so it is worth the most if it is left alone the longest.)
+6. You already collect Social Security.
+   (It covers part of each year, and the accounts cover the rest.)
+7. Set aside the tax on what you take out, and pay it with your return in April or in four estimated payments during the year.
+   (The money you take out has to cover the tax on it too; the plan’s withdrawals include it.)
+8. Once a year, put every account back to 70% stocks / 25% bonds / 5% cash.
+   (The results assume this mix in every account, every year. Drifting toward more stocks raises the risk in a bad market; toward less lowers growth.)
+9. Once a year, enter your real balances here and recalculate.
+   (Markets will not follow any single simulated path. If the chance your money lasts falls, spending is the lever to adjust early.)
+> In the typical market of the table below, 2026: spent $109K; $21K from Social Security; $30K from cash; $22K from brokerage; $39K from 401(k)/IRA; $4K in taxes.
+
+## 2028 · You turn 65 (You 65 · Spouse 63)
+1. You move to Medicare. Sign up in the 3 months before the birthday.
+   (Signing up late carries a lifelong penalty. Health insurance for you goes from about $16,000 to about $7,500 a year (today's dollars).)
+> In the typical market of the table below, 2028: spent $101K; $21K from Social Security; $43K from brokerage; $41K from 401(k)/IRA; $4K in taxes.
+
+## 2030 · Spouse turns 65 (You 67 · Spouse 65)
+1. Spouse moves to Medicare. Sign up in the 3 months before the birthday.
+   (Signing up late carries a lifelong penalty. Health insurance for Spouse goes from about $16,000 to about $7,500 a year (today's dollars).)
+> In the typical market of the table below, 2030: spent $92K; $21K from Social Security; $34K from brokerage; $41K from 401(k)/IRA; $4K in taxes.
+
+## 2032 · Spouse starts Social Security (age 67) · Social Security cut (You 69 · Spouse 67)
+1. Apply for Social Security up to 4 months before Spouse turns 67.
+   (From then on it brings in about $40K a year in today's dollars, so you take that much less from the accounts. It also counts as income, so there is less room under the 10% bracket and the yearly 401(k)/IRA withdrawal shrinks. The amount already assumes a cut to 78% of the full benefit, in case Congress does not fix the shortfall in Social Security’s trust fund. If it does, you will get more.)
+2. Expect smaller Social Security checks from 2032.
+   (The plan counts only 78% of each check from then on, sliding to 62% by 2100, in case Congress does not fix the shortfall in the program’s trust fund. If it does, you will get more than planned.)
+> In the typical market of the table below, 2032: spent $93K; $28K from Social Security; $33K from brokerage; $36K from 401(k)/IRA; $4K in taxes.
+
+## 2038 · You turn 75 (You 75 · Spouse 73)
+1. Take the required minimum withdrawal from your 401(k)/IRA every year before December 31. Spend it first; whatever you don’t need goes into the brokerage account.
+   (The IRS now requires it (a “required minimum distribution”, or RMD): about 4% of the balance at first and a slightly bigger share each year, from an IRS table. Your brokerage will tell you the exact figure. Missing it costs a 25% penalty.)
+> In the typical market of the table below, 2038: spent $94K; $39K from Social Security; $8K from brokerage; $55K from 401(k)/IRA; $55K of that required by the IRS; $7K in taxes.
+TIP: Even in a bad market (1 in 10), the withdrawals the IRS requires from 2038 on are usually taxed at 12%, while you convert at 10% today. Try “fill up to the 12% bracket” under Assumptions → Yearly Roth conversions, then compare the chance your money lasts and the end savings. Paying 12% now can beat paying 12% later on a bigger balance. The extra income can also cost health-insurance subsidies before 65 and raise Medicare premiums after, which the plan doesn’t count.
+
+## 2040 · Spouse turns 75 (You 77 · Spouse 75)
+1. Take the required minimum withdrawal from Spouse’s 401(k)/IRA every year before December 31. Spend it first; whatever you don’t need goes into the brokerage account.
+   (The IRS now requires it (a “required minimum distribution”, or RMD): about 4% of the balance at first and a slightly bigger share each year, from an IRS table. Your brokerage will tell you the exact figure. Missing it costs a 25% penalty.)
+> In the typical market of the table below, 2040: spent $95K; $39K from Social Security; $89K from 401(k)/IRA; $89K of that required by the IRS; $20K not needed and reinvested; $13K in taxes.
+"
+`;
+
+exports[`the playbook for twelve household profiles > G. Coast FIRE on the example plan 1`] = `
+"coast, retire 2049
+
+## 2026 · Stop saving, keep working (You 42 · Spouse 40)
+1. Stop adding to savings, including the 401(k) contribution that earns the employer match.
+   (Your paychecks cover all the bills, and the savings you already have keep growing untouched until you retire in 2049.)
+
+## 2049 · You retire (You 65 · Spouse 63)
+1. Live on about $76,500 a year plus healthcare, in today’s dollars.
+   (This is the budget the results are based on. Raise it with inflation each year: every figure here is in today’s dollars. Spending more than this, especially in the first years or in a bad market, is what runs money out early.)
+2. Buy your own health insurance until Spouse turns 65, when Medicare takes over.
+   (The plan budgets about $16,000 a year for it in today's dollars, at full price with no subsidy, on top of your regular spending.)
+3. Each January, take money out of the 401(k)/IRA up to the top of the 10% tax bracket.
+   (This money is taxed whenever it comes out. Taking some every year while your income is low means it is taxed at the lowest rate, instead of piling up and being taxed at a higher rate later. For 2026 the top of the bracket is about $57,000 of income for a married couple (the $32,200 standard deduction plus the $24,800 bracket), minus any other income you already expect that year, such as Social Security, a pension or interest. Look the numbers up each year; the IRS raises them with inflation. Start with your account, the older of you, because it opens up penalty-free first; then Spouse’s.)
+4. Spend what you need from it and move whatever is left over into a Roth IRA.
+   (A “Roth conversion”: the money grows tax-free from then on, and it shrinks the withdrawals the IRS will require later.)
+5. For everything else you need this year, take money in this order, moving to the next account only when the one before is empty:
+   a. Cash.
+   b. Brokerage. You pay tax only on the growth, at the low capital-gains rate.
+   c. The 401(k)/IRA, beyond the yearly amount above.
+   d. Roth.
+   (Cash and brokerage cost the least tax to spend. Roth money grows tax-free, so it is worth the most if it is left alone the longest.)
+6. Set aside the tax on what you take out, and pay it with your return in April or in four estimated payments during the year.
+   (The money you take out has to cover the tax on it too; the plan’s withdrawals include it.)
+7. Once a year, put every account back to 70% stocks / 25% bonds / 5% cash.
+   (The results assume this mix in every account, every year. Drifting toward more stocks raises the risk in a bad market; toward less lowers growth.)
+8. Once a year, enter your real balances here and recalculate.
+   (Markets will not follow any single simulated path. If the chance your money lasts falls, spending is the lever to adjust early.)
+> In the typical market of the table below, 2049: spent $110K; $32K from cash; $40K from brokerage; $42K from 401(k)/IRA; $5K in taxes.
+
+## 2051 · You start Social Security (age 67) · Spouse turns 65 (You 67 · Spouse 65)
+1. Apply for Social Security up to 4 months before you turn 67.
+   (From then on it brings in about $22K a year in today's dollars, so you take that much less from the accounts. It also counts as income, so there is less room under the 10% bracket and the yearly 401(k)/IRA withdrawal shrinks. The amount already assumes a cut to 78% of the full benefit, in case Congress does not fix the shortfall in Social Security’s trust fund. If it does, you will get more.)
+2. Spouse moves to Medicare. Sign up in the 3 months before the birthday.
+   (Signing up late carries a lifelong penalty. Health insurance for Spouse goes from about $16,000 to about $7,500 a year (today's dollars).)
+> In the typical market of the table below, 2051: spent $98K; $11K from Social Security; $46K from brokerage; $46K from 401(k)/IRA; $5K in taxes.
+
+## 2053 · Spouse starts Social Security (age 67) (You 69 · Spouse 67)
+1. Apply for Social Security up to 4 months before Spouse turns 67.
+   (From then on it brings in about $44K a year in today's dollars, so you take that much less from the accounts. It also counts as income, so there is less room under the 10% bracket and the yearly 401(k)/IRA withdrawal shrinks. The amount already assumes a cut to 78% of the full benefit, in case Congress does not fix the shortfall in Social Security’s trust fund. If it does, you will get more.)
+> In the typical market of the table below, 2053: spent $99K; $33K from Social Security; $42K from brokerage; $28K from 401(k)/IRA; $4K in taxes.
+
+## 2059 · You turn 75 (You 75 · Spouse 73)
+1. Take the required minimum withdrawal from your 401(k)/IRA every year before December 31. Spend it first; whatever you don’t need goes into the brokerage account.
+   (The IRS now requires it (a “required minimum distribution”, or RMD): about 4% of the balance at first and a slightly bigger share each year, from an IRS table. Your brokerage will tell you the exact figure. Missing it costs a 25% penalty.)
+> In the typical market of the table below, 2059: spent $101K; $43K from Social Security; $71K from 401(k)/IRA; $71K of that required by the IRS; $2K not needed and reinvested; $11K in taxes.
+TIP: Even in a bad market (1 in 10), the withdrawals the IRS requires from 2059 on are usually taxed at 22%, while you convert at 10% today. Try “fill up to the 22% bracket” under Assumptions → Yearly Roth conversions, then compare the chance your money lasts and the end savings. Paying 22% now can beat paying 22% later on a bigger balance. The extra income can also cost health-insurance subsidies before 65 and raise Medicare premiums after, which the plan doesn’t count.
+
+## 2061 · Spouse turns 75 (You 77 · Spouse 75)
+1. Take the required minimum withdrawal from Spouse’s 401(k)/IRA every year before December 31. Spend it first; whatever you don’t need goes into the brokerage account.
+   (The IRS now requires it (a “required minimum distribution”, or RMD): about 4% of the balance at first and a slightly bigger share each year, from an IRS table. Your brokerage will tell you the exact figure. Missing it costs a 25% penalty.)
+> In the typical market of the table below, 2061: spent $102K; $43K from Social Security; $164K from 401(k)/IRA; $164K of that required by the IRS; $71K not needed and reinvested; $35K in taxes.
+"
+`;
+
+exports[`the playbook for twelve household profiles > H. Yearly Roth conversions off 1`] = `
+"traditional, retire 2039
+
+## 2039 · You retire (You 55 · Spouse 53)
+1. Live on about $76,500 a year plus healthcare, in today’s dollars.
+   (This is the budget the results are based on. Raise it with inflation each year: every figure here is in today’s dollars. Spending more than this, especially in the first years or in a bad market, is what runs money out early.)
+2. Buy your own health insurance until each of you turns 65, when Medicare takes over.
+   (The plan budgets about $32,000 a year for it in today's dollars, at full price with no subsidy, on top of your regular spending.)
+3. For everything else you need this year, take money in this order, moving to the next account only when the one before is empty:
+   a. Cash.
+   b. Brokerage. You pay tax only on the growth, at the low capital-gains rate.
+   c. Roth: only what you put in yourself, and conversions that are 5 or more years old. The growth and newer conversions stay put.
+   d. If those run out while you are under 59½, the 401(k)/IRA is next, then Roth growth, both with the 10% penalty. The results above count how often that happens. (The IRS has exceptions, such as the Rule of 55, that the plan doesn’t count on.)
+   (Cash and brokerage cost the least tax to spend. Roth money grows tax-free, so it is worth the most if it is left alone the longest.)
+4. Set aside the tax on what you take out, and pay it with your return in April or in four estimated payments during the year.
+   (The money you take out has to cover the tax on it too; the plan’s withdrawals include it.)
+5. Once a year, put every account back to 70% stocks / 25% bonds / 5% cash.
+   (The results assume this mix in every account, every year. Drifting toward more stocks raises the risk in a bad market; toward less lowers growth.)
+6. Once a year, enter your real balances here and recalculate.
+   (Markets will not follow any single simulated path. If the chance your money lasts falls, spending is the lever to adjust early.)
+> In the typical market of the table below, 2039: spent $115K; $36K from cash; $80K from brokerage.
+
+## 2044 · You turn 60 (You 60 · Spouse 58)
+1. Your 401(k)/IRA and all of your Roth can now be used with no penalty.
+   (The IRS rule is 59½; the plan counts the year you turn 60.)
+2. In the order above, your 401(k)/IRA now comes after brokerage and before Roth.
+   (Before 59½, spending that money cost a 10% penalty. Now it doesn’t, so it is cheaper to spend than Roth money, which keeps growing tax-free.)
+> In the typical market of the table below, 2044: spent $118K; $120K from brokerage; $1K in taxes.
+
+## 2046 · Spouse turns 60 (You 62 · Spouse 60)
+1. Spouse’s 401(k)/IRA and all of Spouse’s Roth can now be used with no penalty.
+   (The IRS rule is 59½; the plan counts the year Spouse turns 60.)
+2. In the order above, Spouse’s 401(k)/IRA now comes after brokerage and before Roth.
+   (Before 59½, spending that money cost a 10% penalty. Now it doesn’t, so it is cheaper to spend than Roth money, which keeps growing tax-free.)
+> In the typical market of the table below, 2046: spent $120K; $137K from 401(k)/IRA; $18K in taxes.
+
+## 2049 · You turn 65 (You 65 · Spouse 63)
+1. You move to Medicare. Sign up in the 3 months before the birthday.
+   (Signing up late carries a lifelong penalty. Health insurance for you goes from about $16,000 to about $7,500 a year (today's dollars).)
+> In the typical market of the table below, 2049: spent $110K; $125K from 401(k)/IRA; $15K in taxes.
+
+## 2051 · You start Social Security (age 67) · Spouse turns 65 (You 67 · Spouse 65)
+1. Apply for Social Security up to 4 months before you turn 67.
+   (From then on it brings in about $22K a year in today's dollars, so you take that much less from the accounts. The amount already assumes a cut to 78% of the full benefit, in case Congress does not fix the shortfall in Social Security’s trust fund. If it does, you will get more.)
+2. Spouse moves to Medicare. Sign up in the 3 months before the birthday.
+   (Signing up late carries a lifelong penalty. Health insurance for Spouse goes from about $16,000 to about $7,500 a year (today's dollars).)
+> In the typical market of the table below, 2051: spent $98K; $11K from Social Security; $99K from 401(k)/IRA; $11K in taxes.
+
+## 2053 · Spouse starts Social Security (age 67) (You 69 · Spouse 67)
+1. Apply for Social Security up to 4 months before Spouse turns 67.
+   (From then on it brings in about $44K a year in today's dollars, so you take that much less from the accounts. The amount already assumes a cut to 78% of the full benefit, in case Congress does not fix the shortfall in Social Security’s trust fund. If it does, you will get more.)
+> In the typical market of the table below, 2053: spent $99K; $33K from Social Security; $76K from 401(k)/IRA; $10K in taxes.
+
+## 2059 · You turn 75 (You 75 · Spouse 73)
+1. Take the required minimum withdrawal from your 401(k)/IRA every year before December 31. Spend it first; whatever you don’t need goes into the brokerage account.
+   (The IRS now requires it (a “required minimum distribution”, or RMD): about 4% of the balance at first and a slightly bigger share each year, from an IRS table. Your brokerage will tell you the exact figure. Missing it costs a 25% penalty.)
+> In the typical market of the table below, 2059: spent $101K; $43K from Social Security; $67K from 401(k)/IRA; $18K of that required by the IRS; $9K in taxes.
+
+## 2061 · Spouse turns 75 (You 77 · Spouse 75)
+1. Take the required minimum withdrawal from Spouse’s 401(k)/IRA every year before December 31. Spend it first; whatever you don’t need goes into the brokerage account.
+   (The IRS now requires it (a “required minimum distribution”, or RMD): about 4% of the balance at first and a slightly bigger share each year, from an IRS table. Your brokerage will tell you the exact figure. Missing it costs a 25% penalty.)
+> In the typical market of the table below, 2061: spent $102K; $43K from Social Security; $72K from 401(k)/IRA; $72K of that required by the IRS; $3K not needed and reinvested; $10K in taxes.
+TIP: Even in a bad market (1 in 10), the withdrawals the IRS requires from 2061 on are usually taxed at 22%, while Yearly Roth conversions are off. Try “fill up to the 22% bracket” under Assumptions → Yearly Roth conversions, then compare the chance your money lasts and the end savings. Paying 22% now can beat paying 22% later on a bigger balance. The extra income can also cost health-insurance subsidies before 65 and raise Medicare premiums after, which the plan doesn’t count.
+"
+`;
+
+exports[`the playbook for twelve household profiles > I. Ten-year age gap, 62 and 52 at retirement, with an HSA 1`] = `
+"traditional, retire 2034
+
+## 2034 · You retire (You 62 · Spouse 52)
+1. Live on about $76,500 a year plus healthcare, in today’s dollars.
+   (This is the budget the results are based on. Raise it with inflation each year: every figure here is in today’s dollars. Spending more than this, especially in the first years or in a bad market, is what runs money out early.)
+2. Pay medical bills from the HSA before any other account.
+   (That money is never taxed when it goes to healthcare, and no other account works that way.)
+3. Buy your own health insurance until each of you turns 65, when Medicare takes over.
+   (The plan budgets about $32,000 a year for it in today's dollars, at full price with no subsidy, on top of your regular spending.)
+4. Each January, take money out of the 401(k)/IRA up to the top of the 10% tax bracket.
+   (This money is taxed whenever it comes out. Taking some every year while your income is low means it is taxed at the lowest rate, instead of piling up and being taxed at a higher rate later. For 2026 the top of the bracket is about $57,000 of income for a married couple (the $32,200 standard deduction plus the $24,800 bracket), minus any other income you already expect that year, such as Social Security, a pension or interest. Look the numbers up each year; the IRS raises them with inflation. Start with your account, the older of you, because it opens up penalty-free first; then Spouse’s.)
+5. Don’t spend the part taken from Spouse’s 401(k)/IRA while Spouse is under 59½: move it straight into Spouse’s Roth IRA and write down the year. Spend what you need from your withdrawal and convert only the leftover.
+   (Ask the brokerage for a “Roth conversion”. Spending that money would cost a 10% penalty; converting it costs only the income tax, and after 5 years it can be spent with no tax or penalty at all.)
+6. For everything else you need this year, take money in this order, moving to the next account only when the one before is empty (the HSA stays for medical bills):
+   a. Cash.
+   b. Brokerage. You pay tax only on the growth, at the low capital-gains rate.
+   c. Your 401(k)/IRA, beyond the yearly amount above.
+   d. Roth: only what you put in yourself, and conversions that are 5 or more years old. The growth and newer conversions stay put.
+   e. If those run out while Spouse is under 59½, Spouse’s 401(k)/IRA is next, then Roth growth, both with the 10% penalty. The results above count how often that happens. (The IRS has exceptions, such as the Rule of 55, that the plan doesn’t count on.)
+   (Cash and brokerage cost the least tax to spend. Roth money grows tax-free, so it is worth the most if it is left alone the longest.)
+7. Set aside the tax on what you take out, and pay it with your return in April or in four estimated payments during the year.
+   (The money you take out has to cover the tax on it too; the plan’s withdrawals include it.)
+8. Once a year, put every account back to 70% stocks / 25% bonds / 5% cash.
+   (The results assume this mix in every account, every year. Drifting toward more stocks raises the risk in a bad market; toward less lowers growth.)
+9. Once a year, enter your real balances here and recalculate.
+   (Markets will not follow any single simulated path. If the chance your money lasts falls, spending is the lever to adjust early.)
+> In the typical market of the table below, 2034: spent $113K; $36K from the HSA; $28K from cash; $2K from brokerage; $51K from 401(k)/IRA; $4K in taxes.
+
+## 2037 · You turn 65 (You 65 · Spouse 55)
+1. You move to Medicare. Sign up in the 3 months before the birthday.
+   (Signing up late carries a lifelong penalty. Health insurance for you goes from about $16,000 to about $7,500 a year (today's dollars).)
+> In the typical market of the table below, 2037: spent $104K; $28K from the HSA; $28K from brokerage; $54K from 401(k)/IRA; $5K in taxes.
+
+## 2039 · You start Social Security (age 67) (You 67 · Spouse 57)
+1. Apply for Social Security up to 4 months before you turn 67.
+   (From then on it brings in about $23K a year in today's dollars, so you take that much less from the accounts. It also counts as income, so there is less room under the 10% bracket and the yearly 401(k)/IRA withdrawal shrinks. The amount already assumes a cut to 78% of the full benefit, in case Congress does not fix the shortfall in Social Security’s trust fund. If it does, you will get more.)
+> In the typical market of the table below, 2039: spent $105K; $11K from Social Security; $54K from brokerage; $44K from 401(k)/IRA; $5K in taxes.
+
+## 2042 · Spouse turns 60 (You 70 · Spouse 60)
+1. Spouse’s 401(k)/IRA and all of Spouse’s Roth can now be used with no penalty.
+   (The IRS rule is 59½; the plan counts the year Spouse turns 60.)
+2. From now on, spend what you need from the yearly withdrawal and move only the leftover into Roth. In the order above, Spouse’s 401(k)/IRA now comes after brokerage and before Roth.
+   (Before 59½, spending that money cost a 10% penalty. Now it doesn’t, so it is cheaper to spend than Roth money, which keeps growing tax-free.)
+> In the typical market of the table below, 2042: spent $106K; $23K from Social Security; $50K from brokerage; $38K from 401(k)/IRA; $4K in taxes.
+
+## 2047 · You turn 75 · Spouse turns 65 (You 75 · Spouse 65)
+1. Take the required minimum withdrawal from your 401(k)/IRA every year before December 31. Spend it first; whatever you don’t need goes into the brokerage account.
+   (The IRS now requires it (a “required minimum distribution”, or RMD): about 4% of the balance at first and a slightly bigger share each year, from an IRS table. Your brokerage will tell you the exact figure. Missing it costs a 25% penalty.)
+2. Spouse moves to Medicare. Sign up in the 3 months before the birthday.
+   (Signing up late carries a lifelong penalty. Health insurance for Spouse goes from about $16,000 to about $7,500 a year (today's dollars).)
+3. HSA money can now also be spent on anything else.
+   (Once you are both 65 it is taxed like 401(k)/IRA money, with no penalty. The plan still uses it for medical bills first.)
+> In the typical market of the table below, 2047: spent $97K; $22K from Social Security; $38K from brokerage; $41K from 401(k)/IRA; $38K of that required by the IRS; $4K in taxes.
+
+## 2049 · Spouse starts Social Security (age 67) (You 77 · Spouse 67)
+1. Apply for Social Security up to 4 months before Spouse turns 67.
+   (From then on it brings in about $44K a year in today's dollars, so you take that much less from the accounts. It also counts as income, so there is less room under the 10% bracket and the yearly 401(k)/IRA withdrawal shrinks. The amount already assumes a cut to 78% of the full benefit, in case Congress does not fix the shortfall in Social Security’s trust fund. If it does, you will get more.)
+> In the typical market of the table below, 2049: spent $98K; $33K from Social Security; $27K from brokerage; $42K from 401(k)/IRA; $42K of that required by the IRS; $5K in taxes.
+
+## 2057 · Spouse turns 75 (You 85 · Spouse 75)
+1. Take the required minimum withdrawal from Spouse’s 401(k)/IRA every year before December 31. Spend it first; whatever you don’t need goes into the brokerage account.
+   (The IRS now requires it (a “required minimum distribution”, or RMD): about 4% of the balance at first and a slightly bigger share each year, from an IRS table. Your brokerage will tell you the exact figure. Missing it costs a 25% penalty.)
+> In the typical market of the table below, 2057: spent $100K; $43K from Social Security; $161K from 401(k)/IRA; $161K of that required by the IRS; $72K not needed and reinvested; $32K in taxes.
+"
+`;
+
+exports[`the playbook for twelve household profiles > J. Filling the 22% bracket with $2.5M pre-tax 1`] = `
+"traditional, retire 2030
+
+## 2030 · You retire (You 46 · Spouse 44)
+1. Live on about $76,500 a year plus healthcare, in today’s dollars.
+   (This is the budget the results are based on. Raise it with inflation each year: every figure here is in today’s dollars. Spending more than this, especially in the first years or in a bad market, is what runs money out early.)
+2. Buy your own health insurance until each of you turns 65, when Medicare takes over.
+   (The plan budgets about $32,000 a year for it in today's dollars, at full price with no subsidy, on top of your regular spending.)
+3. Each January, take money out of the 401(k)/IRA up to the top of the 22% tax bracket.
+   (This money is taxed whenever it comes out. Taking some every year while your income is low means it is taxed at the lowest rate, instead of piling up and being taxed at a higher rate later. For 2026 the top of the bracket is about $243,600 of income for a married couple (the $32,200 standard deduction plus the $211,400 bracket), minus any other income you already expect that year, such as Social Security, a pension or interest. Look the numbers up each year; the IRS raises them with inflation. Start with your account, the older of you, because it opens up penalty-free first; then Spouse’s.)
+4. Don’t spend it while you are both under 59½: move it straight into a Roth IRA and write down the year.
+   (Ask the brokerage for a “Roth conversion”. Spending that money would cost a 10% penalty; converting it costs only the income tax, and after 5 years it can be spent with no tax or penalty at all.)
+5. For everything else you need this year, take money in this order, moving to the next account only when the one before is empty:
+   a. Cash.
+   b. Brokerage. You pay tax only on the growth, at the low capital-gains rate.
+   c. Roth: only what you put in yourself, and conversions that are 5 or more years old. The growth and newer conversions stay put.
+   d. If those run out while you are under 59½, the 401(k)/IRA is next, then Roth growth, both with the 10% penalty. The results above count how often that happens. (The IRS has exceptions, such as the Rule of 55, that the plan doesn’t count on.)
+   (Cash and brokerage cost the least tax to spend. Roth money grows tax-free, so it is worth the most if it is left alone the longest.)
+6. Set aside the tax on what you take out, and pay it with your return in April or in four estimated payments during the year.
+   (The money you take out has to cover the tax on it too; the plan’s withdrawals include it.)
+7. Once a year, put every account back to 70% stocks / 25% bonds / 5% cash.
+   (The results assume this mix in every account, every year. Drifting toward more stocks raises the risk in a bad market; toward less lowers growth.)
+8. Once a year, enter your real balances here and recalculate.
+   (Markets will not follow any single simulated path. If the chance your money lasts falls, spending is the lever to adjust early.)
+> In the typical market of the table below, 2030: spent $110K; $38K from cash; $126K from brokerage; $239K moved from 401(k)/IRA to Roth; $53K in taxes.
+
+## 2044 · You turn 60 (You 60 · Spouse 58)
+1. Your 401(k)/IRA and all of your Roth can now be used with no penalty.
+   (The IRS rule is 59½; the plan counts the year you turn 60.)
+2. From now on, spend what you need from the yearly withdrawal and move only the leftover into Roth. In the order above, your 401(k)/IRA now comes after brokerage and before Roth.
+   (Before 59½, spending that money cost a 10% penalty. Now it doesn’t, so it is cheaper to spend than Roth money, which keeps growing tax-free.)
+> In the typical market of the table below, 2044: spent $118K; $165K from Roth; $244K moved from 401(k)/IRA to Roth; $47K in taxes.
+
+## 2046 · Spouse turns 60 (You 62 · Spouse 60)
+1. Spouse’s 401(k)/IRA and all of Spouse’s Roth can now be used with no penalty.
+   (The IRS rule is 59½; the plan counts the year Spouse turns 60.)
+2. From now on, spend what you need from the yearly withdrawal and move only the leftover into Roth. In the order above, Spouse’s 401(k)/IRA now comes after brokerage and before Roth.
+   (Before 59½, spending that money cost a 10% penalty. Now it doesn’t, so it is cheaper to spend than Roth money, which keeps growing tax-free.)
+> In the typical market of the table below, 2046: spent $120K; $166K from 401(k)/IRA; $77K moved from 401(k)/IRA to Roth; $47K in taxes.
+
+## 2049 · You turn 65 (You 65 · Spouse 63)
+1. You move to Medicare. Sign up in the 3 months before the birthday.
+   (Signing up late carries a lifelong penalty. Health insurance for you goes from about $16,000 to about $7,500 a year (today's dollars).)
+> In the typical market of the table below, 2049: spent $110K; $156K from 401(k)/IRA; $89K moved from 401(k)/IRA to Roth; $47K in taxes.
+
+## 2051 · You start Social Security (age 67) · Spouse turns 65 (You 67 · Spouse 65)
+1. Apply for Social Security up to 4 months before you turn 67.
+   (From then on it brings in about $22K a year in today's dollars, so you take that much less from the accounts. It also counts as income, so there is less room under the 22% bracket and the yearly 401(k)/IRA withdrawal shrinks. The amount already assumes a cut to 78% of the full benefit, in case Congress does not fix the shortfall in Social Security’s trust fund. If it does, you will get more.)
+2. Spouse moves to Medicare. Sign up in the 3 months before the birthday.
+   (Signing up late carries a lifelong penalty. Health insurance for Spouse goes from about $16,000 to about $7,500 a year (today's dollars).)
+> In the typical market of the table below, 2051: spent $98K; $11K from Social Security; $133K from 401(k)/IRA; $104K moved from 401(k)/IRA to Roth; $46K in taxes.
+
+## 2053 · Spouse starts Social Security (age 67) (You 69 · Spouse 67)
+1. Apply for Social Security up to 4 months before Spouse turns 67.
+   (From then on it brings in about $44K a year in today's dollars, so you take that much less from the accounts. It also counts as income, so there is less room under the 22% bracket and the yearly 401(k)/IRA withdrawal shrinks. The amount already assumes a cut to 78% of the full benefit, in case Congress does not fix the shortfall in Social Security’s trust fund. If it does, you will get more.)
+> In the typical market of the table below, 2053: spent $99K; $33K from Social Security; $111K from 401(k)/IRA; $108K moved from 401(k)/IRA to Roth; $45K in taxes.
+
+## 2059 · You turn 75 (You 75 · Spouse 73)
+1. Take the required minimum withdrawal from your 401(k)/IRA every year before December 31. Spend it first; whatever you don’t need goes into the brokerage account.
+   (The IRS now requires it (a “required minimum distribution”, or RMD): about 4% of the balance at first and a slightly bigger share each year, from an IRS table. Your brokerage will tell you the exact figure. Missing it costs a 25% penalty.)
+> In the typical market of the table below, 2059: spent $101K; $43K from Social Security; $103K from 401(k)/IRA; $108K moved from 401(k)/IRA to Roth; $45K in taxes.
+
+## 2061 · Spouse turns 75 (You 77 · Spouse 75)
+1. Take the required minimum withdrawal from Spouse’s 401(k)/IRA every year before December 31. Spend it first; whatever you don’t need goes into the brokerage account.
+   (The IRS now requires it (a “required minimum distribution”, or RMD): about 4% of the balance at first and a slightly bigger share each year, from an IRS table. Your brokerage will tell you the exact figure. Missing it costs a 25% penalty.)
+> In the typical market of the table below, 2061: spent $102K; $43K from Social Security; $406K from 401(k)/IRA; $406K of that required by the IRS; $243K not needed and reinvested; $104K in taxes.
+"
+`;
+
+exports[`the playbook for twelve household profiles > K. Spending so high that money runs out in the typical market 1`] = `
+"traditional, retire 2035
+
+## 2035 · You retire (You 51 · Spouse 49)
+1. Live on about $200,000 a year plus healthcare, in today’s dollars.
+   (This is the budget the results are based on. Raise it with inflation each year: every figure here is in today’s dollars. Spending more than this, especially in the first years or in a bad market, is what runs money out early.)
+2. Buy your own health insurance until each of you turns 65, when Medicare takes over.
+   (The plan budgets about $32,000 a year for it in today's dollars, at full price with no subsidy, on top of your regular spending.)
+3. Each January, take money out of the 401(k)/IRA up to the top of the 10% tax bracket.
+   (This money is taxed whenever it comes out. Taking some every year while your income is low means it is taxed at the lowest rate, instead of piling up and being taxed at a higher rate later. For 2026 the top of the bracket is about $57,000 of income for a married couple (the $32,200 standard deduction plus the $24,800 bracket), minus any other income you already expect that year, such as Social Security, a pension or interest. Look the numbers up each year; the IRS raises them with inflation. Start with your account, the older of you, because it opens up penalty-free first; then Spouse’s.)
+4. Don’t spend it while you are both under 59½: move it straight into a Roth IRA and write down the year.
+   (Ask the brokerage for a “Roth conversion”. Spending that money would cost a 10% penalty; converting it costs only the income tax, and after 5 years it can be spent with no tax or penalty at all.)
+5. For everything else you need this year, take money in this order, moving to the next account only when the one before is empty:
+   a. Cash.
+   b. Brokerage. You pay tax only on the growth, at the low capital-gains rate.
+   c. Roth: only what you put in yourself, and conversions that are 5 or more years old. The growth and newer conversions stay put.
+   d. If those run out while you are under 59½, the 401(k)/IRA is next, then Roth growth, both with the 10% penalty. The results above count how often that happens. (The IRS has exceptions, such as the Rule of 55, that the plan doesn’t count on.)
+   (Cash and brokerage cost the least tax to spend. Roth money grows tax-free, so it is worth the most if it is left alone the longest.)
+6. Set aside the tax on what you take out, and pay it with your return in April or in four estimated payments during the year.
+   (The money you take out has to cover the tax on it too; the plan’s withdrawals include it.)
+7. Once a year, put every account back to 70% stocks / 25% bonds / 5% cash.
+   (The results assume this mix in every account, every year. Drifting toward more stocks raises the risk in a bad market; toward less lowers growth.)
+8. Once a year, enter your real balances here and recalculate.
+   (Markets will not follow any single simulated path. If the chance your money lasts falls, spending is the lever to adjust early.)
+> In the typical market of the table below, 2035: spent $237K; $23K from cash; $230K from brokerage; $51K moved from 401(k)/IRA to Roth; $16K in taxes.
+
+## 2044 · You turn 60 (You 60 · Spouse 58)
+1. Your 401(k)/IRA and all of your Roth can now be used with no penalty.
+   (The IRS rule is 59½; the plan counts the year you turn 60.)
+2. From now on, spend what you need from the yearly withdrawal and move only the leftover into Roth. In the order above, your 401(k)/IRA now comes after brokerage and before Roth.
+   (Before 59½, spending that money cost a 10% penalty. Now it doesn’t, so it is cheaper to spend than Roth money, which keeps growing tax-free.)
+
+## 2046 · Spouse turns 60 (You 62 · Spouse 60)
+1. Spouse’s 401(k)/IRA and all of Spouse’s Roth can now be used with no penalty.
+   (The IRS rule is 59½; the plan counts the year Spouse turns 60.)
+2. From now on, spend what you need from the yearly withdrawal and move only the leftover into Roth. In the order above, Spouse’s 401(k)/IRA now comes after brokerage and before Roth.
+   (Before 59½, spending that money cost a 10% penalty. Now it doesn’t, so it is cheaper to spend than Roth money, which keeps growing tax-free.)
+
+## 2049 · You turn 65 (You 65 · Spouse 63)
+1. You move to Medicare. Sign up in the 3 months before the birthday.
+   (Signing up late carries a lifelong penalty. Health insurance for you goes from about $16,000 to about $7,500 a year (today's dollars).)
+
+## 2051 · You start Social Security (age 67) · Spouse turns 65 (You 67 · Spouse 65)
+1. Apply for Social Security up to 4 months before you turn 67.
+   (From then on it brings in about $22K a year in today's dollars, so you take that much less from the accounts. It also counts as income, so there is less room under the 10% bracket and the yearly 401(k)/IRA withdrawal shrinks. The amount already assumes a cut to 78% of the full benefit, in case Congress does not fix the shortfall in Social Security’s trust fund. If it does, you will get more.)
+2. Spouse moves to Medicare. Sign up in the 3 months before the birthday.
+   (Signing up late carries a lifelong penalty. Health insurance for Spouse goes from about $16,000 to about $7,500 a year (today's dollars).)
+
+## 2053 · Spouse starts Social Security (age 67) (You 69 · Spouse 67)
+1. Apply for Social Security up to 4 months before Spouse turns 67.
+   (From then on it brings in about $44K a year in today's dollars, so you take that much less from the accounts. It also counts as income, so there is less room under the 10% bracket and the yearly 401(k)/IRA withdrawal shrinks. The amount already assumes a cut to 78% of the full benefit, in case Congress does not fix the shortfall in Social Security’s trust fund. If it does, you will get more.)
+
+## 2059 · You turn 75 (You 75 · Spouse 73)
+1. Take the required minimum withdrawal from your 401(k)/IRA every year before December 31. Spend it first; whatever you don’t need goes into the brokerage account.
+   (The IRS now requires it (a “required minimum distribution”, or RMD): about 4% of the balance at first and a slightly bigger share each year, from an IRS table. Your brokerage will tell you the exact figure. Missing it costs a 25% penalty.)
+
+## 2061 · Spouse turns 75 (You 77 · Spouse 75)
+1. Take the required minimum withdrawal from Spouse’s 401(k)/IRA every year before December 31. Spend it first; whatever you don’t need goes into the brokerage account.
+   (The IRS now requires it (a “required minimum distribution”, or RMD): about 4% of the balance at first and a slightly bigger share each year, from an IRS table. Your brokerage will tell you the exact figure. Missing it costs a 25% penalty.)
+"
+`;
+
+exports[`the playbook for twelve household profiles > L. Dated items: a mortgage until 2045, a home sale in 2050, a pension from 65, a car every 10 years 1`] = `
+"traditional, retire 2039
+
+## 2039 · You retire (You 55 · Spouse 53)
+1. Live on about $76,500 a year plus healthcare and your dated items, in today’s dollars.
+   (This is the budget the results are based on. Raise it with inflation each year: every figure here is in today’s dollars. Spending more than this, especially in the first years or in a bad market, is what runs money out early.)
+2. Plan for A car about every 10 years, about $35,000 each time.
+   (It is part of the spending the results assume, paid in the same order as everything else.)
+3. Buy your own health insurance until each of you turns 65, when Medicare takes over.
+   (The plan budgets about $32,000 a year for it in today's dollars, at full price with no subsidy, on top of your regular spending.)
+4. Each January, take money out of the 401(k)/IRA up to the top of the 10% tax bracket.
+   (This money is taxed whenever it comes out. Taking some every year while your income is low means it is taxed at the lowest rate, instead of piling up and being taxed at a higher rate later. For 2026 the top of the bracket is about $57,000 of income for a married couple (the $32,200 standard deduction plus the $24,800 bracket), minus any other income you already expect that year, such as Social Security, a pension or interest. Look the numbers up each year; the IRS raises them with inflation. Start with your account, the older of you, because it opens up penalty-free first; then Spouse’s.)
+5. Don’t spend it while you are both under 59½: move it straight into a Roth IRA and write down the year.
+   (Ask the brokerage for a “Roth conversion”. Spending that money would cost a 10% penalty; converting it costs only the income tax, and after 5 years it can be spent with no tax or penalty at all.)
+6. For everything else you need this year, take money in this order, moving to the next account only when the one before is empty:
+   a. Cash.
+   b. Brokerage. You pay tax only on the growth, at the low capital-gains rate.
+   c. Roth: only what you put in yourself, and conversions that are 5 or more years old. The growth and newer conversions stay put.
+   d. If those run out while you are under 59½, the 401(k)/IRA is next, then Roth growth, both with the 10% penalty. The results above count how often that happens. (The IRS has exceptions, such as the Rule of 55, that the plan doesn’t count on.)
+   (Cash and brokerage cost the least tax to spend. Roth money grows tax-free, so it is worth the most if it is left alone the longest.)
+7. Set aside the tax on what you take out, and pay it with your return in April or in four estimated payments during the year.
+   (The money you take out has to cover the tax on it too; the plan’s withdrawals include it.)
+8. Once a year, put every account back to 70% stocks / 25% bonds / 5% cash.
+   (The results assume this mix in every account, every year. Drifting toward more stocks raises the risk in a bad market; toward less lowers growth.)
+9. Once a year, enter your real balances here and recalculate.
+   (Markets will not follow any single simulated path. If the chance your money lasts falls, spending is the lever to adjust early.)
+> In the typical market of the table below, 2039: spent $144K; $150K from brokerage; $51K moved from 401(k)/IRA to Roth; $6K in taxes.
+
+## 2044 · You turn 60 (You 60 · Spouse 58)
+1. Your 401(k)/IRA and all of your Roth can now be used with no penalty.
+   (The IRS rule is 59½; the plan counts the year you turn 60.)
+2. From now on, spend what you need from the yearly withdrawal and move only the leftover into Roth. In the order above, your 401(k)/IRA now comes after brokerage and before Roth.
+   (Before 59½, spending that money cost a 10% penalty. Now it doesn’t, so it is cheaper to spend than Roth money, which keeps growing tax-free.)
+> In the typical market of the table below, 2044: spent $145K; $172K from 401(k)/IRA; $27K in taxes.
+
+## 2046 · Spouse turns 60 · Mortgage ends (You 62 · Spouse 60)
+1. Spouse’s 401(k)/IRA and all of Spouse’s Roth can now be used with no penalty.
+   (The IRS rule is 59½; the plan counts the year Spouse turns 60.)
+2. From now on, spend what you need from the yearly withdrawal and move only the leftover into Roth. In the order above, Spouse’s 401(k)/IRA now comes after brokerage and before Roth.
+   (Before 59½, spending that money cost a 10% penalty. Now it doesn’t, so it is cheaper to spend than Roth money, which keeps growing tax-free.)
+3. Mortgage is paid off: about $30,000 a year (in the dollars of when it began) less to cover.
+   (The plan takes that much less from the accounts from now on.)
+> In the typical market of the table below, 2046: spent $120K; $137K from 401(k)/IRA; $18K in taxes.
+
+## 2049 · You turn 65 · Pension starts (You 65 · Spouse 63)
+1. You move to Medicare. Sign up in the 3 months before the birthday.
+   (Signing up late carries a lifelong penalty. Health insurance for you goes from about $16,000 to about $7,500 a year (today's dollars).)
+2. Pension: about $24,000 a year (a fixed amount, so it buys less each year). Whatever you don’t need goes into the brokerage account.
+   (It is taxed as income, so it uses up room under the 10% bracket and the yearly 401(k)/IRA withdrawal shrinks.)
+> In the typical market of the table below, 2049: spent $110K; $21K of other income; $104K from 401(k)/IRA; $15K in taxes.
+
+## 2050 · Home sale arrives (You 66 · Spouse 64)
+1. Home sale: about $400,000. Whatever you don’t need goes into the brokerage account.
+   (It is not taxed, so it goes straight to savings or spending.)
+> In the typical market of the table below, 2050: spent $145K; $420K of other income; $38K moved from 401(k)/IRA to Roth; $271K not needed and reinvested; $4K in taxes.
+
+## 2051 · You start Social Security (age 67) · Spouse turns 65 (You 67 · Spouse 65)
+1. Apply for Social Security up to 4 months before you turn 67.
+   (From then on it brings in about $22K a year in today's dollars, so you take that much less from the accounts. It also counts as income, so there is less room under the 10% bracket and the yearly 401(k)/IRA withdrawal shrinks. The amount already assumes a cut to 78% of the full benefit, in case Congress does not fix the shortfall in Social Security’s trust fund. If it does, you will get more.)
+2. Spouse moves to Medicare. Sign up in the 3 months before the birthday.
+   (Signing up late carries a lifelong penalty. Health insurance for Spouse goes from about $16,000 to about $7,500 a year (today's dollars).)
+> In the typical market of the table below, 2051: spent $98K; $11K from Social Security; $20K of other income; $43K from brokerage; $27K from 401(k)/IRA; $3K in taxes.
+
+## 2053 · Spouse starts Social Security (age 67) (You 69 · Spouse 67)
+1. Apply for Social Security up to 4 months before Spouse turns 67.
+   (From then on it brings in about $44K a year in today's dollars, so you take that much less from the accounts. It also counts as income, so there is less room under the 10% bracket and the yearly 401(k)/IRA withdrawal shrinks. The amount already assumes a cut to 78% of the full benefit, in case Congress does not fix the shortfall in Social Security’s trust fund. If it does, you will get more.)
+> In the typical market of the table below, 2053: spent $99K; $33K from Social Security; $17K of other income; $35K from brokerage; $17K from 401(k)/IRA; $3K in taxes.
+
+## 2059 · You turn 75 (You 75 · Spouse 73)
+1. Take the required minimum withdrawal from your 401(k)/IRA every year before December 31. Spend it first; whatever you don’t need goes into the brokerage account.
+   (The IRS now requires it (a “required minimum distribution”, or RMD): about 4% of the balance at first and a slightly bigger share each year, from an IRS table. Your brokerage will tell you the exact figure. Missing it costs a 25% penalty.)
+> In the typical market of the table below, 2059: spent $101K; $43K from Social Security; $11K of other income; $57K from 401(k)/IRA; $10K of that required by the IRS; $9K in taxes.
+
+## 2061 · Spouse turns 75 (You 77 · Spouse 75)
+1. Take the required minimum withdrawal from Spouse’s 401(k)/IRA every year before December 31. Spend it first; whatever you don’t need goes into the brokerage account.
+   (The IRS now requires it (a “required minimum distribution”, or RMD): about 4% of the balance at first and a slightly bigger share each year, from an IRS table. Your brokerage will tell you the exact figure. Missing it costs a 25% penalty.)
+> In the typical market of the table below, 2061: spent $102K; $43K from Social Security; $9K of other income; $62K from 401(k)/IRA; $62K of that required by the IRS; $2K not needed and reinvested; $10K in taxes.
+TIP: Even in a bad market (1 in 10), the withdrawals the IRS requires from 2061 on are usually taxed at 22%, while you convert at 10% today. Try “fill up to the 22% bracket” under Assumptions → Yearly Roth conversions, then compare the chance your money lasts and the end savings. Paying 22% now can beat paying 22% later on a bigger balance. The extra income can also cost health-insurance subsidies before 65 and raise Medicare premiums after, which the plan doesn’t count.
+"
+`;

@@ -25,6 +25,8 @@ export interface Phase {
   steps: Step[];
   /** That year in the typical market of the year-by-year table, as one sentence. */
   example?: string;
+  /** A suggestion the reader may act on in Assumptions (the bracket-fill tip, D93). */
+  tip?: string;
 }
 
 export interface Playbook {
@@ -298,6 +300,14 @@ export function buildPlaybook(plan: Plan, detail: Detail): Playbook {
     });
   }
 
+  // Bracket tip: required withdrawals taxed above the conversion rate even in a bad market mean converting more,
+  // earlier, is likely to cost less; the typical market alone would say so for almost any plan that passes.
+  const tip = bracketTip(fill, detail.p10Path);
+  if (tip) {
+    const first = phases.find((ph) => ph.year >= tip.year) ?? phases[phases.length - 1];
+    first.tip = tip.text;
+  }
+
   // One line per phase from the typical market, until money runs out there.
   const ranOut = detail.medianPath.find((r) => !r.working && r.shortfall > 1)?.year;
   for (const phase of phases) {
@@ -306,6 +316,39 @@ export function buildPlaybook(plan: Plan, detail: Detail): Playbook {
     if (r && !r.working) phase.example = exampleLine(r);
   }
   return { phases };
+}
+
+const FILL_OPTIONS = [10, 12, 22, 24] as const;
+
+/** The ordinary-income bracket rate a taxable amount lands in, as a whole percentage. */
+function marginalRate(ordinaryTaxable: number): number {
+  const b = FEDERAL.ordinaryBrackets.find(([top]) => ordinaryTaxable < top) ?? FEDERAL.ordinaryBrackets[FEDERAL.ordinaryBrackets.length - 1];
+  return Math.round(b[1] * 100);
+}
+
+/**
+ * When the bad market's required withdrawals are typically taxed at a higher rate than the yearly conversions fill
+ * to, suggest filling the bracket those withdrawals land in (or the highest option below it): paying that rate now
+ * beats paying it later on a bigger balance, and a bad market is the case where extra conversions could have been
+ * wasted. "Typically" is the median rate over the RMD years. Null when the fill already matches or nothing is required.
+ */
+export function bracketTip(fill: Plan['assumptions']['bracketFill'], path: YearRecord[]): { year: number; text: string } | null {
+  const fillRate = fill === 'none' ? 0 : Number(fill);
+  const rmdYears = path.filter((r) => !r.working && r.rmd >= 500 && r.shortfall <= 1);
+  if (!rmdYears.length) return null;
+  const year = rmdYears[0].year;
+  const rates = rmdYears.map((r) => marginalRate(Math.max(0, r.taxableIncome - r.capitalGains))).sort((x, y) => x - y);
+  const rate = rates[Math.floor((rates.length - 1) / 2)];
+  const suggested = [...FILL_OPTIONS].reverse().find((o) => o <= rate && o > fillRate);
+  if (suggested === undefined) return null;
+  const now = fill === 'none' ? 'Yearly Roth conversions are off' : `you convert at ${fillRate}% today`;
+  return {
+    year,
+    text: `Even in a bad market (1 in 10), the withdrawals the IRS requires from ${year} on are usually taxed at ${rate}%, while ${now}. ` +
+      `Try “fill up to the ${suggested}% bracket” under Assumptions → Yearly Roth conversions, then compare the chance your money lasts and ` +
+      `the end savings. Paying ${suggested}% now can beat paying ${rate}% later on a bigger balance. The extra income can also cost health-insurance ` +
+      'subsidies before 65 and raise Medicare premiums after, which the plan doesn’t count.',
+  };
 }
 
 /** A dated item's milestones after retirement: income starting, a one-time cost, an ongoing cost ending (D17). */

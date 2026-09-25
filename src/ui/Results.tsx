@@ -246,6 +246,7 @@ function PlaybookPanel({ plan, detail }: { plan: Plan; detail: Detail }) {
                 ))}
               </ol>
               {ph.example && <p className="example">{ph.example}</p>}
+              {ph.tip && <p className="tip"><b>Tip.</b> {ph.tip}</p>}
             </div>
           </div>
         ))}
