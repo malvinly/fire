@@ -47,7 +47,7 @@ code comments cite) first. Planned work is in [pending-features.md](pending-feat
    - If results change for the same inputs, bump `DATA_VERSIONS.engine` in `src/engine/assumptions.ts`
      (D59) so saved sessions are flagged for recalculation, and refresh
      [Reproducing the numbers](#reproducing-the-numbers).
-   - Record any judgement call as a new D-number in DECISIONS.md (the next free number is **D95**). Update
+   - Record any judgement call as a new D-number in DECISIONS.md (the next free number is **D96**). Update
      an existing D-row if its behavior changes, and update the "Which way the assumptions lean" table.
    - If the change affects an assumption shown to users, update its row in `describeAssumptions` in
      `src/engine/assumptions.ts` (the "How this works" page) and its help text in `src/ui/helpText.ts`.
@@ -147,7 +147,7 @@ Layered so each kind of mistake has a test that can catch it:
 ## Reproducing the numbers
 
 "Example plan" means `examplePlan(2026)` from `src/engine/defaults.ts`: plan start 2026, 10,000 simulated
-markets, seed 20260924. Current results (engine version 7, 10% bracket-fill default):
+markets, seed 20260924. Current results (engine version 8, 10% bracket-fill default):
 
 | Tier | Earliest year | FIRE number | Success at that year | Penalty rate at that year |
 |---|---|---|---|---|
@@ -155,8 +155,8 @@ markets, seed 20260924. Current results (engine version 7, 10% bracket-fill defa
 | Chubby | 2043 | $3,278,500 | 91.8% | 0% |
 | Coast | stop saving now | $803,900 needed today | 92.3% | 0% |
 
-Engine 7 (D88, over-limit HSA entries) left these and the panel below unchanged: the example plan has no HSA
-contributions. Engine 4 (before D82) gave Traditional 2039 / $2,630,700 (90.3%, 26.9% penalty rate), Chubby 2043 /
+Engines 7 (D88, over-limit HSA entries) and 8 (D95, HSA contributions end with Medicare) left these and the panel
+below unchanged: the example plan has no HSA contributions. Engine 4 (before D82) gave Traditional 2039 / $2,630,700 (90.3%, 26.9% penalty rate), Chubby 2043 /
 $3,274,700 (91.9%) and Coast $803,000 (92.4%). Taxing bond interest at each market's own 10-year yield (D82) moved
 Traditional's date, but only just: 2039 still passes on all 10,000 markets (90.2%, 27.4% penalty rate) and now
 fails on the 2,000-market search subset, so the earliest date is 2040 (D5). The lower penalty rate and FIRE number

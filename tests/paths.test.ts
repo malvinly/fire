@@ -395,30 +395,32 @@ describe('Social Security in the simulation', () => {
       const plan = simplePlan({ roth: 0 });
       plan.you.birthYear = START - 76; // RMDs and SS already running
       plan.spouse.birthYear = START - 55;
-      plan.you.salary = 80_000;
-      plan.you.contributions.hsa = hsa;
+      // Spouse earns and saves into the HSA; You (on Social Security at 76) can no longer contribute (D95).
+      plan.spouse.salary = 80_000;
+      plan.spouse.contributions.hsa = hsa;
       plan.you.balances.pretax = 500_000;
       plan.you.socialSecurity = { mode: 'manual', earnings: [], manualPia: 2_000, claimAge: 70 };
       plan.assumptions.endAge = 96;
       const ctx = noYields(buildContext(plan, { stopContributingYear: START + 3, retireYear: START + 3, baseSpending: 40_000 }));
       return { ctx, rec: simulatePath(ctx, constantPath(ctx.len, 0), 0, { record: true }).records![0] };
     }
-    // HSA limit = 8,750 family + 1,000 + 1,000 (both 55+) = 10,750; a 30,000 entry deposits only 10,750 (D15).
-    //   Wages = 80,000 − 10,750 = 69,250 either way (an uncapped entry would give 80,000 − 30,000 = 50,000).
+    // HSA limit = 8,750 family + 1,000 (Spouse 55+; You's catch-up no longer counts, D95) = 9,750; a 30,000 entry
+    // deposits only 9,750 (D15).
+    //   Wages = 80,000 − 9,750 = 70,250 either way (an uncapped entry would give 80,000 − 30,000 = 50,000).
     //   SS = 31,680 and RMD = 21,097.05 as above; 85% cap = 26,928 of SS taxable; deduction 33,850.
-    //   Without them: 69,250 − 33,850 = 35,400 (12% bracket)
-    //   With them: 69,250 + 21,097.05 + 26,928 − 33,850 = 83,425.05 (12% bracket)
+    //   Without them: 70,250 − 33,850 = 36,400 (12% bracket)
+    //   With them: 70,250 + 21,097.05 + 26,928 − 33,850 = 84,425.05 (12% bracket)
     //   Extra federal = 12% × (21,097.05 + 26,928) = 5,763.01
     //   (Uncapped wages of 50,000 would put 8,650 of it in the 10% bracket: 865 + 4,725.01 = 5,590.01, too low.)
-    const atLimit = firstYear(LIMITS.hsaFamily + 2 * LIMITS.hsaCatchUp);
+    const atLimit = firstYear(LIMITS.hsaFamily + LIMITS.hsaCatchUp);
     const over = firstYear(30_000);
     const ss = 2_000 * 1.32 * 12;
     const rmd = 500_000 / 23.7;
     const extraFederal = 0.12 * (rmd + 0.85 * ss);
     expect(extraFederal).toBeCloseTo(5_763.01, 2);
-    expect(atLimit.ctx.wages[0]).toBeCloseTo(69_250, 6);
-    expect(over.ctx.wages[0]).toBeCloseTo(69_250, 6);
-    expect(over.ctx.contrib.hsa[0]).toBeCloseTo(10_750, 6);
+    expect(atLimit.ctx.wages[0]).toBeCloseTo(70_250, 6);
+    expect(over.ctx.wages[0]).toBeCloseTo(70_250, 6);
+    expect(over.ctx.contrib.hsa[0]).toBeCloseTo(9_750, 6);
     expect(atLimit.rec.federalTax).toBeCloseTo(extraFederal, 2);
     expect(over.rec.federalTax).toBeCloseTo(extraFederal, 2);
   });
@@ -818,7 +820,8 @@ describe('dated items and contributions', () => {
     // Traditional (saving stops on the retirement date) never uses the kept amounts.
     const trad = buildContext(plan, { stopContributingYear: START + 5, retireYear: START + 5, baseSpending: 0 });
     expect(trad.contrib.pretax[0][5]).toBe(0);
-    // The kept amounts respect the same IRS limits, including the household HSA limit (Spouse is 65: one catch-up).
+    // The kept amounts respect the same IRS limits, including the household HSA limit (Spouse is 60: one catch-up).
+    plan.spouse.birthYear = START - 55;
     plan.you.contributions = { pretax: 60_000, employerMatch: 3_000, roth: 0, hsa: 12_000 };
     plan.you.coastContributions = { pretax: 50_000, employerMatch: 3_000, roth: 0, hsa: 12_000 };
     const capped = buildContext(plan, { stopContributingYear: START + 5, retireYear: START + 10, baseSpending: 0 });
@@ -843,5 +846,62 @@ describe('dated items and contributions', () => {
     expect(ctx.contrib.hsa[2]).toBe(9_750);
     expect(ctx.contrib.hsa[5]).toBe(9_750);
     expect(ctx.contrib.hsa[6]).toBe(10_750);
+  });
+
+  describe('HSA contributions stop once a person is 65 and receiving Social Security (Medicare, D95)', () => {
+    /** You at `age` with $5k of HSA entered and a $50k salary; Spouse is 40 with nothing entered, so no catch-up. */
+    function hsaSaver(age: number, claimAge: number) {
+      const plan = simplePlan();
+      plan.you.birthYear = START - age;
+      plan.you.salary = 50_000;
+      plan.you.contributions = { pretax: 0, employerMatch: 0, roth: 0, hsa: 5_000 };
+      plan.you.socialSecurity.claimAge = claimAge;
+      plan.spouse.birthYear = START - 40;
+      plan.assumptions.endAge = 96;
+      return plan;
+    }
+    const working = { stopContributingYear: START + 10, retireYear: START + 10, baseSpending: 0 };
+
+    test('claimed at 62: the deposit and the wage deduction end in the year they turn 65', () => {
+      const ctx = buildContext(hsaSaver(63, 62), working);
+      expect(ctx.contrib.hsa[1]).toBe(5_000); // 64
+      expect(ctx.wages[1]).toBe(45_000);
+      expect(ctx.contrib.hsa[2]).toBe(0); // 65
+      expect(ctx.wages[2]).toBe(50_000);
+    });
+
+    test('claiming at 67: contributions continue at 65 and 66 and stop at 67', () => {
+      const ctx = buildContext(hsaSaver(65, 67), working);
+      expect(ctx.contrib.hsa[0]).toBe(5_000);
+      expect(ctx.contrib.hsa[1]).toBe(5_000);
+      expect(ctx.wages[1]).toBe(45_000);
+      expect(ctx.contrib.hsa[2]).toBe(0);
+      expect(ctx.wages[2]).toBe(50_000);
+    });
+
+    test('the eligible spouse still gets the family limit plus their own catch-up only', () => {
+      const plan = hsaSaver(66, 65);
+      plan.you.contributions.hsa = 10_000;
+      plan.spouse.birthYear = START - 56;
+      plan.spouse.salary = 50_000;
+      plan.spouse.contributions = { pretax: 0, employerMatch: 0, roth: 0, hsa: 10_000 };
+      const ctx = buildContext(plan, working);
+      // Household limit is the family limit plus Spouse's catch-up; You's catch-up no longer counts.
+      const limit = LIMITS.hsaFamily + LIMITS.hsaCatchUp;
+      expect(ctx.contrib.hsa[0]).toBe(limit);
+      expect(ctx.wages[0]).toBe(50_000 + 50_000 - limit);
+    });
+
+    test('kept-while-coasting HSA amounts follow the same rule (D94)', () => {
+      const plan = hsaSaver(60, 65);
+      plan.you.salary = 100_000;
+      plan.you.coastContributions = { pretax: 0, employerMatch: 0, roth: 0, hsa: 4_000 };
+      const ctx = buildContext(plan, { stopContributingYear: START + 2, retireYear: START + 8, baseSpending: 0 });
+      expect(ctx.contrib.hsa[1]).toBe(5_000); // 61, today's
+      expect(ctx.contrib.hsa[4]).toBe(4_000); // 64, kept
+      expect(ctx.wages[4]).toBe(96_000);
+      expect(ctx.contrib.hsa[5]).toBe(0); // 65 and claiming
+      expect(ctx.wages[5]).toBe(100_000);
+    });
   });
 });

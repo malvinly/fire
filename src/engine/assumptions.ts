@@ -31,7 +31,7 @@ export const DATA_VERSIONS = {
   rulesYear: RULES_YEAR,
   wageIndexYear: SOCIAL_SECURITY.awiLatestYear,
   trusteesReport: 2026,
-  engine: 7,
+  engine: 8,
 };
 
 export function describeAssumptions(plan: Plan): AssumptionRow[] {
@@ -123,7 +123,7 @@ export function describeAssumptions(plan: Plan): AssumptionRow[] {
     { group: 'Taxes & accounts', label: 'Required minimum distributions (RMDs)', value: `${plan.you.name} from ${rmdStartAge(plan.you.birthYear)}, ${plan.spouse.name} from ${rmdStartAge(plan.spouse.birthYear)} (IRS Uniform Lifetime Table)`, status: 'fixed',
       why: 'Surplus RMD money is reinvested in the taxable account.', decision: 'D31' },
     { group: 'Taxes & accounts', label: 'Contribution limits', value: `401(k) ${usd(LIMITS.employee401k)}, IRA ${usd(LIMITS.ira)}, HSA family ${usd(LIMITS.hsaFamily)}`, status: 'fixed',
-      why: 'Contributions are capped at these limits every year (catch-ups from 50, HSA from 55); money above a limit is not saved elsewhere. The limits stay flat in today’s dollars.', decision: 'D15' },
+      why: 'Contributions are capped at these limits every year (catch-ups from 50, HSA from 55); money above a limit is not saved elsewhere. The limits stay flat in today’s dollars. HSA contributions stop once a person is 65 and receiving Social Security, which enrolls them in Medicare (D95).', decision: 'D15' },
 
     // Limitations (D75)
     { group: LIMITS_GROUP, label: 'Both of you alive to the end', value: 'Assumed', status: 'fixed',

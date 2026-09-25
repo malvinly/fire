@@ -194,11 +194,15 @@ export function buildContext(plan: Plan, scenario: Scenario): Context {
     let hc = 0;
     let over65 = 0;
     const amounts = people.map((p) => (regularSaving ? p.contributions : working ? p.coastContributions : ZERO_CONTRIBUTIONS));
+    // Receiving Social Security at 65 or later enrolls a person in Medicare, which ends their HSA eligibility: no
+    // deposit, no catch-up, no wage deduction (D95). A 65+ person who has not claimed yet is assumed still covered
+    // by an employer plan.
+    const hsaEligible = people.map((p) => year - p.birthYear < Math.max(65, p.socialSecurity.claimAge));
     // The HSA limit is household-wide, so an over-limit entry is scaled back in proportion for each spouse, and
     // only the money actually deposited comes off that spouse's wages (D15, D88).
     let hsaLimit = LIMITS.hsaFamily;
-    for (const p of people) if (year - p.birthYear >= 55) hsaLimit += LIMITS.hsaCatchUp;
-    const hsaEntered = (amounts[0].hsa + amounts[1].hsa) * growth;
+    people.forEach((p, i) => { if (hsaEligible[i] && year - p.birthYear >= 55) hsaLimit += LIMITS.hsaCatchUp; });
+    const hsaEntered = ((hsaEligible[0] ? amounts[0].hsa : 0) + (hsaEligible[1] ? amounts[1].hsa : 0)) * growth;
     const kHsa = hsaEntered > hsaLimit ? hsaLimit / hsaEntered : 1;
     people.forEach((p, i) => {
       const age = year - p.birthYear;
@@ -215,8 +219,9 @@ export function buildContext(plan: Plan, scenario: Scenario): Context {
         // Contributions grow with wages, but IRS limits only keep pace with inflation (flat in real terms), D15.
         ctx.contrib.pretax[i][t] = c.pretax * growth * k + c.employerMatch * growth;
         ctx.contrib.roth[i][t] = c.roth * growth * k;
-        ctx.contrib.hsa[t] += c.hsa * growth * kHsa;
-        const pretaxFromPay = c.pretax * growth * k + c.hsa * growth * kHsa;
+        const hsa = hsaEligible[i] ? c.hsa * growth * kHsa : 0;
+        ctx.contrib.hsa[t] += hsa;
+        const pretaxFromPay = c.pretax * growth * k + hsa;
         ctx.wages[t] += Math.max(0, p.salary * growth - pretaxFromPay);
       }
       if (age >= 65) hc += p.healthcare.medicare * hcGrowth;
