@@ -3,9 +3,10 @@
 // data so it can be tested; `PlaybookPanel` in Results.tsx draws it as a timeline.
 
 import { FEDERAL, RULES_YEAR, rmdStartAge } from '../data/rules';
+import { timingYear } from '../engine/context';
 import type { Detail } from '../engine/solve';
 import { bracketTop } from '../engine/tax';
-import type { Plan, YearRecord } from '../engine/types';
+import type { DatedItem, Plan, YearRecord } from '../engine/types';
 import { money, moneyShort, whose } from './format';
 
 export interface Step {
@@ -42,6 +43,7 @@ interface Person {
   preMedicare: number;
   medicareCost: number;
   hasPretax: boolean;
+  hasRoth: boolean;
 }
 
 const isYou = (name: string) => /^you$/i.test(name.trim());
@@ -70,6 +72,7 @@ export function buildPlaybook(plan: Plan, detail: Detail): Playbook {
       preMedicare: p.healthcare.preMedicare,
       medicareCost: p.healthcare.medicare,
       hasPretax: p.balances.pretax > 0 || p.contributions.pretax > 0 || p.contributions.employerMatch > 0,
+      hasRoth: p.balances.roth > 0 || p.contributions.roth > 0,
     };
   });
   const h = plan.household;
@@ -81,7 +84,10 @@ export function buildPlaybook(plan: Plan, detail: Detail): Playbook {
     hsa: plan.you.balances.hsa + plan.spouse.balances.hsa > 0 || plan.you.contributions.hsa + plan.spouse.contributions.hsa > 0,
   };
   const converting = fill !== 'none' && has.pretax;
-  if (converting) has.roth = true;
+  if (converting) {
+    has.roth = true;
+    for (const p of people) if (p.hasPretax) p.hasRoth = true; // conversions land in the owner's Roth
+  }
   const ages = (year: number) => people.map((p) => `${p.name} ${year - p.birthYear}`).join(' · ');
   const under60At = (year: number) => people.filter((p) => p.sixty > year);
   const older = people[0].birthYear <= people[1].birthYear ? people[0] : people[1];
@@ -103,6 +109,19 @@ export function buildPlaybook(plan: Plan, detail: Detail): Playbook {
 
   // Retirement: the yearly routine, as it stands on the day you retire.
   const steps: Step[] = [];
+  const recurring = plan.datedItems.filter((it) => it.direction === 'expense' && it.frequency === 'recurring');
+  const extras = plan.datedItems.length ? ' and your dated items' : '';
+  steps.push({
+    action: `Live on about ${money(detail.scenario.baseSpending)} a year plus healthcare${extras}, in today’s dollars.`,
+    why: 'This is the budget the results are based on. Raise it with inflation each year: every figure here is in today’s dollars. ' +
+      'Spending more than this, especially in the first years or in a bad market, is what runs money out early.',
+  });
+  for (const it of recurring) {
+    steps.push({
+      action: `Plan for ${it.label} about every ${Math.max(1, it.everyYears ?? 1)} years, about ${money(it.amount)} each time.`,
+      why: 'It is part of the spending the results assume, paid in the same order as everything else.',
+    });
+  }
   if (has.hsa) {
     steps.push({
       action: 'Pay medical bills from the HSA before any other account.',
@@ -161,8 +180,13 @@ export function buildPlaybook(plan: Plan, detail: Detail): Playbook {
       ? 'Roth: only what you put in yourself, and conversions that are 5 or more years old. The growth and newer conversions stay put.'
       : 'Roth.');
   }
-  if (anyUnder60 && has.pretax) {
-    items.push('If those run out before you are 59½, the 401(k)/IRA is next, with the 10% penalty. The results above count how often that happens.');
+  if (anyUnder60 && (has.pretax || has.roth)) {
+    const under = under60At(retireYear);
+    const whoUnder = under.length === 2 ? 'you are' : `${who(under[0].name)} ${isYou(under[0].name) ? 'are' : 'is'}`;
+    const account = under.length === 2 ? 'the 401(k)/IRA' : `${whose(under[0].name)} 401(k)/IRA`;
+    const next = under.some((p) => p.hasPretax) ? `${account} is next, then Roth growth, both` : 'Roth growth is next,';
+    items.push(`If those run out while ${whoUnder} under 59½, ${next} with the 10% penalty. The results above count how often that happens. ` +
+      '(The IRS has exceptions, such as the Rule of 55, that the plan doesn’t count on.)');
   }
   steps.push({
     action: `For everything else you need this year, take money in this order, moving to the next account only when the one before is empty${
@@ -179,6 +203,16 @@ export function buildPlaybook(plan: Plan, detail: Detail): Playbook {
     action: 'Set aside the tax on what you take out, and pay it with your return in April or in four estimated payments during the year.',
     why: 'The money you take out has to cover the tax on it too; the plan’s withdrawals include it.',
   });
+  const alloc = a.allocation;
+  const pct = (x: number) => `${Math.round(x * 100)}%`;
+  steps.push({
+    action: `Once a year, put every account back to ${pct(alloc.stocks)} stocks / ${pct(alloc.bonds)} bonds / ${pct(alloc.cash)} cash.`,
+    why: 'The results assume this mix in every account, every year. Drifting toward more stocks raises the risk in a bad market; toward less lowers growth.',
+  });
+  steps.push({
+    action: 'Once a year, enter your real balances here and recalculate.',
+    why: 'Markets will not follow any single simulated path. If the chance your money lasts falls, spending is the lever to adjust early.',
+  });
   phases.push({ year: retireYear, title: 'You retire', ages: ages(retireYear), steps });
 
   // Milestones after retirement, grouped by year.
@@ -191,9 +225,10 @@ export function buildPlaybook(plan: Plan, detail: Detail): Playbook {
   };
   for (const p of people) {
     const other = p === people[0] ? people[1] : people[0];
-    if (p.hasPretax || has.roth) {
+    if (p.hasPretax || p.hasRoth) {
+      const what = p.hasPretax && p.hasRoth ? `401(k)/IRA and all of ${whose(p.name)} Roth` : p.hasPretax ? '401(k)/IRA' : 'Roth, growth included,';
       const list: Step[] = [{
-        action: `${cap(whose(p.name))} 401(k)/IRA and all of ${whose(p.name)} Roth can now be used with no penalty.`,
+        action: `${cap(whose(p.name))} ${what} can now be used with no penalty.`,
         why: `The IRS rule is 59½; the plan counts the year ${who(p.name)} ${verb(p.name, 'turn')} 60.`,
       }];
       if (p.hasPretax) {
@@ -232,7 +267,7 @@ export function buildPlaybook(plan: Plan, detail: Detail): Playbook {
         'Security’s trust fund. If it does, you will get more.';
     }
     add(p.claim, `${p.name} ${verb(p.name, 'start')} Social Security (age ${p.claimAge})`, [{
-      action: `Apply for Social Security about 3 months before ${who(p.name)} ${verb(p.name, 'turn')} ${p.claimAge}.`,
+      action: `Apply for Social Security up to 4 months before ${who(p.name)} ${verb(p.name, 'turn')} ${p.claimAge}.`,
       why: ssWhy.trim() || undefined,
     }]);
 
@@ -252,6 +287,7 @@ export function buildPlaybook(plan: Plan, detail: Detail): Playbook {
         'in case Congress does not fix the shortfall in the program’s trust fund. If it does, you will get more than planned.',
     }]);
   }
+  for (const it of plan.datedItems) datedPhases(plan, it, converting ? fill : null, add);
   for (const year of [...later.keys()].sort((x, y) => x - y)) {
     const events = later.get(year)!;
     phases.push({
@@ -272,10 +308,38 @@ export function buildPlaybook(plan: Plan, detail: Detail): Playbook {
   return { phases };
 }
 
+/** A dated item's milestones after retirement: income starting, a one-time cost, an ongoing cost ending (D17). */
+function datedPhases(plan: Plan, it: DatedItem, fill: string | null, add: (year: number, title: string, steps: Step[]) => void) {
+  const start = timingYear(plan, it.start);
+  const fixed = it.fixedDollars ? ' (a fixed amount, so it buys less each year)' : '';
+  if (it.direction === 'income') {
+    const taxed = it.taxable !== false;
+    const each = it.frequency === 'oneTime' ? '' : ' a year';
+    add(start, `${it.label} ${it.frequency === 'oneTime' ? 'arrives' : 'starts'}`, [{
+      action: `${it.label}: about ${money(it.amount)}${each}${fixed}. Whatever you don’t need goes into the brokerage account.`,
+      why: taxed
+        ? `It is taxed as income${fill ? `, so it uses up room under the ${fill}% bracket and the yearly 401(k)/IRA withdrawal shrinks` : ''}.`
+        : 'It is not taxed, so it goes straight to savings or spending.',
+    }]);
+    return;
+  }
+  if (it.frequency === 'oneTime') {
+    add(start, `Pay for ${it.label}`, [{
+      action: `Pay for ${it.label}: about ${money(it.amount)}${fixed}.`,
+      why: 'It comes out in the same order as any other spending: cash first, then brokerage, and so on.',
+    }]);
+  } else if (it.frequency === 'ongoing' && it.end) {
+    add(timingYear(plan, it.end) + 1, `${it.label} ends`, [{
+      action: `${it.label} is paid off: about ${money(it.amount)} a year${it.fixedDollars ? ' (in the dollars of when it began)' : ''} less to cover.`,
+      why: 'The plan takes that much less from the accounts from now on.',
+    }]);
+  }
+}
+
 /** "In the typical market of the table below, 2041: spent $92K; $12K from cash; …" */
 export function exampleLine(r: YearRecord): string {
   const parts: string[] = [`spent ${moneyShort(r.spending)}`];
-  const put = (amount: number, label: string) => { if (amount > 0.5) parts.push(`${moneyShort(amount)} ${label}`); };
+  const put = (amount: number, label: string) => { if (amount >= 500) parts.push(`${moneyShort(amount)} ${label}`); };
   put(r.socialSecurity, 'from Social Security');
   put(r.otherIncome, 'of other income');
   put(r.withdrawals.hsa, 'from the HSA');

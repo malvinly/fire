@@ -91,7 +91,7 @@ describe('the retirement routine', () => {
       'Cash.',
       'Brokerage. You pay tax only on the growth, at the low capital-gains rate.',
       'Roth: only what you put in yourself, and conversions that are 5 or more years old. The growth and newer conversions stay put.',
-      'If those run out before you are 59½, the 401(k)/IRA is next, with the 10% penalty. The results above count how often that happens.',
+      'If those run out while you are under 59½, the 401(k)/IRA is next, then Roth growth, both with the 10% penalty. The results above count how often that happens. (The IRS has exceptions, such as the Rule of 55, that the plan doesn’t count on.)',
     ]);
     expect(text).toContain('Buy your own health insurance until each of you turns 65');
     expect(text).toContain('$32,000 a year');
@@ -112,6 +112,67 @@ describe('the retirement routine', () => {
     const pb = buildPlaybook(plan, detail(plan, 2041));
     expect(pb.phases[0].steps.some((s) => s.action.includes('HSA'))).toBe(false);
     expect(pb.phases[0].steps.find((s) => s.items)!.items).not.toContain('Cash.');
+  });
+});
+
+describe('households that lack an account kind (found in the planner review)', () => {
+  test('a spouse with no 401(k)/IRA and no Roth gets no "turns 60" phase; a Roth-only household hears about Roth growth, not a 401(k)', () => {
+    const plan = examplePlan(2026);
+    plan.spouse.balances = { pretax: 0, roth: 0, rothBasis: 0, hsa: 0 };
+    plan.spouse.contributions = { pretax: 0, employerMatch: 0, roth: 0, hsa: 0 };
+    expect(titles(plan, detail(plan, 2041))).not.toContain('2046 Spouse turns 60');
+
+    const rothOnly = examplePlan(2026);
+    for (const q of [rothOnly.you, rothOnly.spouse]) {
+      q.balances = { pretax: 0, roth: 300_000, rothBasis: 200_000, hsa: 0 };
+      q.contributions = { pretax: 0, employerMatch: 0, roth: 10_000, hsa: 0 };
+    }
+    const d = detail(rothOnly, 2041);
+    expect(stepText(rothOnly, d, 2044)).toContain('Your Roth, growth included, can now be used with no penalty.');
+    expect(stepText(rothOnly, d, 2044)).not.toContain('401(k)');
+    const order = buildPlaybook(rothOnly, d).phases[0].steps.find((s) => s.items)!.items!;
+    expect(order[order.length - 1]).toContain('Roth growth is next, with the 10% penalty');
+  });
+
+  test('with a ten-year age gap the penalty line names the younger spouse, not "you"', () => {
+    const plan = examplePlan(2026);
+    plan.you.birthYear = 1972;
+    plan.spouse.birthYear = 1982;
+    const order = buildPlaybook(plan, detail(plan, 2034)).phases[0].steps.find((s) => s.items)!.items!;
+    expect(order[order.length - 1]).toContain('while Spouse is under 59½, Spouse’s 401(k)/IRA is next');
+  });
+});
+
+describe('the routine also covers the budget, rebalancing and dated items', () => {
+  test('the retirement routine opens with the budget and ends with rebalancing and recalculating', () => {
+    const plan = examplePlan(2026);
+    const steps = buildPlaybook(plan, detail(plan, 2041)).phases[0].steps.map((s) => s.action);
+    expect(steps[0]).toBe('Live on about $76,500 a year plus healthcare, in today’s dollars.');
+    expect(steps.slice(-2)).toEqual([
+      'Once a year, put every account back to 70% stocks / 25% bonds / 5% cash.',
+      'Once a year, enter your real balances here and recalculate.',
+    ]);
+  });
+
+  test('dated items after retirement become phases: an ongoing cost ending, income starting, a one-time sale', () => {
+    const plan = examplePlan(2026);
+    plan.datedItems = [
+      { id: 'm', label: 'Mortgage', direction: 'expense', amount: 30_000, frequency: 'ongoing', start: { kind: 'year', year: 2026 }, end: { kind: 'year', year: 2045 }, fixedDollars: true },
+      { id: 'h', label: 'Home sale', direction: 'income', amount: 400_000, frequency: 'oneTime', start: { kind: 'year', year: 2050 }, fixedDollars: false, taxable: false },
+      { id: 'p', label: 'Pension', direction: 'income', amount: 24_000, frequency: 'ongoing', start: { kind: 'age', person: 'you', age: 65 }, fixedDollars: true, taxable: true },
+      { id: 'c', label: 'A car', direction: 'expense', amount: 35_000, frequency: 'recurring', start: { kind: 'year', year: 2030 }, everyYears: 10, fixedDollars: false },
+    ];
+    const d = detail(plan, 2041);
+    const t = titles(plan, d);
+    expect(t).toContain('2046 Spouse turns 60 · Mortgage ends');
+    expect(t).toContain('2049 You turn 65 · Pension starts');
+    expect(t).toContain('2050 Home sale arrives');
+    expect(stepText(plan, d, 2046)).toContain('Mortgage is paid off: about $30,000 a year (in the dollars of when it began) less to cover.');
+    expect(stepText(plan, d, 2049)).toContain('It is taxed as income, so it uses up room under the 10% bracket');
+    expect(stepText(plan, d, 2050)).toContain('It is not taxed');
+    const routine = buildPlaybook(plan, d).phases[0].steps.map((s) => s.action);
+    expect(routine[0]).toBe('Live on about $76,500 a year plus healthcare and your dated items, in today’s dollars.');
+    expect(routine[1]).toBe('Plan for A car about every 10 years, about $35,000 each time.');
   });
 });
 
