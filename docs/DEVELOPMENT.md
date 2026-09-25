@@ -66,7 +66,7 @@ code comments cite) first. Planned work is in [pending-features.md](pending-feat
 src/
   App.tsx        page layout, Calculate, banners, year picker, footer, browser draft (loadDraft)
   main.tsx       entry point
-  version.ts     app version (from package.json at build time) and the repository URL
+  version.ts     app version (the built commit's date, YYYY.MM.DD, set by vite.config.ts) and the repository URL
   index.css      styles
   engine/        UI-free calculation engine (pure TypeScript, unit-tested)
     types.ts       Plan, assumption and result types

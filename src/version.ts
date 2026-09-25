@@ -1,4 +1,4 @@
-// The app's version (from package.json, injected at build time) and where its source lives (D90).
+// The app's version (the date of the commit being built, injected by vite.config.ts) and where its source lives (D90).
 
 declare const __APP_VERSION__: string;
 
