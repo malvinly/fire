@@ -64,7 +64,7 @@ code comments cite) first. Planned work is in [pending-features.md](pending-feat
 
 ```
 src/
-  App.tsx        page layout, Calculate, banners, year picker, footer, browser draft (loadDraft)
+  App.tsx        page layout and tabs, Calculate, banners, year picker, browser draft (loadDraft)
   main.tsx       entry point
   version.ts     app version (the built commit's date, YYYY.MM.DD, set by vite.config.ts) and the repository URL
   index.css      styles
@@ -85,8 +85,9 @@ src/
     market.json    generated annual returns and January 10-year yields (committed)
     rules.ts       tax brackets, SSA constants, RMD table (update yearly)
   worker/          engine workers off the main thread: one per FIRE type, one for the detail view (D80)
-  ui/              React components, charts, session files, input help text (helpText.ts), field and year
-                   parsing (format.ts), the warnings panel's lines (warnings.ts)
+  ui/              React components (About.tsx, HowItWorks.tsx, InputsPanel.tsx, Results.tsx…), charts, session
+                   files, input help text (helpText.ts), field and year parsing (format.ts), the warnings
+                   panel's lines (warnings.ts)
 public/
   Start FIRE Planner.cmd  double-click launcher, copied into dist/ by the build (not published to the site)
   serve.ps1               tiny localhost-only static server (Windows PowerShell, no Node) used by the launcher

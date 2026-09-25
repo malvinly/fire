@@ -66,6 +66,7 @@ All three are left out on purpose; they don't match the kind of plan this tool i
   from, the taxes paid and what is reinvested.
 - **How this works** — generated from the plan on screen: every assumption, whether it's a default or
   yours, why, and the source.
+- **About** — where your numbers go, whom the tool is built for, the version and a link to this repository.
 
 ## Run it yourself
 

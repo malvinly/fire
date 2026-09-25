@@ -107,8 +107,8 @@ catch-up test hard-codes the 401(k)/IRA/HSA limits)
   (1.1%), the benefit rise it implies for someone now 40 and now 50 (27% / 14%) and the 1985–2024 average
   (0.9%). Re-check the rate against the new Trustees Report, extend the average's end year, and recompute the
   two percentages: (1 + g)^(years until that person turns 60).
-- The footer, the About block and the "How this works" intro read `DATA_VERSIONS`, so they update
-  themselves; confirm them in the browser in step 8.
+- The About tab and the "How this works" intro read `DATA_VERSIONS`, so they update themselves; confirm
+  them in the browser in step 8.
 - `docs/DECISIONS.md`: D24–D26, D31–D32, D58 and the "Data update history" table.
 - `README.md`: the market-data year range. `docs/DEVELOPMENT.md` (Tests section): the SSA worked example numbers and the FI Calc "121-of-125".
 - `docs/DEVELOPMENT.md` (Reproducing the numbers): rerun the probe there, replace the results table and the

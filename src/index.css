@@ -67,7 +67,7 @@ a { color: var(--accent); }
 button, input, select, textarea { font: inherit; color: inherit; }
 
 /* ---- App shell: uses all available width (D37) ---- */
-.app { display: grid; grid-template-rows: auto 1fr auto; height: 100vh; }
+.app { display: grid; grid-template-rows: auto 1fr; height: 100vh; }
 .topbar {
   display: flex; align-items: center; gap: 16px; flex-wrap: wrap;
   padding: 10px 20px; border-bottom: 1px solid var(--border); background: var(--surface);
@@ -91,11 +91,6 @@ button, input, select, textarea { font: inherit; color: inherit; }
   .inputs { border-right: 0; border-bottom: 1px solid var(--border); overflow: visible; }
   .results { overflow: visible; }
 }
-
-/* ---- Footer: privacy line, data vintage, version (D90) ---- */
-.foot { display: flex; gap: 8px 16px; flex-wrap: wrap; align-items: center; padding: 6px 20px; border-top: 1px solid var(--border); background: var(--surface); font-size: 12px; color: var(--text-2); }
-.foot .spacer { flex: 1; }
-.foot .link { font-size: inherit; }
 
 /* ---- Buttons ---- */
 .btn {
@@ -186,7 +181,7 @@ table.data th { color: var(--text-2); font-weight: 600; position: sticky; top: 0
 table.data td { font-variant-numeric: tabular-nums; }
 .table-scroll { max-height: 420px; overflow: auto; }
 
-.empty { color: var(--text-2); padding: 40px; text-align: center; border: 1px dashed var(--axis); border-radius: var(--radius); }
+.empty { color: var(--text-2); padding: 40px; text-align: center; border: 1px dashed var(--axis); border-radius: var(--radius); max-width: 720px; margin: 0 auto; text-wrap: pretty; } /* readable line length on wide screens; 720 leaves each last line about two-thirds full, so a different system font stays clear of one-word lines */
 .spinner { width: 14px; height: 14px; border: 2px solid var(--axis); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; display: inline-block; }
 @keyframes spin { to { transform: rotate(360deg); } }
 

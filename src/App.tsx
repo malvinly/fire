@@ -5,9 +5,9 @@ import { checkLoadedPlan, planProblems } from './engine/validate';
 import type { Detail, Tier, TierResult } from './engine/solve';
 import { MARKET } from './engine/returns';
 import type { Plan } from './engine/types';
-import { ABOUT_GROUP, DATA_VERSIONS, LIMITS_GROUP } from './engine/assumptions';
-import { APP_VERSION, REPO_URL } from './version';
+import { LIMITS_GROUP } from './engine/assumptions';
 import { YearInput } from './ui/fields';
+import { About } from './ui/About';
 import { HowItWorks } from './ui/HowItWorks';
 import { Icon, TIER_ICONS } from './ui/icons';
 import { InputsPanel } from './ui/InputsPanel';
@@ -60,7 +60,7 @@ export default function App() {
   const [draft] = useState(loadDraft);
   const [plan, setPlan] = useState<Plan>(() => draft?.plan ?? examplePlan());
   const [meta, setMeta] = useState<SessionMeta | null>(() => draft?.meta ?? null);
-  const [tab, setTab] = useState<'plan' | 'how'>('plan');
+  const [tab, setTab] = useState<'plan' | 'how' | 'about'>('plan');
   // A "How this works" group to scroll to when opening that tab from a link.
   const [howFocus, setHowFocus] = useState<string | null>(null);
   const [results, setResults] = useState<Results | null>(null);
@@ -219,6 +219,7 @@ export default function App() {
         <nav className="tabs" role="tablist">
           <button role="tab" aria-selected={tab === 'plan'} onClick={() => setTab('plan')}>Plan</button>
           <button role="tab" aria-selected={tab === 'how'} onClick={() => { setHowFocus(null); setTab('how'); }}>How this works</button>
+          <button role="tab" aria-selected={tab === 'about'} onClick={() => setTab('about')}>About</button>
         </nav>
         <span className="spacer" />
         <span className="text-2">
@@ -232,6 +233,8 @@ export default function App() {
 
       {tab === 'how' ? (
         <main className="main"><HowItWorks plan={plan} focusGroup={howFocus} /></main>
+      ) : tab === 'about' ? (
+        <main className="main"><About onHowItWorks={() => { setHowFocus(null); setTab('how'); }} /></main>
       ) : (
         <main className="main">
           <aside className="inputs" aria-label="Inputs">
@@ -279,12 +282,12 @@ export default function App() {
                 <p style={{ marginTop: 8 }}>
                   The left side is filled with example numbers — replace them with yours. Hover the “?” next to any
                   label to see what goes there. Calculating takes about 10 seconds: each FIRE type is tested against{' '}
-                  {plan.assumptions.paths.toLocaleString()} simulated markets and every real stretch of market history since {MARKET.firstYear}.
+                  {plan.assumptions.paths.toLocaleString()} simulated markets and every real stretch of market history since&nbsp;{MARKET.firstYear}.
                 </p>
                 <p style={{ marginTop: 12 }}>
                   Everything runs in your browser; nothing you enter is sent anywhere. This planner was built around one household's
-                  situation and is published as is, not as a tool for everyone:{' '}
-                  <button className="link" onClick={() => { setHowFocus(ABOUT_GROUP); setTab('how'); }}>see About</button>.
+                  situation and is published as is, not as a tool for{' '}
+                  <span style={{ whiteSpace: 'nowrap' }}>everyone: <button className="link" onClick={() => setTab('about')}>see About</button>.</span>
                 </p>
               </div>
             ) : (
@@ -350,16 +353,6 @@ export default function App() {
           </section>
         </main>
       )}
-
-      <footer className="foot">
-        <span>Runs entirely in your browser: nothing you enter is sent anywhere. Estimates, not financial advice.</span>
-        <span className="spacer" />
-        <span>
-          Market history through {DATA_VERSIONS.marketThrough} · {DATA_VERSIONS.rulesYear} tax and Social Security rules · v{APP_VERSION} ·{' '}
-          <button className="link" onClick={() => { setHowFocus(ABOUT_GROUP); setTab('how'); }}>About</button> ·{' '}
-          <a href={REPO_URL} target="_blank" rel="noreferrer">Source</a>
-        </span>
-      </footer>
 
       <SessionsDialog
         open={sessionsOpen}

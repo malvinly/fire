@@ -145,6 +145,4 @@ export function describeAssumptions(plan: Plan): AssumptionRow[] {
 }
 
 /** The "How this works" group listing what the model leaves out; the warnings panel links to it (D75). */
-/** Name of the About block at the top of "How this works" (the footer and the empty state link to it). */
-export const ABOUT_GROUP = 'About';
 export const LIMITS_GROUP = 'What this doesn’t model';
