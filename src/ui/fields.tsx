@@ -103,6 +103,7 @@ export function NumberField({ label, value, onChange, kind = 'money', min, max, 
         id={id}
         type="number"
         inputMode="decimal"
+        data-1p-ignore
         value={text}
         min={min === undefined ? undefined : min * scale}
         max={max === undefined ? undefined : max * scale}
@@ -138,7 +139,7 @@ export function YearInput({ id, value, min, max, onChange }: { id: string; value
     onChange(v);
   };
   return (
-    <input id={id} type="number" style={{ width: 90 }} value={text} min={min} max={max}
+    <input id={id} type="number" data-1p-ignore style={{ width: 90 }} value={text} min={min} max={max}
       onChange={(e) => commit(e.target.value)} onBlur={() => setText(String(value))} />
   );
 }
