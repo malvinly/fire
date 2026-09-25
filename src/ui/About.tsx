@@ -5,7 +5,7 @@ import { APP_VERSION, REPO_URL } from '../version';
 export function About({ onHowItWorks }: { onHowItWorks: () => void }) {
   return (
     <div className="page">
-      <div style={{ display: 'grid', gap: 10, maxWidth: 760 }}>
+      <div style={{ display: 'grid', gap: 10 }}>
         <h2>About this planner</h2>
         <p>
           FIRE Planner runs entirely in your browser. Nothing you enter is sent anywhere: there are no accounts, no cookies and
