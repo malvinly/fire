@@ -5,7 +5,7 @@
 import { FEDERAL, RULES_YEAR, rmdStartAge } from '../data/rules';
 import { timingYear } from '../engine/context';
 import { RUN_OUT_SHORTFALL } from '../engine/simulate';
-import { payableShare } from '../engine/socialSecurity';
+import { ownClaimFactor, payableShare, spousalClaimFactor } from '../engine/socialSecurity';
 import type { Detail } from '../engine/solve';
 import { bracketTop } from '../engine/tax';
 import type { DatedItem, Plan, YearRecord } from '../engine/types';
@@ -240,17 +240,20 @@ export function buildPlaybook(plan: Plan, detail: Detail): Playbook {
     action: 'Once a year, enter your real balances here and recalculate.',
     why: 'Markets will not follow any single simulated path. If the chance your money lasts falls, spending is the lever to adjust early.',
   });
-  phases.push({ year: retireYear, title: 'You retire', ages: ages(retireYear), steps });
+  const retirePhase: Phase = { year: retireYear, title: 'You retire', ages: ages(retireYear), steps };
+  phases.push(retirePhase);
 
   // Milestones after retirement, grouped by year (D93). Those in the retirement year join the routine. Earlier ones are
   // already in it (Medicare in the insurance step, Social Security in "already collect", dated items in the budget)
   // and are dropped; a required withdrawal already due is passed in as the retirement year.
   const later = new Map<number, { title: string; steps: Step[] }[]>();
   const retireSteps: Step[] = [];
+  const retireTitles: string[] = [];
   const add = (year: number, title: string, steps: Step[]) => {
     if (year < retireYear || year > endYear) return;
     if (year === retireYear) {
       retireSteps.push(...steps);
+      retireTitles.push(title);
       return;
     }
     const list = later.get(year) ?? [];
@@ -293,21 +296,24 @@ export function buildPlaybook(plan: Plan, detail: Detail): Playbook {
     add(p.medicare, `${p.name} ${verb(p.name, 'turn')} 65`, med);
 
     let ssWhy = '';
-    // What this claim adds: the household's benefit the year after the claim minus the year before it. The claim
-    // year itself is prorated (benefits start after the birthday month), so it would understate a full year, and
-    // taking off the year before leaves out the other spouse's benefit if they already collect.
-    const ssIn = (year: number) => detail.medianPath.find((r) => r.year === year)?.socialSecurity;
-    const after = ssIn(p.claim + 1);
-    const adds = after === undefined ? 0 : after - (ssIn(p.claim - 1) ?? 0);
-    // Two claims in the same year can't be told apart, so the second of the two quotes both.
-    const sameClaim = other.claim === p.claim;
-    const quoted = adds >= MIN_SHOWN && !(sameClaim && p === people[0]);
+    // This person's benefit for a full year after the prorated claim year (D25, D26): their own benefit at their
+    // claim age plus the spousal top-up (half the other's full benefit, less their own), which the engine pays only
+    // once the other spouse has claimed too.
+    const i = p === people[0] ? 0 : 1;
+    const share = payableShare(p.claim + 1, a.ssTrustFund);
+    const own = detail.pia[i] * 12 * ownClaimFactor(p.birthYear, p.claimAge);
+    const excess = Math.max(0, 0.5 * detail.pia[1 - i] - detail.pia[i]) * 12;
+    const spousal = excess * spousalClaimFactor(p.birthYear, Math.min(70, Math.max(p.claimAge, other.claim - p.birthYear)));
+    const otherFiled = other.claim <= p.claim + 1;
+    const total = (own + (otherFiled ? spousal : 0)) * share;
+    const quoted = total >= MIN_SHOWN;
     if (quoted) {
-      ssWhy += `From then on ${sameClaim ? 'your two benefits add' : 'it adds'} about ${moneyShort(adds)} a year in today’s dollars, so you take ` +
-        'that much less from the accounts.';
+      ssWhy += `From then on ${whose(p.name)} benefit adds about ${moneyShort(total)} a year in today’s dollars, so you take that much less from the accounts.`;
+    }
+    if (!otherFiled && spousal * share >= MIN_SHOWN) {
+      ssWhy += ` A spousal top-up of about ${moneyShort(spousal * share)} a year comes once ${who(other.name)} ${verb(other.name, 'claim')} too.`;
     }
     if (converting) ssWhy += ` It also counts as income, so there is less room under the ${fill}% bracket and the yearly 401(k)/IRA withdrawal shrinks.`;
-    const share = payableShare(p.claim + 1, a.ssTrustFund);
     if (share < 1) {
       ssWhy += ` The ${quoted ? 'amount' : 'plan'} already assumes only ${pct(share)} of the full benefit is paid by then, in case Congress does not fix the shortfall ` +
         'in Social Security’s trust fund. If it does, you will get more.';
@@ -319,7 +325,7 @@ export function buildPlaybook(plan: Plan, detail: Detail): Playbook {
 
     // A required withdrawal already due on the day you retire is part of the routine: it is taken every year.
     if (p.hasPretax) {
-      add(Math.max(p.rmd, retireYear), `${p.name} ${verb(p.name, 'turn')} ${p.rmdAge}`, [{
+      add(Math.max(p.rmd, retireYear), p.rmd < retireYear ? `${whose(p.name)} required withdrawals` : `${p.name} ${verb(p.name, 'turn')} ${p.rmdAge}`, [{
         action: `Take the required minimum withdrawal from ${whose(p.name)} 401(k)/IRA every year before December 31. Spend it first; whatever you don’t need goes into the brokerage account.`,
         why: 'The IRS now requires it (a “required minimum distribution”, or RMD): about 4% of the balance at first and a slightly bigger share each year, ' +
           'from an IRS table. Your brokerage will tell you the exact figure. Missing it costs a 25% penalty.',
@@ -336,6 +342,7 @@ export function buildPlaybook(plan: Plan, detail: Detail): Playbook {
   }
   for (const it of plan.datedItems) datedPhases(plan, it, retireYear, converting ? fill : null, add);
   steps.splice(atRetire, 0, ...retireSteps);
+  retirePhase.title = ['You retire', ...retireTitles].join(' · ');
   for (const year of [...later.keys()].sort((x, y) => x - y)) {
     const events = later.get(year)!;
     phases.push({

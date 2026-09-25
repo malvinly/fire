@@ -27,7 +27,7 @@ export default defineConfig({
   // localhost:port, so sharing Vite's default ports with other local projects would let their pages read it.
   // strictPort: fail rather than silently move to another port (a different origin with an empty draft).
   server: { port: 5391, strictPort: true },
-  preview: { port: 4391, strictPort: true },
+  preview: { port: 4393, strictPort: true },
   // The app is one page loaded once (locally or from the site), so Vite's 500 kB default (meant for pages
   // that must load fast on every visit) is too tight: React and Chart.js alone are about 380 kB. 750 kB leaves room for the planned features and
   // still warns if a heavy library such as xlsx (the data script's, ~400 kB) is pulled into the app by mistake.

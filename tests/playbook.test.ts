@@ -53,7 +53,7 @@ describe('phases', () => {
     plan.you.birthYear = 1970;
     plan.spouse.birthYear = 1972;
     const d = detail(plan, 2035); // ages 65 and 63
-    expect(titles(plan, d)).toEqual(['2035 You retire', '2037 You start Social Security (age 67) · Spouse turns 65', '2039 Spouse starts Social Security (age 67)', '2045 You turn 75', '2047 Spouse turns 75']);
+    expect(titles(plan, d)).toEqual(['2035 You retire · You turn 65', '2037 You start Social Security (age 67) · Spouse turns 65', '2039 Spouse starts Social Security (age 67)', '2045 You turn 75', '2047 Spouse turns 75']);
     const retire = buildPlaybook(plan, d).phases[0];
     const order = retire.steps.find((s) => s.items)!.items!;
     expect(order).toEqual(['Cash.', 'Brokerage. You pay tax only on the growth, at the low capital-gains rate.', 'The 401(k)/IRA, beyond the yearly amount above.', 'Roth.']);
@@ -71,7 +71,7 @@ describe('phases', () => {
     plan.you.birthYear = 1960; // 75 in 2035
     plan.spouse.birthYear = 1955; // 73 in 2028
     const d = detail(plan, 2030);
-    expect(titles(plan, d)).toEqual(['2030 You retire', '2032 Social Security cut', '2035 You turn 75']);
+    expect(titles(plan, d)).toEqual(['2030 You retire · Spouse’s required withdrawals', '2032 Social Security cut', '2035 You turn 75']);
     const steps = actions(plan, d, 2030);
     const rmd = steps.findIndex((s) => s.startsWith('Take the required minimum withdrawal from Spouse’s 401(k)/IRA every year'));
     expect(steps[rmd - 1]).toBe('You both already collect Social Security.');
@@ -292,22 +292,31 @@ describe('example lines from the typical market', () => {
     expect(phases.slice(2).every((p) => p.example === undefined)).toBe(true);
   });
 
-  test('the social security claim quotes the first full year, since the claim year is prorated', () => {
+  test('the social security claim quotes that person’s benefit for a full year at that year’s payable share', () => {
     const plan = examplePlan(2026);
     const d = detail(plan, 2041, 2041, [record(2051, plan, { socialSecurity: 15_000 }), record(2052, plan, { socialSecurity: 30_000 })]);
-    expect(stepText(plan, d, 2051)).toContain('From then on it adds about $30K a year in today’s dollars, so you take that much less from the accounts.');
+    expect(stepText(plan, d, 2051)).toContain('From then on your benefit adds about $22K a year in today’s dollars, so you take that much less from the accounts.');
     expect(stepText(plan, d, 2051)).toContain('The amount already assumes only 73% of the full benefit is paid by then');
   });
 
-  test('each claim quotes what it adds, not the household total', () => {
-    const plan = examplePlan(2026); // You claim in 2051, Spouse in 2053
-    const d = detail(plan, 2041, 2041, [
-      record(2051, plan, { socialSecurity: 15_000 }), record(2052, plan, { socialSecurity: 30_000 }),
-      record(2053, plan, { socialSecurity: 40_000 }), record(2054, plan, { socialSecurity: 55_000 }),
-    ]);
-    expect(stepText(plan, d, 2051)).toContain('it adds about $30K a year');
-    expect(stepText(plan, d, 2053)).toContain('it adds about $25K a year');
-    expect(stepText(plan, d, 2053)).not.toContain('$55K');
+  test('each claim quotes that person’s own benefit at their claim age plus any spousal top-up, at that year’s payable share', () => {
+    const plan = examplePlan(2026); // $2,500 a month each at full retirement age (67 for both)
+    plan.spouse.socialSecurity.claimAge = 70; // 24% more than at 67; claims in 2056, payable share about 72.7% in 2057
+    const d = detail(plan, 2041);
+    expect(stepText(plan, d, 2051)).toContain('your benefit adds about $22K a year'); // 2,500 × 12 × 1.0 × 0.735
+    expect(stepText(plan, d, 2056)).toContain('Spouse’s benefit adds about $27K a year'); // 2,500 × 12 × 1.24 × 0.727
+    expect(stepText(plan, d, 2056)).not.toContain('$49K');
+
+    // A spouse with no work record gets the spousal top-up: half of the other's full benefit, once the other has claimed.
+    const single = examplePlan(2026);
+    single.spouse.socialSecurity.manualPia = 0;
+    const ds = { ...detail(single, 2041), pia: [2_500, 0] as [number, number] };
+    expect(stepText(single, ds, 2053)).toContain('Spouse’s benefit adds about $11K a year'); // 1,250 × 12 × 1.0 × 0.729
+    // Claiming before the other spouse: the top-up is named separately and waits.
+    single.spouse.socialSecurity.claimAge = 62; // 2048, before You claim in 2051
+    const early = { ...detail(single, 2041), pia: [2_500, 0] as [number, number] };
+    expect(stepText(single, early, 2048)).toContain('A spousal top-up of about $9K a year comes once you claim too.');
+    expect(stepText(single, early, 2048)).not.toContain('benefit adds');
   });
 
   test('a required withdrawal is shown as part of the 401(k)/IRA money', () => {

@@ -47,14 +47,14 @@ exports[`the playbook for twelve household profiles > A. The example plan 1`] = 
 
 ## 2051 · You start Social Security (age 67) · Spouse turns 65 (You 67 · Spouse 65)
 1. Apply for Social Security up to 4 months before you turn 67.
-   (From then on it adds about $22K a year in today’s dollars, so you take that much less from the accounts. It also counts as income, so there is less room under the 10% bracket and the yearly 401(k)/IRA withdrawal shrinks. The amount already assumes only 73% of the full benefit is paid by then, in case Congress does not fix the shortfall in Social Security’s trust fund. If it does, you will get more.)
+   (From then on your benefit adds about $22K a year in today’s dollars, so you take that much less from the accounts. It also counts as income, so there is less room under the 10% bracket and the yearly 401(k)/IRA withdrawal shrinks. The amount already assumes only 73% of the full benefit is paid by then, in case Congress does not fix the shortfall in Social Security’s trust fund. If it does, you will get more.)
 2. Spouse moves to Medicare. Sign up in the 3 months before the birthday.
    (Signing up late carries a lifelong penalty. Health insurance for Spouse goes from about $23,200 to about $10,900 a year in 2051, in today’s dollars.)
 > In the typical market of the table below, 2051: spent $98K; $11K from Social Security; $99K from 401(k)/IRA; $11K in taxes.
 
 ## 2053 · Spouse starts Social Security (age 67) (You 69 · Spouse 67)
 1. Apply for Social Security up to 4 months before Spouse turns 67.
-   (From then on it adds about $22K a year in today’s dollars, so you take that much less from the accounts. It also counts as income, so there is less room under the 10% bracket and the yearly 401(k)/IRA withdrawal shrinks. The amount already assumes only 73% of the full benefit is paid by then, in case Congress does not fix the shortfall in Social Security’s trust fund. If it does, you will get more.)
+   (From then on Spouse’s benefit adds about $22K a year in today’s dollars, so you take that much less from the accounts. It also counts as income, so there is less room under the 10% bracket and the yearly 401(k)/IRA withdrawal shrinks. The amount already assumes only 73% of the full benefit is paid by then, in case Congress does not fix the shortfall in Social Security’s trust fund. If it does, you will get more.)
 > In the typical market of the table below, 2053: spent $99K; $33K from Social Security; $76K from 401(k)/IRA; $10K in taxes.
 
 ## 2059 · You turn 75 (You 75 · Spouse 73)
@@ -97,14 +97,14 @@ exports[`the playbook for twelve household profiles > B. Modest income, small ba
 
 ## 2051 · You start Social Security (age 67) · Spouse turns 65 (You 67 · Spouse 65)
 1. Apply for Social Security up to 4 months before you turn 67.
-   (From then on it adds about $18K a year in today’s dollars, so you take that much less from the accounts. It also counts as income, so there is less room under the 10% bracket and the yearly 401(k)/IRA withdrawal shrinks. The amount already assumes only 73% of the full benefit is paid by then, in case Congress does not fix the shortfall in Social Security’s trust fund. If it does, you will get more.)
+   (From then on your benefit adds about $18K a year in today’s dollars, so you take that much less from the accounts. It also counts as income, so there is less room under the 10% bracket and the yearly 401(k)/IRA withdrawal shrinks. The amount already assumes only 73% of the full benefit is paid by then, in case Congress does not fix the shortfall in Social Security’s trust fund. If it does, you will get more.)
 2. Spouse moves to Medicare. Sign up in the 3 months before the birthday.
    (Signing up late carries a lifelong penalty. Health insurance for Spouse goes from about $23,200 to about $10,900 a year in 2051, in today’s dollars.)
 > In the typical market of the table below, 2051: spent $73K; $9K from Social Security; $17K from brokerage; $50K from 401(k)/IRA; $4K in taxes.
 
 ## 2053 · Spouse starts Social Security (age 67) (You 69 · Spouse 67)
 1. Apply for Social Security up to 4 months before Spouse turns 67.
-   (From then on it adds about $16K a year in today’s dollars, so you take that much less from the accounts. It also counts as income, so there is less room under the 10% bracket and the yearly 401(k)/IRA withdrawal shrinks. The amount already assumes only 73% of the full benefit is paid by then, in case Congress does not fix the shortfall in Social Security’s trust fund. If it does, you will get more.)
+   (From then on Spouse’s benefit adds about $16K a year in today’s dollars, so you take that much less from the accounts. It also counts as income, so there is less room under the 10% bracket and the yearly 401(k)/IRA withdrawal shrinks. The amount already assumes only 73% of the full benefit is paid by then, in case Congress does not fix the shortfall in Social Security’s trust fund. If it does, you will get more.)
 > In the typical market of the table below, 2053: spent $73K; $25K from Social Security; $15K from brokerage; $36K from 401(k)/IRA; $3K in taxes.
 
 ## 2059 · You turn 75 (You 75 · Spouse 73)
@@ -168,7 +168,7 @@ exports[`the playbook for twelve household profiles > C. High income, $2.4M pre-
 
 ## 2051 · You start Social Security (age 67) · Spouse turns 65 (You 67 · Spouse 65)
 1. Apply for Social Security up to 4 months before you turn 67.
-   (From then on it adds about $33K a year in today’s dollars, so you take that much less from the accounts. It also counts as income, so there is less room under the 10% bracket and the yearly 401(k)/IRA withdrawal shrinks. The amount already assumes only 73% of the full benefit is paid by then, in case Congress does not fix the shortfall in Social Security’s trust fund. If it does, you will get more.)
+   (From then on your benefit adds about $33K a year in today’s dollars, so you take that much less from the accounts. It also counts as income, so there is less room under the 10% bracket and the yearly 401(k)/IRA withdrawal shrinks. The amount already assumes only 73% of the full benefit is paid by then, in case Congress does not fix the shortfall in Social Security’s trust fund. If it does, you will get more.)
 2. Spouse moves to Medicare. Sign up in the 3 months before the birthday.
    (Signing up late carries a lifelong penalty. Health insurance for Spouse goes from about $23,200 to about $10,900 a year in 2051, in today’s dollars.)
 3. HSA money can now also be spent on anything else.
@@ -177,7 +177,7 @@ exports[`the playbook for twelve household profiles > C. High income, $2.4M pre-
 
 ## 2053 · Spouse starts Social Security (age 67) (You 69 · Spouse 67)
 1. Apply for Social Security up to 4 months before Spouse turns 67.
-   (From then on it adds about $33K a year in today’s dollars, so you take that much less from the accounts. It also counts as income, so there is less room under the 10% bracket and the yearly 401(k)/IRA withdrawal shrinks. The amount already assumes only 73% of the full benefit is paid by then, in case Congress does not fix the shortfall in Social Security’s trust fund. If it does, you will get more.)
+   (From then on Spouse’s benefit adds about $33K a year in today’s dollars, so you take that much less from the accounts. It also counts as income, so there is less room under the 10% bracket and the yearly 401(k)/IRA withdrawal shrinks. The amount already assumes only 73% of the full benefit is paid by then, in case Congress does not fix the shortfall in Social Security’s trust fund. If it does, you will get more.)
 > In the typical market of the table below, 2053: spent $175K; $50K from Social Security; $157K from 401(k)/IRA; $32K in taxes.
 
 ## 2059 · You turn 75 (You 75 · Spouse 73)
@@ -232,14 +232,14 @@ exports[`the playbook for twelve household profiles > D. Single earner; the spou
 
 ## 2051 · You start Social Security (age 67) · Spouse turns 65 (You 67 · Spouse 65)
 1. Apply for Social Security up to 4 months before you turn 67.
-   (From then on it adds about $22K a year in today’s dollars, so you take that much less from the accounts. It also counts as income, so there is less room under the 10% bracket and the yearly 401(k)/IRA withdrawal shrinks. The amount already assumes only 73% of the full benefit is paid by then, in case Congress does not fix the shortfall in Social Security’s trust fund. If it does, you will get more.)
+   (From then on your benefit adds about $22K a year in today’s dollars, so you take that much less from the accounts. It also counts as income, so there is less room under the 10% bracket and the yearly 401(k)/IRA withdrawal shrinks. The amount already assumes only 73% of the full benefit is paid by then, in case Congress does not fix the shortfall in Social Security’s trust fund. If it does, you will get more.)
 2. Spouse moves to Medicare. Sign up in the 3 months before the birthday.
    (Signing up late carries a lifelong penalty. Health insurance for Spouse goes from about $23,200 to about $10,900 a year in 2051, in today’s dollars.)
 > In the typical market of the table below, 2051: spent $98K; $11K from Social Security; $42K from brokerage; $49K from 401(k)/IRA; $4K in taxes.
 
 ## 2053 · Spouse starts Social Security (age 67) (You 69 · Spouse 67)
 1. Apply for Social Security up to 4 months before Spouse turns 67.
-   (From then on it adds about $11K a year in today’s dollars, so you take that much less from the accounts. It also counts as income, so there is less room under the 10% bracket and the yearly 401(k)/IRA withdrawal shrinks. The amount already assumes only 73% of the full benefit is paid by then, in case Congress does not fix the shortfall in Social Security’s trust fund. If it does, you will get more.)
+   (From then on Spouse’s benefit adds about $11K a year in today’s dollars, so you take that much less from the accounts. It also counts as income, so there is less room under the 10% bracket and the yearly 401(k)/IRA withdrawal shrinks. The amount already assumes only 73% of the full benefit is paid by then, in case Congress does not fix the shortfall in Social Security’s trust fund. If it does, you will get more.)
 > In the typical market of the table below, 2053: spent $99K; $27K from Social Security; $20K from brokerage; $58K from 401(k)/IRA; $7K in taxes.
 
 ## 2059 · You turn 75 (You 75 · Spouse 73)
@@ -288,14 +288,14 @@ exports[`the playbook for twelve household profiles > E. Roth only: no pre-tax m
 
 ## 2051 · You start Social Security (age 67) · Spouse turns 65 (You 67 · Spouse 65)
 1. Apply for Social Security up to 4 months before you turn 67.
-   (From then on it adds about $22K a year in today’s dollars, so you take that much less from the accounts. The amount already assumes only 73% of the full benefit is paid by then, in case Congress does not fix the shortfall in Social Security’s trust fund. If it does, you will get more.)
+   (From then on your benefit adds about $22K a year in today’s dollars, so you take that much less from the accounts. The amount already assumes only 73% of the full benefit is paid by then, in case Congress does not fix the shortfall in Social Security’s trust fund. If it does, you will get more.)
 2. Spouse moves to Medicare. Sign up in the 3 months before the birthday.
    (Signing up late carries a lifelong penalty. Health insurance for Spouse goes from about $23,200 to about $10,900 a year in 2051, in today’s dollars.)
 > In the typical market of the table below, 2051: spent $98K; $11K from Social Security; $87K from Roth.
 
 ## 2053 · Spouse starts Social Security (age 67) (You 69 · Spouse 67)
 1. Apply for Social Security up to 4 months before Spouse turns 67.
-   (From then on it adds about $22K a year in today’s dollars, so you take that much less from the accounts. The amount already assumes only 73% of the full benefit is paid by then, in case Congress does not fix the shortfall in Social Security’s trust fund. If it does, you will get more.)
+   (From then on Spouse’s benefit adds about $22K a year in today’s dollars, so you take that much less from the accounts. The amount already assumes only 73% of the full benefit is paid by then, in case Congress does not fix the shortfall in Social Security’s trust fund. If it does, you will get more.)
 > In the typical market of the table below, 2053: spent $99K; $33K from Social Security; $66K from Roth.
 "
 `;
@@ -340,7 +340,7 @@ exports[`the playbook for twelve household profiles > F. Already 63 and 61, reti
 
 ## 2032 · Spouse starts Social Security (age 67) · Social Security cut (You 69 · Spouse 67)
 1. Apply for Social Security up to 4 months before Spouse turns 67.
-   (From then on it adds about $19K a year in today’s dollars, so you take that much less from the accounts. It also counts as income, so there is less room under the 10% bracket and the yearly 401(k)/IRA withdrawal shrinks. The amount already assumes only 78% of the full benefit is paid by then, in case Congress does not fix the shortfall in Social Security’s trust fund. If it does, you will get more.)
+   (From then on Spouse’s benefit adds about $23K a year in today’s dollars, so you take that much less from the accounts. It also counts as income, so there is less room under the 10% bracket and the yearly 401(k)/IRA withdrawal shrinks. The amount already assumes only 78% of the full benefit is paid by then, in case Congress does not fix the shortfall in Social Security’s trust fund. If it does, you will get more.)
 2. Expect smaller Social Security checks from 2032.
    (The plan counts only 78% of each check from then on, sliding to 62% by 2100, in case Congress does not fix the shortfall in the program’s trust fund. If it does, you will get more than planned.)
 > In the typical market of the table below, 2032: spent $93K; $28K from Social Security; $33K from brokerage; $36K from 401(k)/IRA; $4K in taxes.
@@ -364,7 +364,7 @@ exports[`the playbook for twelve household profiles > G. Coast FIRE on the examp
 1. Stop adding to savings, including the 401(k) contribution that earns the employer match.
    (Your paychecks cover all the bills, and the savings you already have keep growing untouched until you retire in 2049.)
 
-## 2049 · You retire (You 65 · Spouse 63)
+## 2049 · You retire · You turn 65 (You 65 · Spouse 63)
 1. Live on about $76,500 a year plus healthcare, in today’s dollars.
    (This is the budget the results are based on. Raise it with inflation each year: every figure here is in today’s dollars. Spending more than this, especially in the first years or in a bad market, is what runs money out early.)
 2. Buy your own health insurance until Spouse turns 65, when Medicare takes over.
@@ -391,14 +391,14 @@ exports[`the playbook for twelve household profiles > G. Coast FIRE on the examp
 
 ## 2051 · You start Social Security (age 67) · Spouse turns 65 (You 67 · Spouse 65)
 1. Apply for Social Security up to 4 months before you turn 67.
-   (From then on it adds about $22K a year in today’s dollars, so you take that much less from the accounts. It also counts as income, so there is less room under the 10% bracket and the yearly 401(k)/IRA withdrawal shrinks. The amount already assumes only 73% of the full benefit is paid by then, in case Congress does not fix the shortfall in Social Security’s trust fund. If it does, you will get more.)
+   (From then on your benefit adds about $22K a year in today’s dollars, so you take that much less from the accounts. It also counts as income, so there is less room under the 10% bracket and the yearly 401(k)/IRA withdrawal shrinks. The amount already assumes only 73% of the full benefit is paid by then, in case Congress does not fix the shortfall in Social Security’s trust fund. If it does, you will get more.)
 2. Spouse moves to Medicare. Sign up in the 3 months before the birthday.
    (Signing up late carries a lifelong penalty. Health insurance for Spouse goes from about $23,200 to about $10,900 a year in 2051, in today’s dollars.)
 > In the typical market of the table below, 2051: spent $98K; $11K from Social Security; $46K from brokerage; $46K from 401(k)/IRA; $5K in taxes.
 
 ## 2053 · Spouse starts Social Security (age 67) (You 69 · Spouse 67)
 1. Apply for Social Security up to 4 months before Spouse turns 67.
-   (From then on it adds about $22K a year in today’s dollars, so you take that much less from the accounts. It also counts as income, so there is less room under the 10% bracket and the yearly 401(k)/IRA withdrawal shrinks. The amount already assumes only 73% of the full benefit is paid by then, in case Congress does not fix the shortfall in Social Security’s trust fund. If it does, you will get more.)
+   (From then on Spouse’s benefit adds about $22K a year in today’s dollars, so you take that much less from the accounts. It also counts as income, so there is less room under the 10% bracket and the yearly 401(k)/IRA withdrawal shrinks. The amount already assumes only 73% of the full benefit is paid by then, in case Congress does not fix the shortfall in Social Security’s trust fund. If it does, you will get more.)
 > In the typical market of the table below, 2053: spent $99K; $33K from Social Security; $42K from brokerage; $28K from 401(k)/IRA; $4K in taxes.
 
 ## 2059 · You turn 75 (You 75 · Spouse 73)
@@ -456,14 +456,14 @@ exports[`the playbook for twelve household profiles > H. Yearly Roth conversions
 
 ## 2051 · You start Social Security (age 67) · Spouse turns 65 (You 67 · Spouse 65)
 1. Apply for Social Security up to 4 months before you turn 67.
-   (From then on it adds about $22K a year in today’s dollars, so you take that much less from the accounts. The amount already assumes only 73% of the full benefit is paid by then, in case Congress does not fix the shortfall in Social Security’s trust fund. If it does, you will get more.)
+   (From then on your benefit adds about $22K a year in today’s dollars, so you take that much less from the accounts. The amount already assumes only 73% of the full benefit is paid by then, in case Congress does not fix the shortfall in Social Security’s trust fund. If it does, you will get more.)
 2. Spouse moves to Medicare. Sign up in the 3 months before the birthday.
    (Signing up late carries a lifelong penalty. Health insurance for Spouse goes from about $23,200 to about $10,900 a year in 2051, in today’s dollars.)
 > In the typical market of the table below, 2051: spent $98K; $11K from Social Security; $99K from 401(k)/IRA; $11K in taxes.
 
 ## 2053 · Spouse starts Social Security (age 67) (You 69 · Spouse 67)
 1. Apply for Social Security up to 4 months before Spouse turns 67.
-   (From then on it adds about $22K a year in today’s dollars, so you take that much less from the accounts. The amount already assumes only 73% of the full benefit is paid by then, in case Congress does not fix the shortfall in Social Security’s trust fund. If it does, you will get more.)
+   (From then on Spouse’s benefit adds about $22K a year in today’s dollars, so you take that much less from the accounts. The amount already assumes only 73% of the full benefit is paid by then, in case Congress does not fix the shortfall in Social Security’s trust fund. If it does, you will get more.)
 > In the typical market of the table below, 2053: spent $99K; $33K from Social Security; $76K from 401(k)/IRA; $10K in taxes.
 
 ## 2059 · You turn 75 (You 75 · Spouse 73)
@@ -514,7 +514,7 @@ exports[`the playbook for twelve household profiles > I. Ten-year age gap, 62 an
 
 ## 2039 · You start Social Security (age 67) (You 67 · Spouse 57)
 1. Apply for Social Security up to 4 months before you turn 67.
-   (From then on it adds about $23K a year in today’s dollars, so you take that much less from the accounts. It also counts as income, so there is less room under the 10% bracket and the yearly 401(k)/IRA withdrawal shrinks. The amount already assumes only 76% of the full benefit is paid by then, in case Congress does not fix the shortfall in Social Security’s trust fund. If it does, you will get more.)
+   (From then on your benefit adds about $23K a year in today’s dollars, so you take that much less from the accounts. It also counts as income, so there is less room under the 10% bracket and the yearly 401(k)/IRA withdrawal shrinks. The amount already assumes only 76% of the full benefit is paid by then, in case Congress does not fix the shortfall in Social Security’s trust fund. If it does, you will get more.)
 > In the typical market of the table below, 2039: spent $105K; $11K from Social Security; $54K from brokerage; $44K from 401(k)/IRA; $5K in taxes.
 
 ## 2042 · Spouse turns 60 (You 70 · Spouse 60)
@@ -535,7 +535,7 @@ exports[`the playbook for twelve household profiles > I. Ten-year age gap, 62 an
 
 ## 2049 · Spouse starts Social Security (age 67) (You 77 · Spouse 67)
 1. Apply for Social Security up to 4 months before Spouse turns 67.
-   (From then on it adds about $22K a year in today’s dollars, so you take that much less from the accounts. It also counts as income, so there is less room under the 10% bracket and the yearly 401(k)/IRA withdrawal shrinks. The amount already assumes only 74% of the full benefit is paid by then, in case Congress does not fix the shortfall in Social Security’s trust fund. If it does, you will get more.)
+   (From then on Spouse’s benefit adds about $22K a year in today’s dollars, so you take that much less from the accounts. It also counts as income, so there is less room under the 10% bracket and the yearly 401(k)/IRA withdrawal shrinks. The amount already assumes only 74% of the full benefit is paid by then, in case Congress does not fix the shortfall in Social Security’s trust fund. If it does, you will get more.)
 > In the typical market of the table below, 2049: spent $98K; $33K from Social Security; $27K from brokerage; $42K from 401(k)/IRA; $42K of that required by the IRS; $5K in taxes.
 
 ## 2057 · Spouse turns 75 (You 85 · Spouse 75)
@@ -592,14 +592,14 @@ exports[`the playbook for twelve household profiles > J. Filling the 22% bracket
 
 ## 2051 · You start Social Security (age 67) · Spouse turns 65 (You 67 · Spouse 65)
 1. Apply for Social Security up to 4 months before you turn 67.
-   (From then on it adds about $22K a year in today’s dollars, so you take that much less from the accounts. It also counts as income, so there is less room under the 22% bracket and the yearly 401(k)/IRA withdrawal shrinks. The amount already assumes only 73% of the full benefit is paid by then, in case Congress does not fix the shortfall in Social Security’s trust fund. If it does, you will get more.)
+   (From then on your benefit adds about $22K a year in today’s dollars, so you take that much less from the accounts. It also counts as income, so there is less room under the 22% bracket and the yearly 401(k)/IRA withdrawal shrinks. The amount already assumes only 73% of the full benefit is paid by then, in case Congress does not fix the shortfall in Social Security’s trust fund. If it does, you will get more.)
 2. Spouse moves to Medicare. Sign up in the 3 months before the birthday.
    (Signing up late carries a lifelong penalty. Health insurance for Spouse goes from about $23,200 to about $10,900 a year in 2051, in today’s dollars.)
 > In the typical market of the table below, 2051: spent $98K; $11K from Social Security; $133K from 401(k)/IRA; $104K moved from 401(k)/IRA to Roth; $46K in taxes.
 
 ## 2053 · Spouse starts Social Security (age 67) (You 69 · Spouse 67)
 1. Apply for Social Security up to 4 months before Spouse turns 67.
-   (From then on it adds about $22K a year in today’s dollars, so you take that much less from the accounts. It also counts as income, so there is less room under the 22% bracket and the yearly 401(k)/IRA withdrawal shrinks. The amount already assumes only 73% of the full benefit is paid by then, in case Congress does not fix the shortfall in Social Security’s trust fund. If it does, you will get more.)
+   (From then on Spouse’s benefit adds about $22K a year in today’s dollars, so you take that much less from the accounts. It also counts as income, so there is less room under the 22% bracket and the yearly 401(k)/IRA withdrawal shrinks. The amount already assumes only 73% of the full benefit is paid by then, in case Congress does not fix the shortfall in Social Security’s trust fund. If it does, you will get more.)
 > In the typical market of the table below, 2053: spent $99K; $33K from Social Security; $111K from 401(k)/IRA; $108K moved from 401(k)/IRA to Roth; $45K in taxes.
 
 ## 2059 · You turn 75 (You 75 · Spouse 73)
@@ -658,13 +658,13 @@ exports[`the playbook for twelve household profiles > K. Spending so high that m
 
 ## 2051 · You start Social Security (age 67) · Spouse turns 65 (You 67 · Spouse 65)
 1. Apply for Social Security up to 4 months before you turn 67.
-   (From then on it adds about $22K a year in today’s dollars, so you take that much less from the accounts. It also counts as income, so there is less room under the 10% bracket and the yearly 401(k)/IRA withdrawal shrinks. The amount already assumes only 73% of the full benefit is paid by then, in case Congress does not fix the shortfall in Social Security’s trust fund. If it does, you will get more.)
+   (From then on your benefit adds about $22K a year in today’s dollars, so you take that much less from the accounts. It also counts as income, so there is less room under the 10% bracket and the yearly 401(k)/IRA withdrawal shrinks. The amount already assumes only 73% of the full benefit is paid by then, in case Congress does not fix the shortfall in Social Security’s trust fund. If it does, you will get more.)
 2. Spouse moves to Medicare. Sign up in the 3 months before the birthday.
    (Signing up late carries a lifelong penalty. Health insurance for Spouse goes from about $23,200 to about $10,900 a year in 2051, in today’s dollars.)
 
 ## 2053 · Spouse starts Social Security (age 67) (You 69 · Spouse 67)
 1. Apply for Social Security up to 4 months before Spouse turns 67.
-   (From then on it adds about $22K a year in today’s dollars, so you take that much less from the accounts. It also counts as income, so there is less room under the 10% bracket and the yearly 401(k)/IRA withdrawal shrinks. The amount already assumes only 73% of the full benefit is paid by then, in case Congress does not fix the shortfall in Social Security’s trust fund. If it does, you will get more.)
+   (From then on Spouse’s benefit adds about $22K a year in today’s dollars, so you take that much less from the accounts. It also counts as income, so there is less room under the 10% bracket and the yearly 401(k)/IRA withdrawal shrinks. The amount already assumes only 73% of the full benefit is paid by then, in case Congress does not fix the shortfall in Social Security’s trust fund. If it does, you will get more.)
 
 ## 2059 · You turn 75 (You 75 · Spouse 73)
 1. Take the required minimum withdrawal from your 401(k)/IRA every year before December 31. Spend it first; whatever you don’t need goes into the brokerage account.
@@ -734,14 +734,14 @@ exports[`the playbook for twelve household profiles > L. Dated items: a mortgage
 
 ## 2051 · You start Social Security (age 67) · Spouse turns 65 (You 67 · Spouse 65)
 1. Apply for Social Security up to 4 months before you turn 67.
-   (From then on it adds about $22K a year in today’s dollars, so you take that much less from the accounts. It also counts as income, so there is less room under the 10% bracket and the yearly 401(k)/IRA withdrawal shrinks. The amount already assumes only 73% of the full benefit is paid by then, in case Congress does not fix the shortfall in Social Security’s trust fund. If it does, you will get more.)
+   (From then on your benefit adds about $22K a year in today’s dollars, so you take that much less from the accounts. It also counts as income, so there is less room under the 10% bracket and the yearly 401(k)/IRA withdrawal shrinks. The amount already assumes only 73% of the full benefit is paid by then, in case Congress does not fix the shortfall in Social Security’s trust fund. If it does, you will get more.)
 2. Spouse moves to Medicare. Sign up in the 3 months before the birthday.
    (Signing up late carries a lifelong penalty. Health insurance for Spouse goes from about $23,200 to about $10,900 a year in 2051, in today’s dollars.)
 > In the typical market of the table below, 2051: spent $98K; $11K from Social Security; $20K of other income; $43K from brokerage; $27K from 401(k)/IRA; $3K in taxes.
 
 ## 2053 · Spouse starts Social Security (age 67) (You 69 · Spouse 67)
 1. Apply for Social Security up to 4 months before Spouse turns 67.
-   (From then on it adds about $22K a year in today’s dollars, so you take that much less from the accounts. It also counts as income, so there is less room under the 10% bracket and the yearly 401(k)/IRA withdrawal shrinks. The amount already assumes only 73% of the full benefit is paid by then, in case Congress does not fix the shortfall in Social Security’s trust fund. If it does, you will get more.)
+   (From then on Spouse’s benefit adds about $22K a year in today’s dollars, so you take that much less from the accounts. It also counts as income, so there is less room under the 10% bracket and the yearly 401(k)/IRA withdrawal shrinks. The amount already assumes only 73% of the full benefit is paid by then, in case Congress does not fix the shortfall in Social Security’s trust fund. If it does, you will get more.)
 > In the typical market of the table below, 2053: spent $99K; $33K from Social Security; $17K of other income; $35K from brokerage; $17K from 401(k)/IRA; $3K in taxes.
 
 ## 2059 · You turn 75 (You 75 · Spouse 73)
@@ -797,7 +797,7 @@ exports[`the playbook for twelve household profiles > M. The spouse is older tha
 
 ## 2047 · Spouse starts Social Security (age 67) (You 61 · Spouse 67)
 1. Apply for Social Security up to 4 months before Spouse turns 67.
-   (From then on it adds about $22K a year in today’s dollars, so you take that much less from the accounts. It also counts as income, so there is less room under the 10% bracket and the yearly 401(k)/IRA withdrawal shrinks. The amount already assumes only 74% of the full benefit is paid by then, in case Congress does not fix the shortfall in Social Security’s trust fund. If it does, you will get more.)
+   (From then on Spouse’s benefit adds about $22K a year in today’s dollars, so you take that much less from the accounts. It also counts as income, so there is less room under the 10% bracket and the yearly 401(k)/IRA withdrawal shrinks. The amount already assumes only 74% of the full benefit is paid by then, in case Congress does not fix the shortfall in Social Security’s trust fund. If it does, you will get more.)
 > In the typical market of the table below, 2047: spent $109K; $11K from Social Security; $56K from brokerage; $47K from 401(k)/IRA; $5K in taxes.
 
 ## 2051 · You turn 65 (You 65 · Spouse 71)
@@ -807,7 +807,7 @@ exports[`the playbook for twelve household profiles > M. The spouse is older tha
 
 ## 2053 · You start Social Security (age 67) (You 67 · Spouse 73)
 1. Apply for Social Security up to 4 months before you turn 67.
-   (From then on it adds about $22K a year in today’s dollars, so you take that much less from the accounts. It also counts as income, so there is less room under the 10% bracket and the yearly 401(k)/IRA withdrawal shrinks. The amount already assumes only 73% of the full benefit is paid by then, in case Congress does not fix the shortfall in Social Security’s trust fund. If it does, you will get more.)
+   (From then on your benefit adds about $22K a year in today’s dollars, so you take that much less from the accounts. It also counts as income, so there is less room under the 10% bracket and the yearly 401(k)/IRA withdrawal shrinks. The amount already assumes only 73% of the full benefit is paid by then, in case Congress does not fix the shortfall in Social Security’s trust fund. If it does, you will get more.)
 > In the typical market of the table below, 2053: spent $99K; $33K from Social Security; $31K from brokerage; $41K from 401(k)/IRA; $6K in taxes.
 
 ## 2055 · Spouse turns 75 (You 69 · Spouse 75)
@@ -872,9 +872,9 @@ exports[`the playbook for twelve household profiles > N. Both born the same year
 
 ## 2051 · You start Social Security (age 67) · Spouse starts Social Security (age 67) (You 67 · Spouse 67)
 1. Apply for Social Security up to 4 months before you turn 67.
-   (It also counts as income, so there is less room under the 10% bracket and the yearly 401(k)/IRA withdrawal shrinks. The plan already assumes only 73% of the full benefit is paid by then, in case Congress does not fix the shortfall in Social Security’s trust fund. If it does, you will get more.)
+   (From then on your benefit adds about $22K a year in today’s dollars, so you take that much less from the accounts. It also counts as income, so there is less room under the 10% bracket and the yearly 401(k)/IRA withdrawal shrinks. The amount already assumes only 73% of the full benefit is paid by then, in case Congress does not fix the shortfall in Social Security’s trust fund. If it does, you will get more.)
 2. Apply for Social Security up to 4 months before Spouse turns 67.
-   (From then on your two benefits add about $44K a year in today’s dollars, so you take that much less from the accounts. It also counts as income, so there is less room under the 10% bracket and the yearly 401(k)/IRA withdrawal shrinks. The amount already assumes only 73% of the full benefit is paid by then, in case Congress does not fix the shortfall in Social Security’s trust fund. If it does, you will get more.)
+   (From then on Spouse’s benefit adds about $22K a year in today’s dollars, so you take that much less from the accounts. It also counts as income, so there is less room under the 10% bracket and the yearly 401(k)/IRA withdrawal shrinks. The amount already assumes only 73% of the full benefit is paid by then, in case Congress does not fix the shortfall in Social Security’s trust fund. If it does, you will get more.)
 > In the typical market of the table below, 2051: spent $98K; $22K from Social Security; $40K from brokerage; $40K from 401(k)/IRA; $3K in taxes.
 
 ## 2059 · You turn 75 · Spouse turns 75 (You 75 · Spouse 75)

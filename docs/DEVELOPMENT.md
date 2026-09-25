@@ -100,7 +100,7 @@ public/
 index.html         page shell and metadata
 .github/workflows/pages.yml  tests, builds and publishes dist/ to GitHub Pages on every push to main (D90)
 data/raw/          downloaded spreadsheets for the data script (not committed, D12)
-.claude/launch.json  preview servers: fire-dev (5391) and fire-built (4391)
+.claude/launch.json  preview servers: fire-dev (5391) and fire-built (4393)
 scripts/
   build-market-data.ts   rebuilds src/data/market.json from Shiller + Damodaran
 tests/             Vitest suites (see below)
