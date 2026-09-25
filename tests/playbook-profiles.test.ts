@@ -115,8 +115,7 @@ function render(plan: Plan, tier: Tier, year: number): string {
   return out;
 }
 
-// Named when there were twelve; kept so the snapshot keys (and the diff to review) stay stable.
-describe('the playbook for twelve household profiles', () => {
+describe('the playbook for fourteen household profiles', () => {
   for (const pr of profiles) {
     test(pr.name, () => {
       const plan = base();

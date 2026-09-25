@@ -19,7 +19,7 @@ function versionDate(): string {
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [react()],
-  // Shown in the footer and on the About block so a bug report can say which version it came from.
+  // Shown on the About tab so a bug report can say which version it came from.
   define: { __APP_VERSION__: JSON.stringify(versionDate()) },
   // Relative asset paths so the built dist/ folder works wherever it is copied or served from.
   base: './',
