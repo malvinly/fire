@@ -208,7 +208,7 @@ dialog::backdrop { background: rgba(0, 0, 0, 0.35); }
   display: inline-flex; align-items: center; justify-content: center; flex: none;
 }
 .help-btn:hover, .help-btn:focus-visible { border-color: var(--accent); color: var(--accent); outline: none; }
-.empty .help-btn { cursor: default; vertical-align: -3px; } /* the same mark, shown in the intro text as an example */
+.empty .help-btn { cursor: default; vertical-align: middle; position: relative; top: -1px; } /* the same mark, shown in the intro text as an example */
 .help-tip {
   position: fixed; z-index: 50; width: 300px; padding: 10px 12px; border-radius: 8px;
   background: var(--surface); color: var(--text); border: 1px solid var(--axis);

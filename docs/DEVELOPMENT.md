@@ -166,8 +166,8 @@ Probes are easiest as a throwaway Vitest file **outside the repo**, run with the
 ```ts
 // <scratch>/probe.test.ts
 import { test } from 'vitest';
-import { examplePlan } from 'C:/code/github/fire/src/engine/defaults';
-import { makeEngine, solveTier, detailFor } from 'C:/code/github/fire/src/engine/solve';
+import { examplePlan } from '<path to this repo>/src/engine/defaults';
+import { makeEngine, solveTier, detailFor } from '<path to this repo>/src/engine/solve';
 
 test('probe', () => {
   const plan = examplePlan(2026);
@@ -184,7 +184,7 @@ test('probe', () => {
 export default { test: { include: ['*.test.ts'], testTimeout: 600000 }, server: { fs: { strict: false } } };
 ```
 
-Run it with `npx --prefix C:/code/github/fire vitest run --root <scratch> --reporter=verbose`. One
+Run it with `npx --prefix <path to this repo> vitest run --root <scratch> --reporter=verbose`. One
 `solveTier` takes about 7 s at 10k markets; `detailFor` takes about 0.7 s.
 
 The "Before you act on these numbers" panel (D67) for the example plan:
