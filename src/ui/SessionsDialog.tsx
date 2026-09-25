@@ -95,7 +95,7 @@ export function SessionsDialog({ open, onClose, meta, makeFile, onSaved, onOpen,
     <dialog ref={ref} onClose={onClose} aria-labelledby="sessions-title">
       <div style={{ display: 'grid', gap: 12 }}>
         <div className="panel-head" style={{ marginBottom: 0 }}>
-          <h2 id="sessions-title">Sessions</h2>
+          <h2 id="sessions-title">Your plans</h2>
           <button className="btn small" onClick={onClose}>Close</button>
         </div>
 
@@ -105,7 +105,7 @@ export function SessionsDialog({ open, onClose, meta, makeFile, onSaved, onOpen,
             <button className="btn small" onClick={choose}>{dir ? 'Change folder…' : 'Choose folder…'}</button>
           </div>
         ) : (
-          <p className="text-2">This browser can't write to a folder (use Chrome or Edge for that). Sessions download as files instead, and you open them from disk.</p>
+          <p className="text-2">This browser can't write to a folder (use Chrome or Edge for that). Plans download as files instead, and you open them from disk.</p>
         )}
 
         <div className="row">
@@ -115,7 +115,7 @@ export function SessionsDialog({ open, onClose, meta, makeFile, onSaved, onOpen,
             </button>
           )}
           <div className="field" style={{ flex: 2 }}>
-            <label htmlFor="new-session-name">{meta ? 'Save as a new session' : 'Save this session as'}</label>
+            <label htmlFor="new-session-name">{meta ? 'Save as a new plan' : 'Save this plan as'}</label>
             <input id="new-session-name" value={newName} placeholder={`e.g. ${new Date().getFullYear()} checkup`} onChange={(e) => setNewName(e.target.value)} />
           </div>
           <button className="btn" disabled={!newName.trim() || (folderSupported && !dir)} onClick={() => save(newName.trim(), null)}>Save as new</button>
@@ -125,7 +125,7 @@ export function SessionsDialog({ open, onClose, meta, makeFile, onSaved, onOpen,
 
         {folderSupported ? (
           <div className="session-list">
-            {list.length === 0 && <p className="muted">{dir ? 'No sessions in this folder yet.' : 'Choose a folder to see saved sessions.'}</p>}
+            {list.length === 0 && <p className="muted">{dir ? 'No plans in this folder yet.' : 'Choose a folder to see saved plans.'}</p>}
             {list.map(({ fileName, session, problem }) => {
               if (!session) {
                 return (
@@ -152,13 +152,16 @@ export function SessionsDialog({ open, onClose, meta, makeFile, onSaved, onOpen,
           </div>
         ) : (
           <div className="field">
-            <label htmlFor="open-file">Open a session file</label>
+            <label htmlFor="open-file">Open a plan file</label>
             <input id="open-file" type="file" accept="application/json,.json" onChange={(e) => e.target.files?.[0] && openFile(e.target.files[0])} />
           </div>
         )}
 
-        <div>
-          <button className="btn small" onClick={() => { onNew(); onClose(); }}>Start a new session (example numbers)</button>
+        <div style={{ display: 'grid', gap: 6 }}>
+          <button className="btn small" style={{ justifySelf: 'start' }} onClick={() => { onNew(); onClose(); }}>Start over with the example numbers</button>
+          <p className="text-2" style={{ fontSize: 12 }}>
+            The plan on screen is kept in this browser between visits, not in a saved file. On a shared computer, start over when you're done so your numbers don't stay behind.
+          </p>
         </div>
       </div>
     </dialog>

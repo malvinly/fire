@@ -1,9 +1,14 @@
 import react from '@vitejs/plugin-react'
+import { readFileSync } from 'node:fs'
 import { defineConfig } from 'vite'
+
+const { version } = JSON.parse(readFileSync('package.json', 'utf8')) as { version: string }
 
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [react()],
+  // Shown in the footer and on the About block so a saved plan or a bug report can say which version it came from.
+  define: { __APP_VERSION__: JSON.stringify(version) },
   // Relative asset paths so the built dist/ folder works wherever it is copied or served from.
   base: './',
   // Uncommon fixed ports: the browser keeps the unsaved draft and the sessions-folder permission per

@@ -1,6 +1,6 @@
 // Parsing what is typed into number fields (D72).
 import { describe, expect, test } from 'vitest';
-import { fieldBlock, parseFieldText, parseYearText, yearTextFor } from '../src/ui/format';
+import { fieldBlock, moneyText, nameIs, parseFieldText, parseYearText, whose, yearTextFor } from '../src/ui/format';
 
 describe('number fields', () => {
   test('whole-number fields round what is typed', () => {
@@ -14,6 +14,24 @@ describe('number fields', () => {
     expect(parseFieldText('1234.56', 'money')).toBe(1234.56);
     expect(parseFieldText('  ', 'money')).toBeNull();
     expect(parseFieldText('abc', 'money')).toBeUndefined();
+  });
+
+  test('money boxes accept thousands separators and a dollar sign, and show separators when not edited (D90)', () => {
+    expect(parseFieldText('300,000', 'money')).toBe(300_000);
+    expect(parseFieldText('$1,234.5', 'money')).toBe(1234.5);
+    expect(moneyText(300_000)).toBe('300,000');
+    expect(moneyText(1234.5)).toBe('1,234.5');
+    expect(moneyText(null)).toBe('');
+  });
+});
+
+describe('the default name "You" reads as a pronoun (D90)', () => {
+  test('possessive and "is"', () => {
+    expect(whose('You')).toBe('your');
+    expect(whose('you')).toBe('your');
+    expect(whose('Alex')).toBe('Alex’s');
+    expect(nameIs('You')).toBe('you are');
+    expect(nameIs('Alex')).toBe('Alex is');
   });
 });
 

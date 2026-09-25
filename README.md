@@ -1,8 +1,10 @@
 # FIRE Planner
 
-A personal, local-only FIRE (Financial Independence, Retire Early) calculator for a two-person household.
-It answers three questions, each at a confidence level you choose (default **90%**, Fidelity's
-"significantly below average market" standard):
+**Use it: https://malvinly.github.io/fire/** (nothing to install; everything runs in your browser).
+
+A FIRE (Financial Independence, Retire Early) calculator for a two-person household. It answers three
+questions, each at a confidence level you choose (default **90%**, Fidelity's "significantly below average
+market" standard):
 
 | FIRE type | Question it answers |
 |---|---|
@@ -17,7 +19,13 @@ It simulates each year: contributions while working; then spending, healthcare b
 Medicare, Social Security (computed from your earnings record, cut when the trust fund runs short),
 Roth conversions, 59½ access rules, required withdrawals, and federal + state taxes.
 
-Everything runs in your browser; your numbers never leave your computer.
+Everything runs in your browser; your numbers never leave your computer. There are no accounts, cookies or
+analytics.
+
+**A personal tool, published as is.** It was built around one household's situation: a US married couple
+filing jointly, with 401(k)/IRA, Roth and HSA accounts and Social Security, who want a retirement with room
+to enjoy it. It is not meant as a general calculator for everyone; if your situation is different, its
+assumptions may not fit. It is not financial advice.
 
 ## Why no Lean FIRE, Fat FIRE or Barista FIRE
 
@@ -33,17 +41,44 @@ All three are left out on purpose; they don't match the kind of plan this tool i
   means not needing a paycheck: every plan must stand on savings and Social Security alone. Part-time
   work done later by choice is a bonus, not something the plan depends on.
 
-## Start it
+## Using it
 
-Requires [Node.js](https://nodejs.org/) 22.18 or newer.
+- **Enter your numbers** on the left. The left side starts with example numbers: a box still holding the
+  example's number has a blue edge, and a section with any left has a blue dot. Empty a box to put the
+  example's number back. Hover the **?**
+  next to any label to see what it means and where to find it. Press **Calculate** (about 5–10 seconds).
+- **Plans** — `Plans…` → choose a folder once, ideally somewhere like `Documents\fire-plans`; plan files
+  contain your financial details. *Save* updates the current plan; *Save as new* makes a copy. Next year:
+  open last year's plan, *Save as new* ("2027 checkup"), click the banner's **Start plan in 2027**, update
+  balances, salaries and contributions, **Calculate**. Each file holds your inputs, every assumption used,
+  the data versions, and a results summary. Old results are never silently recomputed: a banner tells you if
+  the app's data or calculator is newer than a plan's results. Until you press **Recalculate**, only the
+  saved details are shown, and saving again keeps the plan marked as out of date. Saving into a folder needs
+  **Chrome or Edge**; other browsers download and open plan files instead.
+- **Your numbers stay in your browser.** The plan on screen is kept in the browser's own storage between
+  visits, not on any server. On a shared computer, open `Plans…` and choose *Start over* when you're done.
+- **Before you act on these numbers** — directly below the cards, one line for each caution that applies:
+  the balance each date assumes you'll have, borderline dates, how often a plan pays the early-withdrawal
+  penalty, and what Coast assumes.
+- **Try a different retirement year** — below that, pick a FIRE type and a year (type it or use − / +) to
+  see your chance of success, your savings over time in typical and bad markets, what's in each account in
+  a bad market, the worst years to have started, and a year-by-year table of where each year's money comes
+  from, the taxes paid and what is reinvested.
+- **How this works** — generated from the plan on screen: every assumption, whether it's a default or
+  yours, why, and the source.
+
+## Run it yourself
+
+The site above is the built app, published from this repository by GitHub Pages (`.github/workflows/pages.yml`
+builds `dist/` on every push to `main`). To run it from the source code instead, you need
+[Node.js](https://nodejs.org/) 22.18 or newer.
 
 ```bash
 npm install
 npm run dev
 ```
 
-Open http://localhost:5391 in **Chrome or Edge** (needed to save sessions into a folder; other browsers
-download and upload session files instead).
+Open http://localhost:5391.
 
 ## Build a permanent copy
 
@@ -65,34 +100,10 @@ Notes:
 - Opening `dist/index.html` directly does **not** work: browsers only run the app's background
   calculator from a web address, which is what the launcher provides.
 - `dist/` is not in git. Rebuild (and re-copy) after pulling changes or after the yearly data update.
-- The built copy (port 4391) and the development server (port 5391) count as different websites to the
-  browser: each asks you to choose your sessions folder once and keeps its own unsaved draft. Your session
-  files themselves are shared.
+- The built copy (port 4391), the development server (port 5391) and the public site count as different
+  websites to the browser: each asks you to choose your plans folder once and keeps its own unsaved draft.
+  Your plan files themselves are shared.
 - From a terminal, `npm run preview` serves the same `dist/` folder at the same address.
-
-## Using it
-
-- **Enter your numbers** on the left. The left side starts with example numbers: a box still holding the
-  example's number has a blue edge, and a section with any left has a blue dot. Empty a box to put the
-  example's number back. Hover the **?**
-  next to any label to see what it means and where to find it. Press **Calculate** (about 5–10 seconds).
-- **Sessions** — `Sessions…` → choose a folder once, ideally **outside this project folder** (e.g.
-  `Documents\fire-sessions`); session files contain your financial details. *Save* updates the current
-  session; *Save as new* makes a copy. Next year: open last year's session, *Save as new*
-  ("2027 checkup"), click the banner's **Start plan in 2027**, update balances, salaries and
-  contributions, **Calculate**. Each file holds your inputs, every assumption used, the data versions,
-  and a results summary. Old results are never silently recomputed: a banner tells you if the app's data
-  or calculator is newer than a session's results. Until you press **Recalculate**, only the saved details
-  are shown, and saving again keeps the session marked as out of date.
-- **Before you act on these numbers** — directly below the cards, one line for each caution that applies:
-  the balance each date assumes you'll have, borderline dates, how often a plan pays the early-withdrawal
-  penalty, and what Coast assumes.
-- **Try a different retirement year** — below that, pick a FIRE type and a year (type it or use − / +) to
-  see your chance of success, your savings over time in typical and bad markets, what's in each account in
-  a bad market, the worst years to have started, and a year-by-year table of where each year's money comes
-  from, the taxes paid and what is reinvested.
-- **How this works** — generated from the plan on screen: every assumption, whether it's a default or
-  yours, why, and the source.
 
 ## Keeping the numbers current
 
@@ -109,7 +120,7 @@ Market history, tax brackets and Social Security rules change every year. See
 
 Both spouses assumed alive through the plan (no survivor modeling) and retiring in the same year; no ACA
 subsidies or IRMAA; US market data only; flat state tax; no 72(t)/Rule of 55; no flexible-spending
-(guardrail) rules; no session comparison view. The app's **How this works** page lists these under "What this doesn't model". See
+(guardrail) rules; no plan comparison view. The app's **How this works** page lists these under "What this doesn't model". See
 [docs/pending-features.md](docs/pending-features.md) for planned work.
 
 This is a personal planning tool, not financial advice.

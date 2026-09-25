@@ -67,7 +67,7 @@ a { color: var(--accent); }
 button, input, select, textarea { font: inherit; color: inherit; }
 
 /* ---- App shell: uses all available width (D37) ---- */
-.app { display: grid; grid-template-rows: auto 1fr; height: 100vh; }
+.app { display: grid; grid-template-rows: auto 1fr auto; height: 100vh; }
 .topbar {
   display: flex; align-items: center; gap: 16px; flex-wrap: wrap;
   padding: 10px 20px; border-bottom: 1px solid var(--border); background: var(--surface);
@@ -90,6 +90,11 @@ button, input, select, textarea { font: inherit; color: inherit; }
   .inputs { border-right: 0; border-bottom: 1px solid var(--border); overflow: visible; }
   .results { overflow: visible; }
 }
+
+/* ---- Footer: privacy line, data vintage, version (D90) ---- */
+.foot { display: flex; gap: 8px 16px; flex-wrap: wrap; align-items: center; padding: 6px 20px; border-top: 1px solid var(--border); background: var(--surface); font-size: 12px; color: var(--text-2); }
+.foot .spacer { flex: 1; }
+.foot .link { font-size: inherit; }
 
 /* ---- Buttons ---- */
 .btn {

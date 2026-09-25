@@ -6,7 +6,7 @@ import type { Plan } from '../engine/types';
 import { accountLegend, AccountsChart, BAND_LABELS, BandsChart, useTheme, type Marker } from './charts';
 import { Help } from './fields';
 import { Icon, TIER_ICONS } from './icons';
-import { money, moneyShort, percent } from './format';
+import { money, moneyShort, nameIs, percent } from './format';
 import { METHODS_HELP, SUCCESS_HELP } from './helpText';
 import type { WarningLine } from './warnings';
 
@@ -15,7 +15,7 @@ export const TIER_NAMES: Record<Tier, string> = { traditional: 'Traditional FIRE
 function tierHelp(tier: Tier, plan: Plan): string {
   if (tier === 'traditional') return 'When you could stop working for good and live on savings plus Social Security, spending your Traditional budget each year.';
   if (tier === 'chubby') return 'When you could stop working for good and live on savings plus Social Security, spending your bigger Chubby budget each year.';
-  return `Stop adding to savings (employer matches stop too) but keep working until ${plan.you.name} is ${plan.household.coastRetireAge}, with paychecks covering the bills. ` +
+  return `Stop adding to savings (employer matches stop too) but keep working until ${nameIs(plan.you.name)} ${plan.household.coastRetireAge}, with paychecks covering the bills. ` +
     'After that, savings pay the same Traditional budget. It comes sooner than Traditional because the money grows untouched longer and has fewer years to last.';
 }
 
@@ -106,9 +106,10 @@ export function TierCard({ r, plan, selected, onSelect }: { r: TierResult | null
         {!r.earliest && (
           <p className="muted">
             {isCoast
-              ? `Even saving until ${plan.you.name} is ${plan.household.coastRetireAge}, your money lasts in fewer than ${percent(target)} of markets.`
+              ? `Even saving until ${nameIs(plan.you.name)} ${plan.household.coastRetireAge}, your money lasts in fewer than ${percent(target)} of markets.`
               // Sessions saved before searchLimit existed were searched to the first person's 75 (the old D43).
               : notReachable(plan, r.searchLimit ?? plan.you.birthYear + 75, percent(target))}
+            {' '}{isCoast ? 'Try a later stop-working age under Spending, or lower Traditional spending.' : 'Try lower spending, higher contributions, or a later plan-until age under Assumptions.'}
           </p>
         )}
       </div>

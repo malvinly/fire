@@ -1,12 +1,13 @@
 import { Fragment, useEffect } from 'react';
-import { DATA_VERSIONS, describeAssumptions } from '../engine/assumptions';
+import { ABOUT_GROUP, DATA_VERSIONS, describeAssumptions } from '../engine/assumptions';
+import { APP_VERSION, REPO_URL } from '../version';
 import { MARKET } from '../engine/returns';
 import type { Plan } from '../engine/types';
 
 
 const groupId = (g: string) => `group-${g.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`;
 
-/** `focusGroup`: a group to scroll to on opening (the warnings panel links to the limitations). */
+/** `focusGroup`: a group to scroll to on opening (the warnings panel links to the limitations, the footer to About). */
 export function HowItWorks({ plan, focusGroup }: { plan: Plan; focusGroup?: string | null }) {
   const rows = describeAssumptions(plan);
   const groups = [...new Set(rows.map((r) => r.group))];
@@ -15,6 +16,27 @@ export function HowItWorks({ plan, focusGroup }: { plan: Plan; focusGroup?: stri
   }, [focusGroup]);
   return (
     <div className="page">
+      <div id={groupId(ABOUT_GROUP)} className="about" style={{ display: 'grid', gap: 10, marginBottom: 24 }}>
+        <h2>About this planner</h2>
+        <p>
+          FIRE Planner runs entirely in your browser. Nothing you enter is sent anywhere: there are no accounts, no cookies and
+          no analytics, and the only thing downloaded is the page itself. The plan on screen is kept in this browser's storage
+          between visits; on a shared computer, open <b>Plans…</b> and choose <b>Start over</b> when you're done.
+        </p>
+        <p>
+          It is a personal tool. It was built around one household's situation and is published as is, not as a general
+          calculator for everyone. It fits a US married couple filing jointly, with 401(k)/IRA, Roth and HSA accounts and
+          Social Security, who want a retirement with room to enjoy it rather than the leanest possible one. That is also why
+          there is no Lean, Fat or Barista FIRE: a bare-bones budget, a luxury budget funded by years of aggressive saving, and
+          a plan that depends on part-time work in retirement are different plans from the one this tool tests. If your
+          situation is different, the assumptions below may not fit it.
+        </p>
+        <p>
+          The results are estimates, not financial advice. The source code, every decision behind the numbers and the version
+          history are at <a href={REPO_URL} target="_blank" rel="noreferrer">{REPO_URL.replace('https://', '')}</a> (this is
+          version {APP_VERSION}).
+        </p>
+      </div>
       <div style={{ display: 'grid', gap: 12, marginBottom: 20 }}>
         <h2>How this works</h2>
         <p>
@@ -28,7 +50,8 @@ export function HowItWorks({ plan, focusGroup }: { plan: Plan; focusGroup?: stri
         <p className="text-2">
           Everything below is generated from the settings of the plan on screen, so it always matches the numbers you see.
           Data: market history through {DATA_VERSIONS.marketThrough}, {DATA_VERSIONS.rulesYear} tax and Social Security rules,{' '}
-          {DATA_VERSIONS.trusteesReport} Trustees Report. Decision numbers (D1…) refer to <code>docs/DECISIONS.md</code> in the project.
+          {DATA_VERSIONS.trusteesReport} Trustees Report. Decision numbers (D1…) refer to the project's{' '}
+          <a href={`${REPO_URL}/blob/main/docs/DECISIONS.md`} target="_blank" rel="noreferrer">decisions log</a>.
         </p>
       </div>
       <table className="assumptions">

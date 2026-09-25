@@ -2,6 +2,7 @@ import { itemYearsInPlan, planYears } from '../engine/context';
 import type { DatedItem, DatedTiming, Plan } from '../engine/types';
 import { FIELD_LIMITS } from '../engine/validate';
 import { Help, NumberField, SelectField, TextField } from './fields';
+import { whose } from './format';
 import { HELP } from './helpText';
 import { Icon } from './icons';
 
@@ -107,8 +108,8 @@ function TimingField({ label, help, plan, value, onChange, optional }: {
   const options: { value: Kind; label: string }[] = [
     ...(optional ? [{ value: 'none' as Kind, label: 'Plan end' }] : []),
     { value: 'year', label: 'Calendar year' },
-    { value: 'you', label: `${plan.you.name}'s age` },
-    { value: 'spouse', label: `${plan.spouse.name}'s age` },
+    { value: 'you', label: `${whose(plan.you.name)} age` },
+    { value: 'spouse', label: `${whose(plan.spouse.name)} age` },
   ];
   const setKind = (k: Kind) => {
     if (k === 'none') onChange(undefined);

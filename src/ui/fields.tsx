@@ -1,5 +1,5 @@
 import { useId, useRef, useState, type ReactNode } from 'react';
-import { fieldBlock, parseFieldText, parseYearText, yearTextFor } from './format';
+import { fieldBlock, moneyText, parseFieldText, parseYearText, yearTextFor } from './format';
 import { Icon, type IconName } from './icons';
 
 /**
@@ -114,21 +114,37 @@ export function NumberField({ label, value, onChange, kind = 'money', min, max, 
   return (
     <div className={`field${message ? ' invalid' : ''}${isExample ? ' example' : ''}`}>
       <Label htmlFor={id} text={`${label}${unit}`} help={help} />
-      <input
-        id={id}
-        type="number"
-        inputMode="decimal"
-        data-1p-ignore
-        title={isExample ? 'Still the example number' : undefined}
-        value={text}
-        min={min === undefined ? undefined : min * scale}
-        max={max === undefined ? undefined : max * scale}
-        step={step ?? (kind === 'money' ? 100 : kind === 'percent' ? 0.1 : 1)}
-        onChange={(e) => commit(e.target.value)}
-        onFocus={() => setFocused(true)}
-        onBlur={leave}
-        aria-invalid={blocked ? true : undefined}
-      />
+      {kind === 'money' ? (
+        // A text box so the amount can show thousands separators while it isn't being edited (D90).
+        <input
+          id={id}
+          type="text"
+          inputMode="decimal"
+          data-1p-ignore
+          title={isExample ? 'Still the example number' : undefined}
+          value={focused ? text : moneyText(value)}
+          onChange={(e) => commit(e.target.value)}
+          onFocus={() => setFocused(true)}
+          onBlur={leave}
+          aria-invalid={blocked ? true : undefined}
+        />
+      ) : (
+        <input
+          id={id}
+          type="number"
+          inputMode="decimal"
+          data-1p-ignore
+          title={isExample ? 'Still the example number' : undefined}
+          value={text}
+          min={min === undefined ? undefined : min * scale}
+          max={max === undefined ? undefined : max * scale}
+          step={step ?? (kind === 'percent' ? 0.1 : 1)}
+          onChange={(e) => commit(e.target.value)}
+          onFocus={() => setFocused(true)}
+          onBlur={leave}
+          aria-invalid={blocked ? true : undefined}
+        />
+      )}
       {message && <span className="warn" role={blocked ? 'alert' : undefined}>{message}</span>}
       {hint && <span className="hint">{hint}</span>}
     </div>

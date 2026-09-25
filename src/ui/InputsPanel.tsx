@@ -8,7 +8,7 @@ import { planEndYear } from '../engine/context';
 import { FIELD_LIMITS, birthYearProblem, coastAgeProblem } from '../engine/validate';
 import { DatedItemsEditor } from './DatedItemsEditor';
 import { Help, NumberField, Section, SelectField, TextField } from './fields';
-import { money, percent } from './format';
+import { money, percent, whose } from './format';
 import { HELP } from './helpText';
 
 type Update = (fn: (draft: Plan) => void) => void;
@@ -143,7 +143,7 @@ export function InputsPanel({ plan, update }: { plan: Plan; update: Update }) {
               {' '}Clear it to skip Chubby FIRE.
             </>
           } />
-        <NumberField label={`Coast FIRE: ${plan.you.name}'s age when you both stop working`} help={HELP.coastAge} kind="int" value={h.coastRetireAge} {...L.age} check={(v) => coastAgeProblem(plan, v)}
+        <NumberField label={`Coast FIRE: ${whose(plan.you.name)} age when you both stop working`} help={HELP.coastAge} kind="int" value={h.coastRetireAge} {...L.age} check={(v) => coastAgeProblem(plan, v)}
           onChange={(v) => update((d) => { d.household.coastRetireAge = v ?? 65; })}
           hint="Coast = stop contributing, keep working (paycheck covers spending) until this age." />
       </Section>

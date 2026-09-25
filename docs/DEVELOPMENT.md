@@ -203,6 +203,10 @@ rebuild your permanent copy (see the README).
 
 ## Privacy
 
+The public site is a static build on GitHub Pages: there is no server side, no analytics and no network
+request after the page loads. The browser draft (`localStorage`) lives on the site's origin; the launcher
+scripts in `public/` are for the local copy and are removed from the Pages build by the workflow.
+
 Session files hold your financial details. `.gitignore` blocks them (files named `YYYY-MM-DD *.json`,
 `sessions/`, `fire-sessions/`), SSA statements (`*.xml`, `*.pdf`), spreadsheets/CSVs, `.env` files,
 local Claude settings, and anything in `private/` or named `*.private.*`. Keep your sessions folder outside

@@ -5,7 +5,8 @@ import { checkLoadedPlan, planProblems } from './engine/validate';
 import type { Detail, Tier, TierResult } from './engine/solve';
 import { MARKET } from './engine/returns';
 import type { Plan } from './engine/types';
-import { LIMITS_GROUP } from './engine/assumptions';
+import { ABOUT_GROUP, DATA_VERSIONS, LIMITS_GROUP } from './engine/assumptions';
+import { APP_VERSION, REPO_URL } from './version';
 import { YearInput } from './ui/fields';
 import { HowItWorks } from './ui/HowItWorks';
 import { Icon, TIER_ICONS } from './ui/icons';
@@ -221,9 +222,9 @@ export default function App() {
         </nav>
         <span className="spacer" />
         <span className="text-2">
-          {meta ? meta.name : 'Unsaved session'}{dirty ? ' •' : ''}
+          {meta ? meta.name : 'Unsaved plan'}{dirty ? ' •' : ''}
         </span>
-        <button className="btn" onClick={() => setSessionsOpen(true)}>Sessions…</button>
+        <button className="btn" onClick={() => setSessionsOpen(true)}>Plans…</button>
         <button className="btn primary" onClick={calculate} disabled={results !== null && !results.done}>
           {results && !results.done ? 'Calculating…' : 'Calculate'}
         </button>
@@ -279,6 +280,11 @@ export default function App() {
                   The left side is filled with example numbers — replace them with yours. Hover the “?” next to any
                   label to see what goes there. Calculating takes about 10 seconds: each FIRE type is tested against{' '}
                   {plan.assumptions.paths.toLocaleString()} simulated markets and every real stretch of market history since {MARKET.firstYear}.
+                </p>
+                <p style={{ marginTop: 12 }}>
+                  Everything runs in your browser; nothing you enter is sent anywhere. This planner was built around one household's
+                  situation and is published as is, not as a tool for everyone:{' '}
+                  <button className="link" onClick={() => { setHowFocus(ABOUT_GROUP); setTab('how'); }}>see About</button>.
                 </p>
               </div>
             ) : (
@@ -344,6 +350,16 @@ export default function App() {
           </section>
         </main>
       )}
+
+      <footer className="foot">
+        <span>Runs entirely in your browser: nothing you enter is sent anywhere. Estimates, not financial advice.</span>
+        <span className="spacer" />
+        <span>
+          Market history through {DATA_VERSIONS.marketThrough} · {DATA_VERSIONS.rulesYear} tax and Social Security rules · v{APP_VERSION} ·{' '}
+          <button className="link" onClick={() => { setHowFocus(ABOUT_GROUP); setTab('how'); }}>About</button> ·{' '}
+          <a href={REPO_URL} target="_blank" rel="noreferrer">Source</a>
+        </span>
+      </footer>
 
       <SessionsDialog
         open={sessionsOpen}

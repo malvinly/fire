@@ -24,10 +24,25 @@ export function percent(x: number | null | undefined, digits = 0): string {
  */
 export function parseFieldText(text: string, kind: 'money' | 'percent' | 'int' | 'number'): number | null | undefined {
   if (text.trim() === '') return null;
-  const n = Number(text);
+  const n = Number(text.replace(/[$,\s]/g, ''));
   if (!Number.isFinite(n)) return undefined;
   if (kind === 'int') return Math.round(n);
   return kind === 'percent' ? n / 100 : n;
+}
+
+/** A money box's text while it isn't being edited: thousands separators, no symbol ("300,000"). */
+export function moneyText(v: number | null): string {
+  return v === null || !Number.isFinite(v) ? '' : v.toLocaleString('en-US', { maximumFractionDigits: 2 });
+}
+
+/** "your" for the default name "You", otherwise the possessive ("Alex’s"). */
+export function whose(name: string): string {
+  return /^you$/i.test(name.trim()) ? 'your' : `${name}’s`;
+}
+
+/** "you are" for the default name "You", otherwise "Alex is". */
+export function nameIs(name: string): string {
+  return /^you$/i.test(name.trim()) ? 'you are' : `${name} is`;
 }
 
 /**
