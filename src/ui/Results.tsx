@@ -13,9 +13,10 @@ import type { WarningLine } from './warnings';
 export const TIER_NAMES: Record<Tier, string> = { traditional: 'Traditional FIRE', chubby: 'Chubby FIRE', coast: 'Coast FIRE' };
 
 function tierHelp(tier: Tier, plan: Plan): string {
-  if (tier === 'traditional') return 'Retire on your normal retirement budget (the Traditional spending you entered).';
-  if (tier === 'chubby') return 'Retire on a bigger, more comfortable budget (the Chubby spending you entered).';
-  return `Stop saving now (employer matches stop too), keep working until ${plan.you.name} is ${plan.household.coastRetireAge} with your paychecks covering the bills, then retire on the Traditional budget.`;
+  if (tier === 'traditional') return 'When you could stop working for good and live on savings plus Social Security, spending your Traditional budget each year.';
+  if (tier === 'chubby') return 'When you could stop working for good and live on savings plus Social Security, spending your bigger Chubby budget each year.';
+  return `When you could stop adding to savings (employer matches stop too) but keep working, with paychecks covering the bills until ${plan.you.name} is ${plan.household.coastRetireAge}. ` +
+    'After that, savings pay for the same Traditional budget. It comes sooner than Traditional because the money grows untouched longer and has fewer years to last.';
 }
 
 /** How the Coast number counts money you don't have yet (D50). */
@@ -79,6 +80,8 @@ export function TierCard({ r, plan, selected, onSelect }: { r: TierResult | null
   const coasting = isCoast && r.fireNumber !== null && r.currentBalance >= r.fireNumber;
   const progress = r.fireNumber ? Math.min(1, r.currentBalance / r.fireNumber) : 0;
   const extras = plan.datedItems.length ? ' + healthcare + dated items' : ' + healthcare';
+  const coastYear = plan.you.birthYear + plan.household.coastRetireAge;
+  const endAge = plan.assumptions.endAge;
   return (
     <div className={`card${selected ? ' selected' : ''}`} role="button" tabIndex={0} onClick={onSelect}
       onKeyDown={(e) => e.target === e.currentTarget && (e.key === 'Enter' || e.key === ' ') && onSelect()} aria-pressed={selected}>
@@ -88,12 +91,21 @@ export function TierCard({ r, plan, selected, onSelect }: { r: TierResult | null
       </div>
       <div>
         <div className="kicker">
-          {isCoast ? 'Earliest year you can stop saving' : `Earliest year you can retire (${percent(target)} chance or better)`}
+          <Help text={isCoast
+            ? `The first year you could stop saving and, working until ${coastYear}, still have a ${percent(target)} chance your money lasts, simulated from today.`
+            : `The first year where your plan, simulated from today with your current saving, lasts in at least ${percent(target)} of markets.`}>
+            {isCoast ? 'Earliest year you can stop saving' : `Earliest year you can retire (${percent(target)} chance or better)`}
+          </Help>
         </div>
         <div className="hero">
           {coasting ? 'You can stop saving now' : r.earliest ? r.earliest.year : 'Not reachable'}{' '}
           {r.earliest && !coasting && <small>{plan.you.name} {r.earliest.ageYou} · {plan.spouse.name} {r.earliest.ageSpouse}</small>}
         </div>
+        {isCoast && (
+          <p className="muted">
+            Then keep working until {coastYear} ({plan.you.name} {coastYear - plan.you.birthYear} · {plan.spouse.name} {coastYear - plan.spouse.birthYear})
+          </p>
+        )}
         {!r.earliest && (
           <p className="muted">
             {isCoast
@@ -106,8 +118,10 @@ export function TierCard({ r, plan, selected, onSelect }: { r: TierResult | null
       <div className="stat-row">
         <div className="stat">
           <Label help={isCoast
-            ? `The smallest total savings today that would let you stop saving now and still reach your target.${mixText(r.coastMix)}`
-            : 'The total savings (all accounts, today’s dollars) you need on the day you retire for your money to last at your target chance.'}>
+            ? `The smallest total savings today that would let you stop saving now and still have a ${percent(target)} chance your money lasts.${mixText(r.coastMix)}`
+            : r.earliest
+              ? `The total across all accounts you’d need in ${r.earliest.year} to retire then with a ${percent(target)} chance your money lasts, in today’s dollars. Compare it with “Expected by ${r.earliest.year}” below to see how much room a typical or bad market leaves.`
+              : `The total across all accounts you’d need on the day you retire for a ${percent(target)} chance your money lasts, in today’s dollars.`}>
             {isCoast ? 'Needed today to stop saving' : 'Savings needed when you retire'}
           </Label>
           <div className="value">{moneyShort(r.fireNumber)}</div>
@@ -131,12 +145,14 @@ export function TierCard({ r, plan, selected, onSelect }: { r: TierResult | null
         </div>
       )}
       <div className="stat">
-        <Label help={SUCCESS_HELP}>{isCoast ? 'Chance your money lasts if you stop saving this year' : 'Chance your money lasts if you retire this year'}</Label>
+        <Label help={`If you ${isCoast ? 'stop saving' : 'quit'} this year instead of waiting. Shows how far you are from ready today. It’s the share of markets where your money lasts until the younger of you is ${endAge}.`}>
+          {isCoast ? 'Chance your money lasts if you stop saving this year' : 'Chance your money lasts if you retire this year'}
+        </Label>
         <SuccessBadge s={r.successToday} target={target} />
       </div>
       {r.successAtEarliest && r.earliest && (
         <div className="stat">
-          <Label help={SUCCESS_HELP}>…if you {isCoast ? 'stop saving' : 'retire'} in {r.earliest.year}</Label>
+          <Label help={`The same test at your earliest year. It’s at or above your ${percent(target)} target by definition. The line below shows which market test set the date.`}>…if you {isCoast ? 'stop saving' : 'retire'} in {r.earliest.year}</Label>
           <SuccessBadge s={r.successAtEarliest} target={target} />
           <div><MethodLine s={r.successAtEarliest} /></div>
         </div>
