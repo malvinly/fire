@@ -19,12 +19,12 @@ export interface Success {
 export interface TierResult {
   tier: Tier;
   spending: number;
-  /** Traditional/Chubby: earliest household retirement year. Coast: earliest year you can stop contributing. */
+  /** Traditional/Chubby: earliest household retirement year. Coast: earliest year regular saving can stop (D94: only the kept amounts continue). */
   earliest: { year: number; ageYou: number; ageSpouse: number } | null;
   /** Traditional/Chubby: portfolio needed at `earliest` (today's $). Coast: portfolio needed today. */
   fireNumber: number | null;
   currentBalance: number;
-  /** Success if you retire (or, for Coast, stop contributing) this year. */
+  /** Success if you retire (or, for Coast, stop regular saving) this year. */
   successToday: Success;
   successAtEarliest: Success | null;
   /**
@@ -106,7 +106,10 @@ export function coastRetireYear(plan: Plan): number {
   return plan.you.birthYear + plan.household.coastRetireAge;
 }
 
-/** Scenario for a tier at a given year (retirement year, or for Coast the stop-contributing year). */
+/**
+ * Scenario for a tier at a given year (retirement year, or for Coast the year regular saving stops). Only Coast
+ * puts the stop year before the retirement year, so only Coast ever makes the kept contributions (D94).
+ */
 export function scenarioFor(plan: Plan, tier: Tier, year: number): Scenario {
   const baseSpending = tierSpending(plan, tier);
   if (tier === 'coast') {
@@ -348,7 +351,7 @@ function percentile(sorted: Float64Array, q: number): number {
   return sorted[lo] + (sorted[hi] - sorted[lo]) * (pos - lo);
 }
 
-/** Full detail for one tier at one year (retirement year, or Coast stop-contributing year). */
+/** Full detail for one tier at one year (retirement year, or the Coast year regular saving stops). */
 export function detailFor(e: Engine, tier: Tier, year: number): Detail {
   const scenario = scenarioFor(e.plan, tier, year);
   const ctx = buildContext(e.plan, scenario);

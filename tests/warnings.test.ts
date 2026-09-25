@@ -35,6 +35,20 @@ describe('Coast assumptions (D69)', () => {
     expect(lines).toContain('Coast assumes you both keep working until 2049 (You 65) with pay covering all spending, and that stopping saving includes giving up employer matches.');
   });
 
+  test('with contributions kept while coasting the line names the yearly amount instead (D94)', () => {
+    const plan = examplePlan(2026);
+    plan.you.coastContributions = { pretax: 6_000, employerMatch: 3_000, roth: 0, hsa: 0 };
+    plan.spouse.coastContributions = { pretax: 0, employerMatch: 0, roth: 2_000, hsa: 0 };
+    expect(texts(beforeYouAct(plan, { coast: tier('coast', 2026, 774_400) }))).toContain(
+      'Coast assumes you both keep working until 2049 (You 65) with pay covering all spending, and that you keep saving $11,000 a year while coasting (employer match included).');
+    plan.you.coastContributions.employerMatch = 0; // today's $5,000 matches are given up
+    expect(texts(beforeYouAct(plan, { coast: tier('coast', 2026, 774_400) }))).toContain(
+      'Coast assumes you both keep working until 2049 (You 65) with pay covering all spending, and that you keep saving $8,000 a year while coasting, giving up employer matches.');
+    plan.you.contributions.employerMatch = plan.spouse.contributions.employerMatch = 0;
+    expect(texts(beforeYouAct(plan, { coast: tier('coast', 2026, 774_400) }))).toContain(
+      'Coast assumes you both keep working until 2049 (You 65) with pay covering all spending, and that you keep saving $8,000 a year while coasting.');
+  });
+
   test('without employer matches the line leaves them out; without a Coast result there is no line', () => {
     const plan = examplePlan(2026);
     plan.you.contributions.employerMatch = plan.spouse.contributions.employerMatch = 0;

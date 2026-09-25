@@ -1,3 +1,6 @@
+import { coastContributionTotal } from '../engine/defaults';
+import type { Plan } from '../engine/types';
+
 export function money(x: number | null | undefined): string {
   if (x === null || x === undefined || !Number.isFinite(x)) return '—';
   return `$${Math.round(x).toLocaleString('en-US')}`;
@@ -70,4 +73,14 @@ export function fieldBlock(v: number, kind: 'money' | 'percent' | 'int' | 'numbe
   if (opts.min !== undefined && v < opts.min) return opts.rangeMessage ?? `Must be at least ${shown(opts.min)}.`;
   if (opts.max !== undefined && v > opts.max) return opts.rangeMessage ?? `Must be at most ${shown(opts.max)}.`;
   return opts.check?.(v) ?? null;
+}
+
+/** "a", "a and b", "a, b and c". */
+export function andList(items: string[]): string {
+  return items.length <= 1 ? items.join('') : `${items.slice(0, -1).join(', ')} and ${items[items.length - 1]}`;
+}
+
+/** What a Coast plan does in its stop year: stop saving, or, when anything is kept while coasting (D94), cut back. */
+export function coastVerb(plan: Plan): 'stop saving' | 'cut back saving' {
+  return coastContributionTotal(plan) > 0 ? 'cut back saving' : 'stop saving';
 }

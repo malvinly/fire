@@ -1,6 +1,23 @@
 // Parsing what is typed into number fields (D72).
 import { describe, expect, test } from 'vitest';
-import { fieldBlock, moneyText, nameIs, parseFieldText, parseYearText, whose, yearTextFor } from '../src/ui/format';
+import { examplePlan } from '../src/engine/defaults';
+import { andList, coastVerb, fieldBlock, moneyText, nameIs, parseFieldText, parseYearText, whose, yearTextFor } from '../src/ui/format';
+
+describe('shared wording', () => {
+  test('lists read "a", "a and b", "a, b and c"', () => {
+    expect(andList([])).toBe('');
+    expect(andList(['a'])).toBe('a');
+    expect(andList(['a', 'b'])).toBe('a and b');
+    expect(andList(['a', 'b', 'c'])).toBe('a, b and c');
+  });
+
+  test('a Coast plan "stops saving" unless anything is kept while coasting, then it "cuts back saving" (D94)', () => {
+    const plan = examplePlan(2026);
+    expect(coastVerb(plan)).toBe('stop saving');
+    plan.spouse.coastContributions.hsa = 1;
+    expect(coastVerb(plan)).toBe('cut back saving');
+  });
+});
 
 describe('number fields', () => {
   test('whole-number fields round what is typed', () => {

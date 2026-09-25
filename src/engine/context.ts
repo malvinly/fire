@@ -4,7 +4,7 @@
 import { LIMITS, UNIFORM_LIFETIME, rmdStartAge } from '../data/rules';
 import { annualBenefits, computePia, payableShare, wageLevelAt60 } from './socialSecurity';
 import { bracketTop } from './tax';
-import type { DatedItem, DatedTiming, Person, Plan, Scenario } from './types';
+import type { Contributions, DatedItem, DatedTiming, Person, Plan, Scenario } from './types';
 
 /**
  * Yearly income paid out by the brokerage account, as a share of the money in each asset class (D70): stock
@@ -29,11 +29,13 @@ export interface Context {
   retireIdx: number;
   years: number[];
   ages: [Int32Array, Int32Array];
-  /** 1 while the household still works. Contributions are gated separately: they are zero after the stop year. */
+  /** 1 while the household still works. Contributions are gated separately: only the amounts kept while coasting
+   *  are made after the stop year (D94). */
   working: Uint8Array;
   /** Wages taxed while working (salaries minus pre-tax contributions), for taxing SS/RMDs received then. */
   wages: Float64Array;
-  /** Per person per year contributions (today's dollars), zero once contributions stop; capped at IRS limits. */
+  /** Per person per year contributions (today's dollars), capped at IRS limits: today's until contributions stop,
+   *  then the amounts kept while coasting until work stops (D94), then zero. */
   contrib: {
     pretax: [Float64Array, Float64Array];
     roth: [Float64Array, Float64Array];
@@ -129,6 +131,8 @@ function pia(person: Person, startYear: number, stopWorkYear: number, wageGrowth
   return computePia(person.socialSecurity.earnings, future, { wageGrowth: ssWageGrowth, birthYear: person.birthYear });
 }
 
+export const ZERO_CONTRIBUTIONS: Readonly<Contributions> = { pretax: 0, employerMatch: 0, roth: 0, hsa: 0 };
+
 export function buildContext(plan: Plan, scenario: Scenario): Context {
   const a = plan.assumptions;
   const { startYear, endYear, len } = planYears(plan);
@@ -183,15 +187,18 @@ export function buildContext(plan: Plan, scenario: Scenario): Context {
     const growth = Math.pow(1 + a.wageGrowth, t);
     const hcGrowth = Math.pow(1 + a.healthcareInflation, t);
     const working = t < retireIdx;
-    const contributing = t < stopContribIdx;
+    // Regular saving (today's contributions) runs until the stop year; in Coast years after it each person makes
+    // only their kept amounts (D94); nothing once retired.
+    const regularSaving = t < stopContribIdx;
     ctx.working[t] = working ? 1 : 0;
     let hc = 0;
     let over65 = 0;
+    const amounts = people.map((p) => (regularSaving ? p.contributions : working ? p.coastContributions : ZERO_CONTRIBUTIONS));
     // The HSA limit is household-wide, so an over-limit entry is scaled back in proportion for each spouse, and
     // only the money actually deposited comes off that spouse's wages (D15, D88).
     let hsaLimit = LIMITS.hsaFamily;
     for (const p of people) if (year - p.birthYear >= 55) hsaLimit += LIMITS.hsaCatchUp;
-    const hsaEntered = (plan.you.contributions.hsa + plan.spouse.contributions.hsa) * growth;
+    const hsaEntered = (amounts[0].hsa + amounts[1].hsa) * growth;
     const kHsa = hsaEntered > hsaLimit ? hsaLimit / hsaEntered : 1;
     people.forEach((p, i) => {
       const age = year - p.birthYear;
@@ -200,17 +207,16 @@ export function buildContext(plan: Plan, scenario: Scenario): Context {
       if (age >= 65) over65++;
       const rmdAge = rmdStartAge(p.birthYear);
       ctx.rmdDivisor[i][t] = age >= rmdAge ? (UNIFORM_LIFETIME[Math.min(age, 120)] ?? 2) : 0;
-      const employee = (p.contributions.pretax + p.contributions.roth) * growth;
+      const c = amounts[i];
+      const employee = (c.pretax + c.roth) * growth;
       const limit = LIMITS.employee401k + LIMITS.ira + (age >= 50 ? LIMITS.catchUp401k + LIMITS.iraCatchUp : 0);
       const k = employee > limit ? limit / employee : 1;
-      if (contributing) {
-        // Contributions grow with wages, but IRS limits only keep pace with inflation (flat in real terms), D15.
-        ctx.contrib.pretax[i][t] = p.contributions.pretax * growth * k + p.contributions.employerMatch * growth;
-        ctx.contrib.roth[i][t] = p.contributions.roth * growth * k;
-        ctx.contrib.hsa[t] += p.contributions.hsa * growth * kHsa;
-      }
       if (working) {
-        const pretaxFromPay = contributing ? p.contributions.pretax * growth * k + p.contributions.hsa * growth * kHsa : 0;
+        // Contributions grow with wages, but IRS limits only keep pace with inflation (flat in real terms), D15.
+        ctx.contrib.pretax[i][t] = c.pretax * growth * k + c.employerMatch * growth;
+        ctx.contrib.roth[i][t] = c.roth * growth * k;
+        ctx.contrib.hsa[t] += c.hsa * growth * kHsa;
+        const pretaxFromPay = c.pretax * growth * k + c.hsa * growth * kHsa;
         ctx.wages[t] += Math.max(0, p.salary * growth - pretaxFromPay);
       }
       if (age >= 65) hc += p.healthcare.medicare * hcGrowth;
@@ -218,7 +224,7 @@ export function buildContext(plan: Plan, scenario: Scenario): Context {
     });
     ctx.over65Count[t] = over65;
     ctx.hsaPenalty[t] = Math.min(ctx.ages[0][t], ctx.ages[1][t]) < 65 ? 1 : 0;
-    if (contributing) {
+    if (regularSaving) {
       ctx.contrib.taxable[t] = plan.household.taxableContribution * growth;
       ctx.contrib.cash[t] = plan.household.cashContribution * growth;
     }

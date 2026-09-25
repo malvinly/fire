@@ -1,9 +1,10 @@
 // Lines for the "Before you act on these numbers" panel directly below the result cards (D67). The cards
 // show target numbers only; every caution about them is here, and only the lines that apply are shown.
 
+import { coastContributionTotal } from '../engine/defaults';
 import type { Tier, TierResult } from '../engine/solve';
 import type { Plan } from '../engine/types';
-import { moneyShort, percent } from './format';
+import { andList, money, moneyShort, percent } from './format';
 
 export interface WarningLine {
   key: string;
@@ -20,11 +21,6 @@ export const BORDERLINE = 0.015;
 
 const SHORT: Record<Tier, string> = { traditional: 'Traditional', chubby: 'Chubby', coast: 'Coast' };
 
-/** "a", "a and b", "a, b and c". */
-function list(items: string[]): string {
-  return items.length <= 1 ? items.join('') : `${items.slice(0, -1).join(', ')} and ${items[items.length - 1]}`;
-}
-
 export function beforeYouAct(plan: Plan, tiers: Partial<Record<Tier, TierResult>>): WarningLine[] {
   const lines: WarningLine[] = [];
   const retire = (['traditional', 'chubby'] as const)
@@ -33,8 +29,8 @@ export function beforeYouAct(plan: Plan, tiers: Partial<Record<Tier, TierResult>
 
   // The earliest date is a probability seen from today; it holds only if the money is really there (D54).
   if (retire.length) {
-    const names = list(retire.map((r) => `${SHORT[r.tier]} ${r.earliest!.year}`));
-    const amounts = list(retire.map((r) => moneyShort(r.fireNumber)));
+    const names = andList(retire.map((r) => `${SHORT[r.tier]} ${r.earliest!.year}`));
+    const amounts = andList(retire.map((r) => moneyShort(r.fireNumber)));
     lines.push({
       key: 'needed',
       text: `${names} ${retire.length > 1 ? 'assume' : 'assumes'} you’ll have about ${amounts} by then. Re-run each year with your real balances.`,
@@ -57,14 +53,19 @@ export function beforeYouAct(plan: Plan, tiers: Partial<Record<Tier, TierResult>
     }
   }
   // Coast depends on both paychecks covering everything until the coast age, and stopping saving stops the
-  // employer match too (it is zeroed with every other contribution).
+  // employer match too (it is zeroed with every other contribution). With contributions kept while coasting
+  // (D94) the line names the yearly amount instead, and still says the match is given up when none is kept.
   if (tiers.coast) {
     const age = plan.household.coastRetireAge;
+    const kept = coastContributionTotal(plan);
+    const keptMatch = plan.you.coastContributions.employerMatch + plan.spouse.coastContributions.employerMatch > 0;
     const matches = plan.you.contributions.employerMatch + plan.spouse.contributions.employerMatch > 0;
+    const tail = kept > 0
+      ? `, and that you keep saving ${money(kept)} a year while coasting${keptMatch ? ' (employer match included)' : matches ? ', giving up employer matches' : ''}.`
+      : matches ? ', and that stopping saving includes giving up employer matches.' : '.';
     lines.push({
       key: 'coast',
-      text: `Coast assumes you both keep working until ${plan.you.birthYear + age} (${plan.you.name} ${age}) with pay covering all spending` +
-        (matches ? ', and that stopping saving includes giving up employer matches.' : '.'),
+      text: `Coast assumes you both keep working until ${plan.you.birthYear + age} (${plan.you.name} ${age}) with pay covering all spending${tail}`,
     });
   }
 

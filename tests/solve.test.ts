@@ -112,6 +112,22 @@ describe('Coast FIRE', () => {
     expect(run(coast.fireNumber! * 0.99).combined).toBeLessThan(target);
   });
 
+  test('keeping some contributions while coasting lowers the Coast number and never delays the earliest year (D94)', () => {
+    const kept = smallPlan();
+    for (const p of [kept.you, kept.spouse]) p.coastContributions = { pretax: 6_000, employerMatch: 3_000, roth: 0, hsa: 0 };
+    expect(solveTier(makeEngine(kept), 'coast').fireNumber!).toBeLessThan(coast.fireNumber!);
+    // With a third of the savings the example can't coast yet, so the earliest year has room to move.
+    const base = smallPlan();
+    for (const p of [base.you, base.spouse]) p.balances = { pretax: p.balances.pretax / 3, roth: p.balances.roth / 3, rothBasis: p.balances.rothBasis / 3, hsa: 0 };
+    base.household.taxable /= 3;
+    base.household.taxableBasis /= 3;
+    const later = structuredClone(base);
+    for (const p of [later.you, later.spouse]) p.coastContributions = { pretax: 6_000, employerMatch: 3_000, roth: 0, hsa: 0 };
+    const baseYear = solveTier(makeEngine(base), 'coast').earliest!.year;
+    expect(baseYear).toBeGreaterThan(base.startYear);
+    expect(solveTier(makeEngine(later), 'coast').earliest!.year).toBeLessThan(baseYear);
+  });
+
   test('a household with no savings yet still gets a Coast number', () => {
     const p = smallPlan();
     for (const id of ['you', 'spouse'] as const) p[id].balances = { pretax: 0, roth: 0, rothBasis: 0, hsa: 0 };

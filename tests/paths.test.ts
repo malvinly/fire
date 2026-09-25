@@ -794,6 +794,40 @@ describe('dated items and contributions', () => {
     expect(ctx.contrib.pretax[0][t] - 5_000 * 1.015 ** t).toBeCloseTo(limitUnder50, 6);
   });
 
+  test('contributions kept while coasting land between the stop year and the coast age, come off the paycheck, and are capped (D94)', () => {
+    const plan = simplePlan();
+    plan.you.birthYear = START - 30;
+    plan.you.salary = 100_000;
+    plan.you.contributions = { pretax: 20_000, employerMatch: 5_000, roth: 2_000, hsa: 3_000 };
+    plan.you.coastContributions = { pretax: 6_000, employerMatch: 3_000, roth: 1_000, hsa: 4_000 };
+    plan.assumptions.endAge = 96;
+    const ctx = buildContext(plan, { stopContributingYear: START + 5, retireYear: START + 10, baseSpending: 0 });
+    expect(ctx.contrib.pretax[0][4]).toBe(25_000);
+    expect(ctx.contrib.roth[0][4]).toBe(2_000);
+    expect(ctx.contrib.hsa[4]).toBe(3_000);
+    expect(ctx.wages[4]).toBe(100_000 - 20_000 - 3_000);
+    for (const t of [5, 9]) {
+      expect(ctx.contrib.pretax[0][t]).toBe(9_000);
+      expect(ctx.contrib.roth[0][t]).toBe(1_000);
+      expect(ctx.contrib.hsa[t]).toBe(4_000);
+      expect(ctx.wages[t]).toBe(100_000 - 6_000 - 4_000);
+    }
+    expect(ctx.contrib.pretax[0][10]).toBe(0);
+    expect(ctx.contrib.hsa[10]).toBe(0);
+    expect(ctx.wages[10]).toBe(0);
+    // Traditional (saving stops on the retirement date) never uses the kept amounts.
+    const trad = buildContext(plan, { stopContributingYear: START + 5, retireYear: START + 5, baseSpending: 0 });
+    expect(trad.contrib.pretax[0][5]).toBe(0);
+    // The kept amounts respect the same IRS limits, including the household HSA limit (Spouse is 65: one catch-up).
+    plan.you.contributions = { pretax: 60_000, employerMatch: 3_000, roth: 0, hsa: 12_000 };
+    plan.you.coastContributions = { pretax: 50_000, employerMatch: 3_000, roth: 0, hsa: 12_000 };
+    const capped = buildContext(plan, { stopContributingYear: START + 5, retireYear: START + 10, baseSpending: 0 });
+    expect(capped.contrib.pretax[0][5]).toBe(LIMITS.employee401k + LIMITS.ira + 3_000);
+    const hsaLimit = LIMITS.hsaFamily + LIMITS.hsaCatchUp;
+    expect(capped.contrib.hsa[5]).toBe(hsaLimit);
+    expect(capped.wages[5]).toBe(100_000 - (LIMITS.employee401k + LIMITS.ira) - hsaLimit);
+  });
+
   test('catch-ups: 401(k)+IRA from 50, HSA family limit plus one catch-up per spouse from 55', () => {
     const plan = simplePlan();
     plan.you.birthYear = START - 49;

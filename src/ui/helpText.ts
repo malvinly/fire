@@ -39,6 +39,12 @@ export const HELP = {
   employerMatch: 'What your employer adds to your 401(k) per year (benefits portal or pay stub). It goes into the pre-tax balance.',
   rothContribution: 'What you put into Roth 401(k) and Roth IRA per year, including backdoor Roth. Adds to the part you can withdraw anytime.',
   hsaContribution: 'Yearly HSA contributions, including anything your employer adds. The household total is capped at the family limit.',
+  // Kept while coasting (Coast FIRE only, D94)
+  coastPretax:
+    'Coast FIRE only: what you’d keep putting into traditional 401(k)/403(b)/IRA per year after regular saving stops, until the Coast age. A common choice is just enough to earn the full employer match. Like today’s contributions it grows with your pay (Assumptions: raises above inflation) and is capped with Roth at the IRS limit. Together, what you keep can’t exceed what you save today.',
+  coastEmployerMatch: 'Coast FIRE only: the employer match you’d still earn on the 401(k) contribution you keep. Enter 0 if you’d stop the contribution that earns it.',
+  coastRoth: 'Coast FIRE only: Roth 401(k)/IRA contributions you’d keep making while coasting.',
+  coastHsa: 'Coast FIRE only: HSA contributions you’d keep making while coasting, including anything your employer adds.',
   // Contributions (household)
   taxableContribution: 'New money you add to non-retirement investment accounts each year. Don’t count reinvested dividends.',
   cashContribution: 'New money you add to cash savings each year. Enter 0 if your emergency fund is already where you want it.',
@@ -50,7 +56,7 @@ export const HELP = {
     'What you expect to spend per year once retired, in today’s dollars and before taxes (the model adds taxes). Leave out healthcare and dated items — they’re added on top. Coast FIRE also uses this after you stop working. If unsure, use the Fidelity default button.',
   chubbySpending: `A more comfortable retirement budget, with the same rules as Traditional. The default is ${pct(CHUBBY_SPENDING_FACTOR - 1)} above today’s spending. Clear it to skip the Chubby result.`,
   coastAge:
-    'If you stopped saving now, the age at which you’d both finally stop working. Until then your paychecks cover all spending; after that, Traditional spending applies. Default 65.',
+    'If you stopped saving now (or cut back to what you keep while coasting, under Yearly contributions), the age at which you’d both finally stop working. Until then your paychecks cover all spending; after that, Traditional spending applies. Default 65.',
 
   // Healthcare
   preMedicare:

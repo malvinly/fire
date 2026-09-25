@@ -1,11 +1,11 @@
 import { useState } from 'react';
 import { LIMITS, TRUST_FUND_DEFAULT } from '../data/rules';
-import { CHUBBY_SPENDING_FACTOR, DEFAULT_ASSUMPTIONS, FIDELITY_SPENDING_FACTOR, chubbyDefaultSpending, datedExpensesToday, exampleStatus, fidelityDefaultSpending, searchPathsFor, type ExampleSection } from '../engine/defaults';
+import { CHUBBY_SPENDING_FACTOR, DEFAULT_ASSUMPTIONS, FIDELITY_SPENDING_FACTOR, chubbyDefaultSpending, coastContributionTotal, datedExpensesToday, exampleStatus, fidelityDefaultSpending, searchPathsFor, type ExampleSection } from '../engine/defaults';
 import { parseEarnings } from '../engine/earnings';
 import { computePia } from '../engine/socialSecurity';
 import type { BracketFill, Person, PersonId, Plan } from '../engine/types';
 import { planEndYear } from '../engine/context';
-import { FIELD_LIMITS, birthYearProblem, coastAgeProblem } from '../engine/validate';
+import { FIELD_LIMITS, birthYearProblem, coastAgeProblem, coastKeptProblem } from '../engine/validate';
 import { DatedItemsEditor } from './DatedItemsEditor';
 import { Help, NumberField, Section, SelectField, TextField } from './fields';
 import { money, percent, whose } from './format';
@@ -115,6 +115,36 @@ export function InputsPanel({ plan, update }: { plan: Plan; update: Update }) {
         <p className="text-2">
           Savings rate: <b>{percent(salaries > 0 ? saved / salaries : 0, 1)}</b> of gross pay ({money(saved)}/yr). Contributions grow {percent(a.wageGrowth, 1)}/yr above inflation.
         </p>
+        <details className="subsection" open={coastContributionTotal(plan) > 0}>
+          <summary>Kept while coasting (Coast FIRE only)</summary>
+          <p className="text-2">
+            What each of you keeps contributing after regular saving stops, until the Coast age under Spending. Leave at 0 to stop saving entirely.
+            A common choice is the 401(k) contribution that earns the full employer match, plus the match. Together they can’t exceed what that person saves today.
+          </p>
+          <div className="grid2">
+            {PEOPLE.map((id) => {
+              const p = plan[id];
+              const c = p.coastContributions;
+              const age = plan.startYear - p.birthYear;
+              const limit = LIMITS.employee401k + (age >= 50 ? LIMITS.catchUp401k : 0) + LIMITS.ira + (age >= 50 ? LIMITS.iraCatchUp : 0);
+              // Refuses a set of kept amounts that adds up to more than today's (D94), checked with the edited field's new value.
+              const check = (key: keyof typeof c) => (v: number) => coastKeptProblem(p, { ...c, [key]: v });
+              return (
+                <div key={id} className="section-body">
+                  <h3>{p.name} while coasting</h3>
+                  <NumberField label="Pre-tax 401(k)/IRA" help={HELP.coastPretax} {...NO_DEBT} value={c.pretax} check={check('pretax')} onChange={(v) => update((d) => { d[id].coastContributions.pretax = v ?? 0; })}
+                    warn={c.pretax + c.roth > limit ? `Above 401(k)+IRA limits (${money(limit)})` : null} />
+                  <NumberField label="Employer match" help={HELP.coastEmployerMatch} {...NO_DEBT} value={c.employerMatch} check={check('employerMatch')} onChange={(v) => update((d) => { d[id].coastContributions.employerMatch = v ?? 0; })} />
+                  <NumberField label="Roth 401(k)/IRA" help={HELP.coastRoth} {...NO_DEBT} value={c.roth} check={check('roth')} onChange={(v) => update((d) => { d[id].coastContributions.roth = v ?? 0; })} />
+                  <NumberField label="HSA" help={HELP.coastHsa} {...NO_DEBT} value={c.hsa} check={check('hsa')} onChange={(v) => update((d) => { d[id].coastContributions.hsa = v ?? 0; })} />
+                </div>
+              );
+            })}
+          </div>
+          {plan.you.coastContributions.hsa + plan.spouse.coastContributions.hsa > hsaLimit && (
+            <p className="muted">Kept HSA contributions exceed the family limit ({money(hsaLimit)} with catch-ups at your ages).</p>
+          )}
+        </details>
       </Section>
 
       <Section title="Spending" icon="receipt" flag={flag('Spending')}>
@@ -145,7 +175,7 @@ export function InputsPanel({ plan, update }: { plan: Plan; update: Update }) {
           } />
         <NumberField label={`Coast FIRE: ${whose(plan.you.name)} age when you both stop working`} help={HELP.coastAge} kind="int" value={h.coastRetireAge} {...L.age} check={(v) => coastAgeProblem(plan, v)}
           onChange={(v) => update((d) => { d.household.coastRetireAge = v ?? 65; })}
-          hint="Coast = stop contributing, keep working (paycheck covers spending) until this age." />
+          hint="Coast = stop contributing (or cut back to what you keep while coasting, under Yearly contributions), keep working (paycheck covers spending) until this age." />
       </Section>
 
       <Section title="Healthcare" icon="heartPulse" flag={flag('Healthcare')}>

@@ -10,7 +10,7 @@ market" standard):
 |---|---|
 | **Traditional FIRE** | What's the earliest year we can both stop working, and how much do we need then? |
 | **Chubby FIRE** | Same, at a higher spending level (default: 1.2 × today's spending). |
-| **Coast FIRE** | Can we stop saving now and keep working (paycheck covers spending) until 65? What's the earliest year we could stop saving? |
+| **Coast FIRE** | Can we stop saving now (or cut back to just the 401(k) contribution that earns the match) and keep working (paycheck covers spending) until 65? What's the earliest year we could do that? |
 
 Every answer must pass **two** tests: 10,000 **simulated markets** built from real US market history
 (1871–2025), and **every real stretch of history** replayed in order. The lower result counts.

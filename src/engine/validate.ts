@@ -5,7 +5,7 @@
 
 import { planEndYear, planYears } from './context';
 import { migratePlan } from './migrate';
-import type { Plan } from './types';
+import type { Contributions, Person, Plan } from './types';
 
 type Json = Record<string, unknown>;
 const isObject = (v: unknown): v is Json => typeof v === 'object' && v !== null && !Array.isArray(v);
@@ -52,6 +52,18 @@ export function coastAgeProblem(plan: Plan, age: number): string | null {
   const end = planEndYear(plan);
   if (age <= ageNow) return `Must be above ${name}’s current age (${ageNow}).`;
   if (plan.you.birthYear + age >= end) return `Must be before the plan ends in ${end} (${name} ${end - plan.you.birthYear}).`;
+  return null;
+}
+
+/**
+ * A person's contributions kept while coasting must not add up to more than what they save today (D94): the Coast
+ * search (`earliestYear`) assumes saving longer never hurts, which a bigger kept amount would break. A cross-field
+ * check like the two above; `kept` is the set being checked (the field passes its edited copy).
+ */
+export function coastKeptProblem(person: Person, kept: Contributions): string | null {
+  const sum = (c: Contributions) => c.pretax + c.employerMatch + c.roth + c.hsa;
+  const today = sum(person.contributions);
+  if (sum(kept) > today) return `Together, ${person.name}’s kept contributions must not exceed what ${person.name} saves today ($${today.toLocaleString('en-US')}).`;
   return null;
 }
 
@@ -107,6 +119,8 @@ function person(c: Checker, plan: Json, id: 'you' | 'spouse') {
   c.num(p, 'salary', at, money);
   const contrib = c.obj(p, 'contributions', at);
   if (contrib) for (const k of ['pretax', 'employerMatch', 'roth', 'hsa']) c.num(contrib, k, `${at}contributions.`, money);
+  const coast = c.obj(p, 'coastContributions', at);
+  if (coast) for (const k of ['pretax', 'employerMatch', 'roth', 'hsa']) c.num(coast, k, `${at}coastContributions.`, money);
   const bal = c.obj(p, 'balances', at);
   if (bal) for (const k of ['pretax', 'roth', 'rothBasis', 'hsa']) c.num(bal, k, `${at}balances.`, money);
   const ss = c.obj(p, 'socialSecurity', at);
@@ -231,6 +245,10 @@ export function planProblems(raw: unknown): string[] {
   }
   const coast = coastAgeProblem(plan, plan.household.coastRetireAge);
   if (coast) problems.push(`Coast FIRE age (${plan.household.coastRetireAge}): ${coast}`);
+  for (const id of ['you', 'spouse'] as const) {
+    const kept = coastKeptProblem(plan[id], plan[id].coastContributions);
+    if (kept) problems.push(`Kept while coasting: ${kept}`);
+  }
   return problems;
 }
 

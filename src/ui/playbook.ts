@@ -9,7 +9,7 @@ import { ownClaimFactor, payableShare, spousalClaimFactor } from '../engine/soci
 import type { Detail } from '../engine/solve';
 import { bracketTop } from '../engine/tax';
 import type { DatedItem, Plan, YearRecord } from '../engine/types';
-import { money, moneyShort, nameIs, whose } from './format';
+import { andList, money, moneyShort, nameIs, whose } from './format';
 
 export interface Step {
   /** What to do, one or two short sentences. */
@@ -63,6 +63,24 @@ const pct1 = (x: number) => `${Math.round(x * 1000) / 10}%`;
 /** Amounts under this are noise once rounded to $K ("$0K"), so the text leaves them out. */
 const MIN_SHOWN = 500;
 
+/**
+ * What each person keeps contributing while coasting (D94), e.g. "You $6,000 to pre-tax 401(k)/IRA (earning a
+ * $3,000 employer match) and $4,000 to an HSA; Spouse $2,000 to Roth 401(k)/IRA"; null when nothing is kept.
+ */
+function keptContributions(plan: Plan): string | null {
+  const people = (['you', 'spouse'] as const).map((id) => {
+    const p = plan[id];
+    const c = p.coastContributions;
+    const parts: string[] = [];
+    if (c.pretax > 0) parts.push(`${money(c.pretax)} to pre-tax 401(k)/IRA${c.employerMatch > 0 ? ` (earning a ${money(c.employerMatch)} employer match)` : ''}`);
+    else if (c.employerMatch > 0) parts.push(`a ${money(c.employerMatch)} employer match`);
+    if (c.roth > 0) parts.push(`${money(c.roth)} to Roth 401(k)/IRA`);
+    if (c.hsa > 0) parts.push(`${money(c.hsa)} to an HSA`);
+    return parts.length ? `${p.name} ${andList(parts)}` : null;
+  }).filter((s): s is string => s !== null);
+  return people.length ? people.join('; ') : null;
+}
+
 export function buildPlaybook(plan: Plan, detail: Detail): Playbook {
   const a = plan.assumptions;
   const retireYear = detail.scenario.retireYear;
@@ -70,6 +88,8 @@ export function buildPlaybook(plan: Plan, detail: Detail): Playbook {
   const fill = a.bracketFill;
   // Contributions only count if some are made: none are when saving stops, or retirement comes, at the plan start.
   const contributes = Math.min(detail.scenario.stopContributingYear, retireYear) > plan.startYear;
+  // Coast: the contributions kept while coasting land between the stop year and retirement (D94).
+  const coasts = detail.scenario.stopContributingYear < retireYear;
   const people: Person[] = (['you', 'spouse'] as const).map((id) => {
     const p = plan[id];
     return {
@@ -83,8 +103,9 @@ export function buildPlaybook(plan: Plan, detail: Detail): Playbook {
       rmdAge: rmdStartAge(p.birthYear),
       preMedicare: p.healthcare.preMedicare,
       medicareCost: p.healthcare.medicare,
-      hasPretax: p.balances.pretax > 0 || (contributes && p.contributions.pretax + p.contributions.employerMatch > 0),
-      hasRoth: p.balances.roth > 0 || (contributes && p.contributions.roth > 0),
+      hasPretax: p.balances.pretax > 0 || (contributes && p.contributions.pretax + p.contributions.employerMatch > 0) ||
+        (coasts && p.coastContributions.pretax + p.coastContributions.employerMatch > 0),
+      hasRoth: p.balances.roth > 0 || (contributes && p.contributions.roth > 0) || (coasts && p.coastContributions.roth > 0),
     };
   });
   const h = plan.household;
@@ -93,7 +114,8 @@ export function buildPlaybook(plan: Plan, detail: Detail): Playbook {
     taxable: h.taxable > 0 || (contributes && h.taxableContribution > 0),
     pretax: people.some((p) => p.hasPretax),
     roth: people.some((p) => p.hasRoth),
-    hsa: plan.you.balances.hsa + plan.spouse.balances.hsa > 0 || (contributes && plan.you.contributions.hsa + plan.spouse.contributions.hsa > 0),
+    hsa: plan.you.balances.hsa + plan.spouse.balances.hsa > 0 || (contributes && plan.you.contributions.hsa + plan.spouse.contributions.hsa > 0) ||
+      (coasts && plan.you.coastContributions.hsa + plan.spouse.coastContributions.hsa > 0),
   };
   const converting = fill !== 'none' && has.pretax;
   if (converting) {
@@ -111,16 +133,25 @@ export function buildPlaybook(plan: Plan, detail: Detail): Playbook {
 
   const phases: Phase[] = [];
 
-  // Coast: the years between stopping contributions and retiring.
+  // Coast: the years between stopping (or cutting back, D94) contributions and retiring.
   const stop = detail.scenario.stopContributingYear;
-  if (stop < retireYear) {
-    phases.push({
-      year: stop, title: 'Stop saving, keep working', ages: ages(stop),
-      steps: [{
-        action: 'Stop adding to savings, including the 401(k) contribution that earns the employer match.',
-        why: `Your paychecks cover all the bills, and the savings you already have keep growing untouched until you retire in ${retireYear}.`,
-      }],
-    });
+  if (coasts) {
+    const kept = keptContributions(plan);
+    phases.push(kept
+      ? {
+        year: stop, title: 'Cut back saving, keep working', ages: ages(stop),
+        steps: [{
+          action: `Keep only these contributions and stop every other addition to savings: ${kept}.`,
+          why: `Your paychecks cover all the bills, and what you keep saving and the savings you already have keep growing until you retire in ${retireYear}.`,
+        }],
+      }
+      : {
+        year: stop, title: 'Stop saving, keep working', ages: ages(stop),
+        steps: [{
+          action: 'Stop adding to savings, including the 401(k) contribution that earns the employer match.',
+          why: `Your paychecks cover all the bills, and the savings you already have keep growing untouched until you retire in ${retireYear}.`,
+        }],
+      });
   }
 
   // Retirement: the yearly routine, as it stands on the day you retire.

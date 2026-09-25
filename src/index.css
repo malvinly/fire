@@ -107,6 +107,9 @@ details.section { border-bottom: 1px solid var(--border); padding: 8px 0; }
 details.section > summary { cursor: pointer; font-weight: 600; padding: 6px 0; list-style: none; display: flex; align-items: center; gap: 8px; }
 details.section > summary::before { content: '▸'; color: var(--muted); transition: transform 0.15s; }
 details.section[open] > summary::before { transform: rotate(90deg); }
+details.subsection > summary { cursor: pointer; font-weight: 600; padding: 6px 0; list-style: none; }
+details.subsection > summary::before { content: '▸ '; color: var(--muted); }
+details.subsection[open] > summary::before { content: '▾ '; }
 .example-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); flex: none; }
 .inputs p { font-size: 12px; } /* notes between 12px labels and 11.5px hints; the fields set their own sizes */
 .example-legend { color: var(--text-2); margin: 0 0 6px; display: flex; align-items: center; gap: 8px; }

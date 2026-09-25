@@ -1,5 +1,5 @@
 import { TRUST_FUND_DEFAULT } from '../data/rules';
-import { inTodaysBudget } from './context';
+import { ZERO_CONTRIBUTIONS, inTodaysBudget } from './context';
 import type { Assumptions, Person, Plan } from './types';
 
 export const DEFAULT_ASSUMPTIONS: Assumptions = {
@@ -60,6 +60,7 @@ function person(name: string, birthYear: number): Person {
     birthMonth: 6,
     salary: 100_000,
     contributions: { pretax: 20_000, employerMatch: 5_000, roth: 0, hsa: 0 },
+    coastContributions: { ...ZERO_CONTRIBUTIONS },
     balances: { pretax: 300_000, roth: 50_000, rothBasis: 30_000, hsa: 0 },
     socialSecurity: { mode: 'manual', earnings: [], manualPia: 2_500, claimAge: EXAMPLE_CLAIM_AGE },
     healthcare: { preMedicare: 16_000, medicare: 7_500 }, // 2026 US averages (D58)
@@ -124,6 +125,11 @@ export function exampleStatus(plan: Plan): ExampleStatus {
 export function untouchedSections(plan: Plan): string[] {
   const { counts } = exampleStatus(plan);
   return EXAMPLE_SECTIONS.filter((s) => counts[s] > 0);
+}
+
+/** What the household keeps contributing per year while coasting, employer matches included (D94); 0 = stops saving. */
+export function coastContributionTotal(plan: Plan): number {
+  return [plan.you, plan.spouse].reduce((s, p) => s + p.coastContributions.pretax + p.coastContributions.employerMatch + p.coastContributions.roth + p.coastContributions.hsa, 0);
 }
 
 /** Example plan shown on first launch. Every number is a placeholder to overwrite. */

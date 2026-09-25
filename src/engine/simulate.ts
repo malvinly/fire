@@ -342,7 +342,7 @@ export function simulatePath(ctx: Context, paths: ReturnPaths, p: number, opts: 
     const seasonedRoth = records ? rothAvailable(ctx, s, 0, t) + rothAvailable(ctx, s, 1, t) : 0;
 
     if (ctx.working[t]) {
-      // Contributions (zero once contributions stop, e.g. Coast FIRE).
+      // Contributions (after saving stops, only what is kept while coasting, D94; zero once retired).
       s.pretax[0] += ctx.contrib.pretax[0][t];
       s.pretax[1] += ctx.contrib.pretax[1][t];
       for (const i of [0, 1] as const) {

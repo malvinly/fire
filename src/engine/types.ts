@@ -8,6 +8,14 @@ export interface EarningsYear {
   amount: number;
 }
 
+/** Yearly contributions in today's dollars. */
+export interface Contributions {
+  pretax: number; // traditional 401(k)/403(b)/IRA
+  employerMatch: number; // goes to pre-tax
+  roth: number; // Roth 401(k)/IRA
+  hsa: number;
+}
+
 export interface Person {
   name: string;
   birthYear: number;
@@ -15,13 +23,15 @@ export interface Person {
   birthMonth: number;
   /** Current gross salary. */
   salary: number;
-  /** Annual contributions in today's dollars. */
-  contributions: {
-    pretax: number; // traditional 401(k)/403(b)/IRA
-    employerMatch: number; // goes to pre-tax
-    roth: number; // Roth 401(k)/IRA
-    hsa: number;
-  };
+  /** What this person saves each year while working. */
+  contributions: Contributions;
+  /**
+   * Coast FIRE only: what this person keeps contributing each year after regular saving stops, until the coast
+   * age (D94). Same limits as `contributions`, and never more in total (the Coast search assumes saving longer
+   * never hurts); all zero = stop saving entirely. Only Coast scenarios have years between the stop year and
+   * the retirement year, which is the only way these amounts are ever used.
+   */
+  coastContributions: Contributions;
   balances: {
     pretax: number;
     roth: number;
@@ -112,9 +122,12 @@ export interface Plan {
   assumptions: Assumptions;
 }
 
-/** One simulated scenario: when contributions stop, when work stops, and how much is spent. */
+/** One simulated scenario: when regular saving stops, when work stops, and how much is spent. */
 export interface Scenario {
-  /** Calendar year contributions stop (first year with none). */
+  /**
+   * Calendar year regular saving stops. From then until `retireYear` (Coast years) each person makes only their
+   * `coastContributions` (D94), and brokerage and cash savings stop.
+   */
   stopContributingYear: number;
   /** Calendar year work stops (household retirement date). */
   retireYear: number;

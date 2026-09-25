@@ -6,6 +6,7 @@ import type { Detail, Tier, TierResult } from './engine/solve';
 import { MARKET } from './engine/returns';
 import type { Plan } from './engine/types';
 import { LIMITS_GROUP } from './engine/assumptions';
+import { coastVerb } from './ui/format';
 import { YearInput } from './ui/fields';
 import { About } from './ui/About';
 import { HowItWorks } from './ui/HowItWorks';
@@ -319,9 +320,9 @@ export default function App() {
 
                 {results.done && selResult && selYear !== null && (
                   <div className="panel">
-                    <h2>Try a different {selTier === 'coast' ? 'stop-saving' : 'retirement'} year</h2>
+                    <h2>Try a different {selTier === 'coast' ? coastVerb(results.plan).replaceAll(' ', '-') : 'retirement'} year</h2>
                     <p className="text-2" style={{ marginTop: 4 }}>
-                      Starts at your earliest date. Change it to see what {selTier === 'coast' ? 'stopping saving' : 'retiring'} earlier or later does.
+                      Starts at your earliest date. Change it to see what {selTier === 'coast' ? (coastVerb(results.plan) === 'stop saving' ? 'stopping saving' : 'cutting back saving') : 'retiring'} earlier or later does.
                     </p>
                     <div className="control-row">
                         <div className="field">
@@ -331,7 +332,7 @@ export default function App() {
                           </select>
                         </div>
                         <div className="field">
-                          <label htmlFor="year-input">{selTier === 'coast' ? 'Stop saving in' : 'Retire in'}</label>
+                          <label htmlFor="year-input">{selTier === 'coast' ? (coastVerb(results.plan) === 'stop saving' ? 'Stop saving in' : 'Cut back saving in') : 'Retire in'}</label>
                           <div className="row">
                             <button className="btn" aria-label="One year earlier" onClick={() => setSelYear((y) => Math.max(results.plan.startYear, (y ?? 0) - 1))}>−</button>
                             <YearInput id="year-input" value={selYear} min={results.plan.startYear} max={lastYear} onChange={setSelYear} />

@@ -1,12 +1,13 @@
 import { useState, type ReactNode } from 'react';
 import { timingYear } from '../engine/context';
+import { coastContributionTotal } from '../engine/defaults';
 import type { Detail, Success, Tier, TierResult } from '../engine/solve';
 import { RUN_OUT_SHORTFALL, type Mix } from '../engine/simulate';
 import type { Plan } from '../engine/types';
 import { accountLegend, AccountsChart, BAND_LABELS, BandsChart, useTheme, type Marker } from './charts';
 import { Help } from './fields';
 import { Icon, TIER_ICONS } from './icons';
-import { money, moneyShort, nameIs, percent } from './format';
+import { coastVerb, money, moneyShort, nameIs, percent } from './format';
 import { METHODS_HELP, SUCCESS_HELP } from './helpText';
 import { buildPlaybook } from './playbook';
 import type { WarningLine } from './warnings';
@@ -16,7 +17,11 @@ export const TIER_NAMES: Record<Tier, string> = { traditional: 'Traditional FIRE
 function tierHelp(tier: Tier, plan: Plan): string {
   if (tier === 'traditional') return 'When you could stop working for good and live on savings plus Social Security, spending your Traditional budget each year.';
   if (tier === 'chubby') return 'When you could stop working for good and live on savings plus Social Security, spending your bigger Chubby budget each year.';
-  return `Stop adding to savings (employer matches stop too) but keep working until ${nameIs(plan.you.name)} ${plan.household.coastRetireAge}, with paychecks covering the bills. ` +
+  const kept = coastContributionTotal(plan);
+  const cut = kept > 0
+    ? `Cut saving back to ${money(kept)} a year (what you keep contributing while coasting)`
+    : 'Stop adding to savings (employer matches stop too)';
+  return `${cut} but keep working until ${nameIs(plan.you.name)} ${plan.household.coastRetireAge}, with paychecks covering the bills. ` +
     'After that, savings pay the same Traditional budget. It comes sooner than Traditional because the money grows untouched longer and has fewer years to last.';
 }
 
@@ -83,7 +88,7 @@ export function TierCard({ r, plan, selected, onSelect }: { r: TierResult | null
   const extras = plan.datedItems.length ? ' + healthcare + dated items' : ' + healthcare';
   const coastYear = plan.you.birthYear + plan.household.coastRetireAge;
   const endAge = plan.assumptions.endAge;
-  const verb = isCoast ? 'stop saving' : 'retire';
+  const verb = isCoast ? coastVerb(plan) : 'retire';
   return (
     <div className={`card${selected ? ' selected' : ''}`} role="button" tabIndex={0} onClick={onSelect}
       onKeyDown={(e) => e.target === e.currentTarget && (e.key === 'Enter' || e.key === ' ') && onSelect()} aria-pressed={selected}>
@@ -93,10 +98,10 @@ export function TierCard({ r, plan, selected, onSelect }: { r: TierResult | null
       </div>
       <div>
         <div className="kicker">
-          {isCoast ? 'Earliest year you can stop saving' : `Earliest year you can retire (${percent(target)} chance or better)`}
+          {isCoast ? `Earliest year you can ${verb}` : `Earliest year you can retire (${percent(target)} chance or better)`}
         </div>
         <div className="hero">
-          {coasting ? 'You can stop saving now' : r.earliest ? r.earliest.year : 'Not reachable'}{' '}
+          {coasting ? `You can ${verb} now` : r.earliest ? r.earliest.year : 'Not reachable'}{' '}
           {r.earliest && !coasting && <small>{plan.you.name} {r.earliest.ageYou} · {plan.spouse.name} {r.earliest.ageSpouse}</small>}
         </div>
         {isCoast && (
@@ -117,11 +122,11 @@ export function TierCard({ r, plan, selected, onSelect }: { r: TierResult | null
       <div className="stat-row">
         <div className="stat">
           <Label help={isCoast
-            ? `The smallest total savings today that would let you stop saving now and still have a ${percent(target)} chance your money lasts.${coasting ? '' : mixText(r.coastMix)}`
+            ? `The smallest total savings today that would let you ${verb} now and still have a ${percent(target)} chance your money lasts.${coasting ? '' : mixText(r.coastMix)}`
             : r.earliest
               ? `The total across all accounts you’d need in ${r.earliest.year} to retire then with a ${percent(target)} chance your money lasts, in today’s dollars. Compare it with the expected savings below.`
               : `The total across all accounts you’d need on the day you retire for a ${percent(target)} chance your money lasts, in today’s dollars.`}>
-            {isCoast ? 'Needed today to stop saving' : 'Savings needed when you retire'}
+            {isCoast ? `Needed today to ${verb}` : 'Savings needed when you retire'}
           </Label>
           <div className="value">{moneyShort(r.fireNumber)}</div>
         </div>
@@ -131,7 +136,7 @@ export function TierCard({ r, plan, selected, onSelect }: { r: TierResult | null
         </div>
       </div>
       {isCoast && r.fireNumber !== null && (
-        <div className="progress" title={`${percent(progress)} of what you need today to stop saving`} aria-label={`${percent(progress)} of what you need today to stop saving`}>
+        <div className="progress" title={`${percent(progress)} of what you need today to ${verb}`} aria-label={`${percent(progress)} of what you need today to ${verb}`}>
           <div style={{ width: `${progress * 100}%` }} />
         </div>
       )}
@@ -177,10 +182,14 @@ export function BeforeYouAct({ lines, onLimits }: { lines: WarningLine[]; onLimi
   );
 }
 
+const capitalize = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
+
 function markersFor(plan: Plan, d: Detail): Marker[] {
   const m: Marker[] = [];
   const retire = d.scenario.retireYear;
-  if (d.tier === 'coast' && d.scenario.stopContributingYear < retire) m.push({ year: d.scenario.stopContributingYear, label: 'Stop saving' });
+  if (d.tier === 'coast' && d.scenario.stopContributingYear < retire) {
+    m.push({ year: d.scenario.stopContributingYear, label: capitalize(coastVerb(plan)) });
+  }
   m.push({ year: retire, label: 'Retire' });
   for (const id of ['you', 'spouse'] as const) {
     const p = plan[id];

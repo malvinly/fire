@@ -1,5 +1,6 @@
 // Layer 5: common-sense properties on randomized plans.
 import { describe, expect, test } from 'vitest';
+import { LIMITS } from '../src/data/rules';
 import { buildContext } from '../src/engine/context';
 import { examplePlan } from '../src/engine/defaults';
 import { bootstrapPaths, makeRng } from '../src/engine/returns';
@@ -70,12 +71,37 @@ describe('monotonicity', () => {
     }
   }, 120_000);
 
-  test('coast scenario never contributes after the stop year', () => {
+  test('coast scenario with nothing kept never contributes after the stop year', () => {
     const plan = randomPlan(31);
     const sc = scenarioFor(plan, 'coast', 2030);
     const ctx = buildContext(plan, sc);
     for (let t = 0; t < ctx.len; t++) {
       if (ctx.years[t] >= 2030) expect(ctx.contrib.pretax[0][t] + ctx.contrib.taxable[t]).toBe(0);
+    }
+  });
+
+  test('kept contributions land only in the coast years, never above today\'s or the IRS limits, and brokerage saving still stops (D94)', () => {
+    for (let s = 41; s <= 44; s++) {
+      const plan = randomPlan(s);
+      const rng = makeRng(s + 1000);
+      for (const p of [plan.you, plan.spouse]) {
+        p.contributions.hsa = 4_000;
+        p.coastContributions = { pretax: p.contributions.pretax * rng(), employerMatch: p.contributions.employerMatch * rng(), roth: 0, hsa: 4_000 * rng() };
+      }
+      const retire = plan.you.birthYear + plan.household.coastRetireAge;
+      const ctx = buildContext(plan, scenarioFor(plan, 'coast', 2030));
+      // In today's dollars before wage growth (D15), so the coast years compare with the last regular year.
+      const deflated = (t: number) => (ctx.contrib.pretax[0][t] + ctx.contrib.pretax[1][t]) / Math.pow(1 + plan.assumptions.wageGrowth, t);
+      const lastRegular = deflated(2029 - plan.startYear);
+      for (let t = 0; t < ctx.len; t++) {
+        const y = ctx.years[t];
+        if (y >= retire) expect(ctx.contrib.pretax[0][t] + ctx.contrib.pretax[1][t] + ctx.contrib.hsa[t]).toBe(0);
+        if (y >= 2030) {
+          expect(ctx.contrib.taxable[t] + ctx.contrib.cash[t]).toBe(0);
+          expect(deflated(t)).toBeLessThanOrEqual(lastRegular + 1e-6);
+          expect(ctx.contrib.hsa[t]).toBeLessThanOrEqual(LIMITS.hsaFamily + 2 * LIMITS.hsaCatchUp);
+        }
+      }
     }
   });
 });

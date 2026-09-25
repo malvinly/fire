@@ -84,6 +84,17 @@ describe('phases', () => {
     expect(titles(plan, detail(plan, 2049, 2030))[0]).toBe('2030 Stop saving, keep working');
   });
 
+  test('Coast with contributions kept while coasting gets a "cut back" phase listing what each person keeps (D94)', () => {
+    const plan = examplePlan(2026);
+    plan.you.coastContributions = { pretax: 6_000, employerMatch: 3_000, roth: 0, hsa: 4_000 };
+    plan.spouse.coastContributions = { pretax: 0, employerMatch: 0, roth: 2_000, hsa: 0 };
+    const d = detail(plan, 2049, 2030);
+    expect(titles(plan, d)[0]).toBe('2030 Cut back saving, keep working');
+    expect(actions(plan, d, 2030)[0]).toBe(
+      'Keep only these contributions and stop every other addition to savings: You $6,000 to pre-tax 401(k)/IRA (earning a $3,000 employer match) and $4,000 to an HSA; Spouse $2,000 to Roth 401(k)/IRA.');
+    expect(stepText(plan, d, 2030)).toContain('what you keep saving and the savings you already have keep growing until you retire in 2049');
+  });
+
   test('a Social Security cut after retirement is its own phase when someone already collects before it', () => {
     const plan = examplePlan(2026);
     plan.you.birthYear = 1966;
@@ -131,6 +142,15 @@ describe('the retirement routine', () => {
     expect(stepText(plan, d, 2041)).not.toContain('Each January');
     expect(stepText(plan, d, 2044)).not.toContain('leftover');
     expect(stepText(plan, d, 2044)).toContain('your 401(k)/IRA now comes after brokerage and before Roth');
+  });
+
+  test('an account funded only by kept-while-coasting contributions is in the routine; Traditional ignores the kept amounts (D94)', () => {
+    const plan = examplePlan(2026); // no HSA balance or contribution today
+    plan.you.coastContributions = { pretax: 0, employerMatch: 0, roth: 0, hsa: 3_000 };
+    const coast = buildPlaybook(plan, detail(plan, 2049, 2030));
+    expect(coast.phases[1].steps.some((s) => s.action === 'Pay medical bills from the HSA before any other account.')).toBe(true);
+    const traditional = buildPlaybook(plan, detail(plan, 2041));
+    expect(traditional.phases[0].steps.some((s) => s.action.includes('HSA'))).toBe(false);
   });
 
   test('accounts the household does not have are left out', () => {

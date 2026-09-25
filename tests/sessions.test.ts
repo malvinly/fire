@@ -20,6 +20,15 @@ describe('older plan files', () => {
     const s = parseSession(sessionText((plan) => { delete (plan.assumptions as Record<string, unknown>).seed; }));
     expect(s.plan.assumptions.seed).toBe(DEFAULT_ASSUMPTIONS.seed);
   });
+
+  test('a file saved before "kept while coasting" existed keeps saving nothing while coasting (D94)', () => {
+    const s = parseSession(sessionText((plan) => {
+      delete (plan.you as Record<string, unknown>).coastContributions;
+      delete (plan.spouse as Record<string, unknown>).coastContributions;
+    }));
+    expect(s.plan.you.coastContributions).toEqual({ pretax: 0, employerMatch: 0, roth: 0, hsa: 0 });
+    expect(s.plan.spouse.coastContributions).toEqual({ pretax: 0, employerMatch: 0, roth: 0, hsa: 0 });
+  });
 });
 
 test('dated income saved before the "taxed" flag existed is taxed (D66)', () => {
@@ -42,6 +51,7 @@ describe('damaged or out-of-range plans are rejected with a clear message (D71)'
     ['chunk size 0', (p) => { p.assumptions.blockLength = 0; }, /assumptions\.blockLength/],
     ['0 simulated markets', (p) => { p.assumptions.paths = 0; }, /assumptions\.paths/],
     ['a negative balance', (p) => { p.you.balances.pretax = -5_000; }, /you\.balances\.pretax/],
+    ['a negative amount kept while coasting', (p) => { p.spouse.coastContributions.roth = -1; }, /spouse\.coastContributions\.roth/],
     ['a tax rate above 100%', (p) => { p.assumptions.stateTaxRate = 1.5; }, /assumptions\.stateTaxRate/],
     ['a trust-fund share below 0%', (p) => { p.assumptions.ssTrustFund.endPct = -0.1; }, /assumptions\.ssTrustFund\.endPct/],
     ['a fractional plan age', (p) => { p.assumptions.endAge = 96.5; }, /assumptions\.endAge/],
@@ -70,6 +80,14 @@ describe('review fixes: what blocks loading and what only blocks Calculate', () 
     expect(planProblems(young.plan).join(' ')).toMatch(/above You’s current age \(42\)/);
     const late = parseSession(sessionText((p: any) => { p.household.coastRetireAge = 100; }));
     expect(planProblems(late.plan).join(' ')).toMatch(/before the plan ends in 2082/);
+  });
+
+  test('kept-while-coasting amounts above what a person saves today load, and Calculate says so (D94)', () => {
+    // You saves $25,000 today (20,000 pre-tax + 5,000 match).
+    const s = parseSession(sessionText((p: any) => { p.you.coastContributions = { pretax: 20_000, employerMatch: 5_000, roth: 1, hsa: 0 }; }));
+    expect(planProblems(s.plan)).toEqual(['Kept while coasting: Together, You’s kept contributions must not exceed what You saves today ($25,000).']);
+    const ok = parseSession(sessionText((p: any) => { p.you.coastContributions = { pretax: 20_000, employerMatch: 5_000, roth: 0, hsa: 0 }; }));
+    expect(planProblems(ok.plan)).toEqual([]);
   });
 
   test('a dated item dated absurdly far away is rejected (it would loop over every year)', () => {

@@ -47,7 +47,7 @@ code comments cite) first. Planned work is in [pending-features.md](pending-feat
    - If results change for the same inputs, bump `DATA_VERSIONS.engine` in `src/engine/assumptions.ts`
      (D59) so saved sessions are flagged for recalculation, and refresh
      [Reproducing the numbers](#reproducing-the-numbers).
-   - Record any judgement call as a new D-number in DECISIONS.md (the next free number is **D94**). Update
+   - Record any judgement call as a new D-number in DECISIONS.md (the next free number is **D95**). Update
      an existing D-row if its behavior changes, and update the "Which way the assumptions lean" table.
    - If the change affects an assumption shown to users, update its row in `describeAssumptions` in
      `src/engine/assumptions.ts` (the "How this works" page) and its help text in `src/ui/helpText.ts`.

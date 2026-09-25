@@ -29,7 +29,8 @@ Key research points:
 3. **Returns** — block bootstrap (main) + every historical window (cross-check); **stricter of the two**.
    US data only (D89). Real (today's) dollars throughout.
 4. **FIRE types** — Traditional (default spending = 0.85 × current), Chubby (a higher spending level; default
-   spending = 1.2 × current), both after taking out ongoing dated items already paid today (D18, D57); Coast (stop contributing now; work until a chosen age, default 65; then
+   spending = 1.2 × current), both after taking out ongoing dated items already paid today (D18, D57); Coast (stop contributing now, or cut back to
+   contributions kept while coasting such as the 401(k) deferral that earns the match (D94); work until a chosen age, default 65; then
    Traditional spending).
 5. **Household** — two people, each with their own age, salary, accounts and Social Security, sharing one
    retirement year.
@@ -82,9 +83,9 @@ Key research points:
 - **Expected savings by then** — typical (50th) and significantly-below-average (10th percentile) balance at the
   earliest date from the whole-plan simulation. Shown next to the FIRE number so the date and the number
   can be read together (D54).
-- **Coast "earliest"** — smallest year contributions can stop while still working until the coast
-  age and passing. **Coast number** — smallest portfolio *today* that passes if contributions stop
-  today.
+- **Coast "earliest"** — smallest year contributions can stop (or be cut back to the amounts kept while
+  coasting, D94) while still working until the coast age and passing. **Coast number** — smallest
+  portfolio *today* that passes if contributions stop (or are cut back) today.
 - **Success today** — retire (or stop contributing) this year.
 - **Detail view** — for a chosen FIRE type and year: bands, penalty-withdrawal rate, each person's Social
   Security at full retirement age, what happens in the markets that fail (D74), the 4% rule check

@@ -3,7 +3,7 @@
 // (docs/UPDATE_DATA_PROMPT.md). Each row: what, the value used, default or yours, why, and the source.
 
 import { FEDERAL, LIMITS, RULES_YEAR, SOCIAL_SECURITY, rmdStartAge } from '../data/rules';
-import { CHUBBY_SPENDING_FACTOR, DEFAULT_ASSUMPTIONS, EXAMPLE_CLAIM_AGE, FIDELITY_SPENDING_FACTOR, chubbyDefaultSpending, datedExpensesToday, fidelityDefaultSpending } from './defaults';
+import { CHUBBY_SPENDING_FACTOR, DEFAULT_ASSUMPTIONS, EXAMPLE_CLAIM_AGE, FIDELITY_SPENDING_FACTOR, chubbyDefaultSpending, coastContributionTotal, datedExpensesToday, fidelityDefaultSpending } from './defaults';
 import { TAXABLE_YIELDS } from './context';
 import { MARKET } from './returns';
 import type { Plan } from './types';
@@ -38,6 +38,7 @@ export function describeAssumptions(plan: Plan): AssumptionRow[] {
   const a = plan.assumptions;
   const d = DEFAULT_ASSUMPTIONS;
   const st = (same: boolean): AssumptionRow['status'] => (same ? 'default' : 'changed');
+  const kept = coastContributionTotal(plan);
   const fid = { label: 'Fidelity FI Planner methodology', url: 'https://www.fidelity.com/bin-public/060_www_fidelity_com/documents/FI_Planner_Methodology.pdf' };
   const tf = a.ssTrustFund;
   const alloc = a.allocation;
@@ -82,8 +83,10 @@ export function describeAssumptions(plan: Plan): AssumptionRow[] {
     { group: 'Work & spending', label: 'Chubby FIRE spending', value: plan.household.chubbySpending ? usd(plan.household.chubbySpending) : 'not set',
       status: plan.household.chubbySpending === chubbyDefaultSpending(plan) ? 'default' : 'changed',
       why: `Default is ${CHUBBY_SPENDING_FACTOR.toFixed(1)} × (current spending − ${usd(datedExpensesToday(plan))} of dated items you already pay today): a step up from today's lifestyle, between Traditional and Fat FIRE. Healthcare and dated items are added separately.`, decision: 'D57' },
-    { group: 'Work & spending', label: 'Coast FIRE: stop working at', value: `your age ${plan.household.coastRetireAge}`, status: st(plan.household.coastRetireAge === 65),
-      why: 'Coast = stop contributing now, keep working (paycheck covers spending) until this age, then Traditional spending.', decision: 'D69' },
+    { group: 'Work & spending', label: 'Coast FIRE: stop working at',
+      value: `your age ${plan.household.coastRetireAge}` + (kept > 0 ? `, keeping ${usd(kept)}/yr of contributions` : ''),
+      status: st(plan.household.coastRetireAge === 65 && kept === 0),
+      why: 'Coast = stop contributing now (or cut back to the contributions kept while coasting, employer match included; they grow with wages and are capped like today’s), keep working (paycheck covers spending) until this age, then Traditional spending.', decision: 'D69, D94' },
     { group: 'Work & spending', label: 'While working', value: 'Paycheck covers all spending', status: 'fixed',
       why: 'The portfolio only receives contributions until the retirement date, and each account pays the yearly tax on its own dividends and interest (D70).', decision: 'D16' },
     { group: 'Work & spending', label: 'Dated items', value: `${plan.datedItems.length} item(s)`, status: 'fixed',
