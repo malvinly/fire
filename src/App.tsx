@@ -13,6 +13,7 @@ import { Icon, TIER_ICONS } from './ui/icons';
 import { InputsPanel } from './ui/InputsPanel';
 import { BeforeYouAct, DetailView, TIER_NAMES, TierCard } from './ui/Results';
 import { SessionsDialog, type SessionMeta } from './ui/SessionsDialog';
+import { applyTheme, systemTheme, type ThemeChoice } from './ui/theme';
 import { DRAFT_KEY, REJECTED_DRAFT_KEY, describeProblems, detailArea, detailSelection, downloadJson, isStale, makeSession, type SessionFile } from './ui/sessions';
 import { beforeYouAct } from './ui/warnings';
 import { CancelledError, detail as fetchDetail, solveAll } from './worker/client';
@@ -61,6 +62,8 @@ export default function App() {
   const [plan, setPlan] = useState<Plan>(() => draft?.plan ?? examplePlan());
   const [meta, setMeta] = useState<SessionMeta | null>(() => draft?.meta ?? null);
   const [tab, setTab] = useState<'plan' | 'how' | 'about'>('plan');
+  const [theme, setTheme] = useState<ThemeChoice>(systemTheme);
+  const toggleTheme = () => { const next = theme === 'dark' ? 'light' : 'dark'; applyTheme(next); setTheme(next); };
   // A "How this works" group to scroll to when opening that tab from a link.
   const [howFocus, setHowFocus] = useState<string | null>(null);
   const [results, setResults] = useState<Results | null>(null);
@@ -225,6 +228,10 @@ export default function App() {
         <span className="text-2">
           {meta ? meta.name : 'Unsaved plan'}{dirty ? ' •' : ''}
         </span>
+        <button className="btn icon" onClick={toggleTheme} aria-label={theme === 'dark' ? 'Switch to light colours' : 'Switch to dark colours'}
+          title={theme === 'dark' ? 'Switch to light colours' : 'Switch to dark colours'}>
+          <Icon name={theme === 'dark' ? 'sun' : 'moon'} />
+        </button>
         <button className="btn" onClick={() => setSessionsOpen(true)}>Plans…</button>
         <button className="btn primary" onClick={calculate} disabled={results !== null && !results.done}>
           {results && !results.done ? 'Calculating…' : 'Calculate'}

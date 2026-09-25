@@ -47,7 +47,7 @@ code comments cite) first. Planned work is in [pending-features.md](pending-feat
    - If results change for the same inputs, bump `DATA_VERSIONS.engine` in `src/engine/assumptions.ts`
      (D59) so saved sessions are flagged for recalculation, and refresh
      [Reproducing the numbers](#reproducing-the-numbers).
-   - Record any judgement call as a new D-number in DECISIONS.md (the next free number is **D91**). Update
+   - Record any judgement call as a new D-number in DECISIONS.md (the next free number is **D92**). Update
      an existing D-row if its behavior changes, and update the "Which way the assumptions lean" table.
    - If the change affects an assumption shown to users, update its row in `describeAssumptions` in
      `src/engine/assumptions.ts` (the "How this works" page) and its help text in `src/ui/helpText.ts`.
@@ -87,7 +87,7 @@ src/
   worker/          engine workers off the main thread: one per FIRE type, one for the detail view (D80)
   ui/              React components (About.tsx, HowItWorks.tsx, InputsPanel.tsx, Results.tsx…), charts, session
                    files, input help text (helpText.ts), field and year parsing (format.ts), the warnings
-                   panel's lines (warnings.ts)
+                   panel's lines (warnings.ts), the dark/light choice (theme.ts)
 public/
   Start FIRE Planner.cmd  double-click launcher, copied into dist/ by the build (not published to the site)
   serve.ps1               tiny localhost-only static server (Windows PowerShell, no Node) used by the launcher
@@ -133,7 +133,8 @@ Layered so each kind of mistake has a test that can catch it:
    `tests/client.test.ts`) — damaged files rejected and old ones migrated, a stale session's saved detail shown
    only for its own FIRE type and year (D85) and its versions kept when saved (D86), the warnings panel's
    lines, field parsing and limits, money boxes' separators and the pronoun for the default name (D90), the
-   year picker's typed text (D84), and superseded worker requests cancelled (D80).
+   year picker's typed text (D84), the colour choice from the system preference (`tests/theme.test.ts`, D91), and superseded
+   worker requests cancelled (D80).
 9. **Defaults and earnings records** (`tests/defaults.test.ts`, `tests/earnings.test.ts`) — the 10%
    bracket-fill default (D29), default spending levels (D18, D57), the quick-search sample (D5), fields and sections
    still holding example numbers (D64), and SSA earnings read from the XML statement or pasted rows (including CSV).

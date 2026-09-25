@@ -22,10 +22,9 @@ export function useTheme() {
   };
   const [theme, setTheme] = useState(read);
   useEffect(() => {
-    const mq = window.matchMedia('(prefers-color-scheme: dark)');
     const on = () => setTheme(read());
-    mq.addEventListener('change', on);
-    return () => mq.removeEventListener('change', on);
+    window.addEventListener('themechange', on);
+    return () => window.removeEventListener('themechange', on);
   }, []);
   return theme;
 }

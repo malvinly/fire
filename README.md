@@ -67,6 +67,8 @@ All three are left out on purpose; they don't match the kind of plan this tool i
 - **How this works** — generated from the plan on screen: every assumption, whether it's a default or
   yours, why, and the source.
 - **About** — where your numbers go, whom the tool is built for, the version and a link to this repository.
+- **Dark or light** — the page follows your system's setting; the sun/moon button in the top bar switches
+  it for this visit.
 
 ## Run it yourself
 

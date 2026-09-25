@@ -1,4 +1,4 @@
-/* Tokens: dataviz reference palette (light + dark, selected per mode). */
+/* Tokens: dataviz reference palette. `data-theme` on <html> (set from the system preference on arrival, then by the toggle) picks light; anything else is dark (D91). */
 :root {
   color-scheme: light;
   --page: #f9f9f7;
@@ -32,8 +32,7 @@
   background: var(--page);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
+:root:not([data-theme="light"]) {
     color-scheme: dark;
     --page: #0d0d0d;
     --surface: #1a1a19;
@@ -54,7 +53,6 @@
     --band-1: #86b6ef;
     --band-2: #3987e5;
     --band-3: #1c5cab;
-  }
 }
 
 * { box-sizing: border-box; }
@@ -101,6 +99,7 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .btn.primary:hover { filter: brightness(1.08); }
 .btn:disabled { opacity: 0.55; cursor: default; }
 .btn.small { padding: 3px 8px; font-size: 12px; }
+.btn.icon { padding: 6px; display: inline-flex; }
 .link { background: none; border: 0; color: var(--accent); cursor: pointer; padding: 0; text-align: left; }
 
 /* ---- Inputs panel ---- */
@@ -194,8 +193,8 @@ table.data td { font-variant-numeric: tabular-nums; }
 .tag.changed { border-color: var(--accent); color: var(--accent); }
 
 /* ---- Dialog ---- */
-dialog { border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface); color: var(--text); padding: 20px; width: min(600px, 92vw); }
-dialog::backdrop { background: rgba(0, 0, 0, 0.35); }
+dialog { border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface); color: var(--text); padding: 20px; width: min(600px, 92vw); box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4); }
+dialog::backdrop { background: rgba(0, 0, 0, 0.55); backdrop-filter: blur(3px); }
 .session-list { display: grid; gap: 6px; max-height: 50vh; overflow: auto; margin: 12px 0; }
 .session-item { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 8px 10px; border: 1px solid var(--border); border-radius: 8px; cursor: pointer; background: var(--page); text-align: left; }
 .session-item:hover { background: var(--surface-2); }
