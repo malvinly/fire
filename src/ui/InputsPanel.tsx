@@ -4,7 +4,7 @@ import { CHUBBY_SPENDING_FACTOR, DEFAULT_ASSUMPTIONS, FIDELITY_SPENDING_FACTOR, 
 import { parseEarnings } from '../engine/earnings';
 import { computePia } from '../engine/socialSecurity';
 import type { BracketFill, Person, PersonId, Plan } from '../engine/types';
-import { planEndYear } from '../engine/context';
+import { hsaEligible, planEndYear } from '../engine/context';
 import { FIELD_LIMITS, birthYearProblem, coastAgeProblem, coastKeptProblem } from '../engine/validate';
 import { DatedItemsEditor } from './DatedItemsEditor';
 import { Help, NumberField, Section, SelectField, TextField } from './fields';
@@ -29,7 +29,12 @@ export function InputsPanel({ plan, update }: { plan: Plan; update: Update }) {
   const spendingBase = dated ? `(${money(h.currentSpending)} − ${money(dated)} dated items)` : money(h.currentSpending);
   const a = plan.assumptions;
   const salaries = plan.you.salary + plan.spouse.salary;
-  const hsaLimit = LIMITS.hsaFamily + PEOPLE.filter((id) => plan.startYear - plan[id].birthYear >= 55).length * LIMITS.hsaCatchUp;
+  // The household HSA limit and the over-limit notes leave out a person Medicare has made ineligible (D95); their own
+  // HSA fields say the entry is not deposited.
+  const hsaOk = (id: PersonId) => hsaEligible(plan[id], plan.startYear);
+  const hsaLimit = LIMITS.hsaFamily + PEOPLE.filter((id) => hsaOk(id) && plan.startYear - plan[id].birthYear >= 55).length * LIMITS.hsaCatchUp;
+  const hsaEntered = (kind: 'contributions' | 'coastContributions') => PEOPLE.reduce((s, id) => s + (hsaOk(id) ? plan[id][kind].hsa : 0), 0);
+  const NOT_DEPOSITED = 'Not deposited: at 65 and receiving Social Security, Medicare ends HSA contributions.';
   const saved =
     PEOPLE.reduce((s, id) => {
       const c = plan[id].contributions;
@@ -100,12 +105,13 @@ export function InputsPanel({ plan, update }: { plan: Plan; update: Update }) {
                   warn={employee > limit ? `Above 401(k)+IRA limits (${money(limit)})` : null} />
                 <NumberField label="Employer match" help={HELP.employerMatch} {...NO_DEBT} value={p.contributions.employerMatch} example={exampleOf(`${id}.contributions.employerMatch`)} onChange={(v) => update((d) => { d[id].contributions.employerMatch = v ?? 0; })} />
                 <NumberField label="Roth 401(k)/IRA" help={HELP.rothContribution} {...NO_DEBT} value={p.contributions.roth} example={exampleOf(`${id}.contributions.roth`)} onChange={(v) => update((d) => { d[id].contributions.roth = v ?? 0; })} />
-                <NumberField label="HSA" help={HELP.hsaContribution} {...NO_DEBT} value={p.contributions.hsa} example={exampleOf(`${id}.contributions.hsa`)} onChange={(v) => update((d) => { d[id].contributions.hsa = v ?? 0; })} />
+                <NumberField label="HSA" help={HELP.hsaContribution} {...NO_DEBT} value={p.contributions.hsa} example={exampleOf(`${id}.contributions.hsa`)} onChange={(v) => update((d) => { d[id].contributions.hsa = v ?? 0; })}
+                  warn={!hsaOk(id) && p.contributions.hsa > 0 ? NOT_DEPOSITED : null} />
               </div>
             );
           })}
         </div>
-        {plan.you.contributions.hsa + plan.spouse.contributions.hsa > hsaLimit && (
+        {hsaEntered('contributions') > hsaLimit && (
           <p className="muted">HSA contributions exceed the family limit ({money(hsaLimit)} with catch-ups at your ages).</p>
         )}
         <div className="grid2">
@@ -136,12 +142,13 @@ export function InputsPanel({ plan, update }: { plan: Plan; update: Update }) {
                     warn={c.pretax + c.roth > limit ? `Above 401(k)+IRA limits (${money(limit)})` : null} />
                   <NumberField label="Employer match" help={HELP.coastEmployerMatch} {...NO_DEBT} value={c.employerMatch} check={check('employerMatch')} onChange={(v) => update((d) => { d[id].coastContributions.employerMatch = v ?? 0; })} />
                   <NumberField label="Roth 401(k)/IRA" help={HELP.coastRoth} {...NO_DEBT} value={c.roth} check={check('roth')} onChange={(v) => update((d) => { d[id].coastContributions.roth = v ?? 0; })} />
-                  <NumberField label="HSA" help={HELP.coastHsa} {...NO_DEBT} value={c.hsa} check={check('hsa')} onChange={(v) => update((d) => { d[id].coastContributions.hsa = v ?? 0; })} />
+                  <NumberField label="HSA" help={HELP.coastHsa} {...NO_DEBT} value={c.hsa} check={check('hsa')} onChange={(v) => update((d) => { d[id].coastContributions.hsa = v ?? 0; })}
+                    warn={!hsaOk(id) && c.hsa > 0 ? NOT_DEPOSITED : null} />
                 </div>
               );
             })}
           </div>
-          {plan.you.coastContributions.hsa + plan.spouse.coastContributions.hsa > hsaLimit && (
+          {hsaEntered('coastContributions') > hsaLimit && (
             <p className="muted">Kept HSA contributions exceed the family limit ({money(hsaLimit)} with catch-ups at your ages).</p>
           )}
         </details>

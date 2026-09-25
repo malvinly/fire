@@ -133,6 +133,15 @@ function pia(person: Person, startYear: number, stopWorkYear: number, wageGrowth
 
 export const ZERO_CONTRIBUTIONS: Readonly<Contributions> = { pretax: 0, employerMatch: 0, roth: 0, hsa: 0 };
 
+/**
+ * Whether a person can still contribute to an HSA in `year`: receiving Social Security at 65 or later enrolls them in
+ * Medicare, which ends HSA eligibility (D95). A 65+ person who has not claimed yet is assumed still covered by an
+ * employer plan. Shared with the HSA fields' notes (src/ui/InputsPanel.tsx).
+ */
+export function hsaEligible(p: Person, year: number): boolean {
+  return year - p.birthYear < Math.max(65, p.socialSecurity.claimAge);
+}
+
 export function buildContext(plan: Plan, scenario: Scenario): Context {
   const a = plan.assumptions;
   const { startYear, endYear, len } = planYears(plan);
@@ -194,15 +203,13 @@ export function buildContext(plan: Plan, scenario: Scenario): Context {
     let hc = 0;
     let over65 = 0;
     const amounts = people.map((p) => (regularSaving ? p.contributions : working ? p.coastContributions : ZERO_CONTRIBUTIONS));
-    // Receiving Social Security at 65 or later enrolls a person in Medicare, which ends their HSA eligibility: no
-    // deposit, no catch-up, no wage deduction (D95). A 65+ person who has not claimed yet is assumed still covered
-    // by an employer plan.
-    const hsaEligible = people.map((p) => year - p.birthYear < Math.max(65, p.socialSecurity.claimAge));
+    // Medicare ends HSA eligibility (D95): no deposit, no catch-up, no wage deduction for that person.
+    const eligible = people.map((p) => hsaEligible(p, year));
     // The HSA limit is household-wide, so an over-limit entry is scaled back in proportion for each spouse, and
     // only the money actually deposited comes off that spouse's wages (D15, D88).
     let hsaLimit = LIMITS.hsaFamily;
-    people.forEach((p, i) => { if (hsaEligible[i] && year - p.birthYear >= 55) hsaLimit += LIMITS.hsaCatchUp; });
-    const hsaEntered = ((hsaEligible[0] ? amounts[0].hsa : 0) + (hsaEligible[1] ? amounts[1].hsa : 0)) * growth;
+    people.forEach((p, i) => { if (eligible[i] && year - p.birthYear >= 55) hsaLimit += LIMITS.hsaCatchUp; });
+    const hsaEntered = ((eligible[0] ? amounts[0].hsa : 0) + (eligible[1] ? amounts[1].hsa : 0)) * growth;
     const kHsa = hsaEntered > hsaLimit ? hsaLimit / hsaEntered : 1;
     people.forEach((p, i) => {
       const age = year - p.birthYear;
@@ -219,7 +226,7 @@ export function buildContext(plan: Plan, scenario: Scenario): Context {
         // Contributions grow with wages, but IRS limits only keep pace with inflation (flat in real terms), D15.
         ctx.contrib.pretax[i][t] = c.pretax * growth * k + c.employerMatch * growth;
         ctx.contrib.roth[i][t] = c.roth * growth * k;
-        const hsa = hsaEligible[i] ? c.hsa * growth * kHsa : 0;
+        const hsa = eligible[i] ? c.hsa * growth * kHsa : 0;
         ctx.contrib.hsa[t] += hsa;
         const pretaxFromPay = c.pretax * growth * k + hsa;
         ctx.wages[t] += Math.max(0, p.salary * growth - pretaxFromPay);
