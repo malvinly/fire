@@ -25,7 +25,7 @@ export const FIELD_LIMITS = {
   endAge: { min: 1, max: 130 },
   /** Plan start, birth years, dated-item and trust-fund years. */
   year: { min: 1900, max: 2200 },
-  /** Ages for dated items and the Coast age. */
+  /** Ages for dated items, the Coast age and the ages the asset mix shifts (D97). */
   age: { min: 0, max: 130 },
   claimAge: { min: 62, max: 70 },
   birthMonth: { min: 1, max: 12 },
@@ -204,8 +204,15 @@ export function fieldProblems(raw: unknown): string[] {
       const parts = ['stocks', 'bonds', 'cash'].map((k) => c.num(alloc, k, `${at}${key}.`, rate) ?? 0);
       if (Math.abs(parts[0] + parts[1] + parts[2] - 1) > 1e-6) c.problems.push(`${at}${key} must add up to 100%.`);
     };
+    c.oneOf(a, 'mixPlan', at, ['vanguard', 'fidelity', 'own']);
+    // Checked whichever choice is in use: they stay in the plan for "your own" (D97).
     mix('allocation');
-    if (a.retiredAllocation !== null) mix('retiredAllocation'); // null = the same mix after retiring (D96)
+    mix('laterAllocation');
+    const shiftStart = c.num(a, 'shiftStartAge', at, { int: true, ...L.age });
+    const shiftEnd = c.num(a, 'shiftEndAge', at, { int: true, ...L.age });
+    if (shiftStart !== undefined && shiftEnd !== undefined && shiftEnd < shiftStart) {
+      c.problems.push(`${at}shiftEndAge must not be below shiftStartAge (found ${shiftEnd} and ${shiftStart}).`);
+    }
     c.num(a, 'feeRate', at, rate);
     c.num(a, 'wageGrowth', at, L.growth);
     c.num(a, 'healthcareInflation', at, L.growth);

@@ -4,7 +4,9 @@
 
 import { FEDERAL, LIMITS, RULES_YEAR, SOCIAL_SECURITY, rmdStartAge } from '../data/rules';
 import { CHUBBY_SPENDING_FACTOR, DEFAULT_ASSUMPTIONS, EXAMPLE_CLAIM_AGE, FIDELITY_SPENDING_FACTOR, chubbyDefaultSpending, coastContributionTotal, datedExpensesToday, fidelityDefaultSpending } from './defaults';
+import { MIX_SOURCES, VANGUARD_PATH } from '../data/mixPaths';
 import { TAXABLE_YIELDS } from './context';
+import { mixInYear, mixLabel, mixShiftYears } from './mix';
 import { MARKET } from './returns';
 import type { Plan } from './types';
 
@@ -39,18 +41,14 @@ export function describeAssumptions(plan: Plan): AssumptionRow[] {
   const d = DEFAULT_ASSUMPTIONS;
   const st = (same: boolean): AssumptionRow['status'] => (same ? 'default' : 'changed');
   const kept = coastContributionTotal(plan);
-  const fid = { label: 'Fidelity FI Planner methodology', url: 'https://www.fidelity.com/bin-public/060_www_fidelity_com/documents/FI_Planner_Methodology.pdf' };
+  const fid = MIX_SOURCES.fidelity;
   const tf = a.ssTrustFund;
-  const alloc = a.allocation;
-  const allocSame = alloc.stocks === d.allocation.stocks && alloc.bonds === d.allocation.bonds && alloc.cash === d.allocation.cash;
-  const retired = a.retiredAllocation;
-  const mixText = (m: typeof alloc) => `${pct(m.stocks, 0)} stocks / ${pct(m.bonds, 0)} bonds / ${pct(m.cash, 0)} cash`;
   const tfSame = JSON.stringify(tf) === JSON.stringify(d.ssTrustFund);
 
   return [
     // Confidence
     { group: 'Confidence', label: 'Success target', value: pct(a.targetSuccess, 0), status: st(a.targetSuccess === d.targetSuccess),
-      why: 'A plan "succeeds" if money never runs out. 90% = Fidelity\'s "significantly below average market" standard.', source: fid, decision: 'D2' },
+      why: 'A plan "succeeds" if money never runs out. 90% is the confidence level Fidelity\'s FI Planner uses; Fidelity\'s retirement planning tools describe that level as "significantly below average" market conditions.', source: fid, decision: 'D2' },
     { group: 'Confidence', label: 'Plan ends when the younger spouse reaches', value: `age ${a.endAge}`, status: st(a.endAge === d.endAge),
       why: 'Fidelity plans to age 96. Using the younger spouse is the longest (safest) horizon.', source: fid, decision: 'D2' },
     { group: 'Confidence', label: 'Market paths', value: `${a.paths.toLocaleString()} simulated markets + every real stretch of history since ${MARKET.firstYear}`, status: st(a.paths === d.paths),
@@ -63,10 +61,7 @@ export function describeAssumptions(plan: Plan): AssumptionRow[] {
       why: 'Any number; the same number always gives the same results.', decision: 'D4' },
 
     // Markets
-    { group: 'Markets', label: 'Asset mix', value: `${mixText(alloc)}, reset to this mix each year${retired ? ' until you retire' : ''}`, status: st(allocSame),
-      why: "Fidelity's FI Planner mix. Applies to every invested account.", source: fid, decision: 'D8' },
-    { group: 'Markets', label: 'Asset mix after you retire', value: retired ? `${mixText(retired)}, from the retirement year on` : 'The same mix', status: st(retired === null),
-      why: 'From the year you retire, every invested account moves to this mix and is reset to it each year. The brokerage account pays capital-gains tax that year on what the move sells; retirement accounts move tax-free.', decision: 'D96' },
+    assetMixRow(plan),
     { group: 'Markets', label: 'Fund fees', value: pct(a.feeRate, 2), status: st(a.feeRate === d.feeRate),
       why: 'Subtracted from returns every year.', decision: 'D8' },
     { group: 'Markets', label: 'Historical data', value: `${MARKET.firstYear}–${MARKET.lastYear}, January to January`, status: 'fixed',
@@ -149,6 +144,43 @@ export function describeAssumptions(plan: Plan): AssumptionRow[] {
     { group: LIMITS_GROUP, label: 'Also planned', value: 'Full year-by-year table; report export for AI review', status: 'fixed',
       why: 'Features not built yet; they add views, not changes to the results above.' },
   ];
+}
+
+/** The "Asset mix" row: the choice in use, in words (D8, D97). */
+function assetMixRow(plan: Plan): AssumptionRow {
+  const a = plan.assumptions;
+  const name = plan.you.name;
+  const shifts = mixShiftYears(plan);
+  let value: string;
+  let source: AssumptionRow['source'];
+  // Calendar years carry the sentence; names and ages go in brackets, so "You" reads as well as a real name.
+  if (a.mixPlan === 'vanguard') {
+    const target = plan.you.birthYear + VANGUARD_PATH.targetAge;
+    const { first, last } = shifts!;
+    const start = plan.startYear;
+    const [now, atTarget, final] = [start, target, last].map((y) => mixLabel(mixInYear(plan, y)));
+    const path =
+      start >= last ? `${final} every year from now on`
+      : start >= target ? `${now} in ${start}, and ${final} from ${last} on`
+      : `${now} ${start < first ? `until ${first - 1}` : `in ${start}`}, ${atTarget} in ${target}, and ${final} from ${last} on`;
+    value = `Vanguard’s Target Retirement path with ${target} as its target year (${name}: age ${VANGUARD_PATH.targetAge}): ${path}`;
+    source = MIX_SOURCES.vanguard;
+  } else if (a.mixPlan === 'fidelity') {
+    value = `${mixLabel(mixInYear(plan, plan.startYear))} every year (Fidelity’s FI Planner mix)`;
+    source = MIX_SOURCES.fidelity;
+  } else if (!shifts) {
+    value = `${mixLabel(a.allocation)} every year`;
+  } else if (a.shiftStartAge === a.shiftEndAge) {
+    value = `${mixLabel(a.allocation)} until ${shifts.first - 1}, then ${mixLabel(a.laterAllocation)} from ${shifts.first} (${name}: age ${a.shiftStartAge})`;
+  } else {
+    const steps = a.shiftEndAge - a.shiftStartAge + 1;
+    value = `${mixLabel(a.allocation)} until ${shifts.first - 1}, then ${steps} equal yearly steps from ${shifts.first} to ${shifts.last} ` +
+      `(${name}: ages ${a.shiftStartAge} to ${a.shiftEndAge}), reaching ${mixLabel(a.laterAllocation)}`;
+  }
+  const why = 'Every invested account holds the year’s mix and is put back to it each year.' + (shifts
+    ? ' In each year the mix changes, the brokerage account sells part of itself to move to the new mix and pays capital-gains tax on that part of its gain; retirement accounts and the HSA move tax-free.'
+    : '');
+  return { group: 'Markets', label: 'Asset mix', value, status: a.mixPlan === 'vanguard' ? 'default' : 'changed', why, ...(source ? { source } : {}), decision: 'D8, D97' };
 }
 
 /** The "How this works" group listing what the model leaves out; the warnings panel links to it (D75). */

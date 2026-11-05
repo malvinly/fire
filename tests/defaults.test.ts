@@ -1,7 +1,7 @@
 // Default spending levels (D18, D57).
 import { describe, expect, test } from 'vitest';
+import { MIX_SOURCES } from '../src/data/mixPaths';
 import { describeAssumptions } from '../src/engine/assumptions';
-import { RETIRED_MIX_EXAMPLES } from '../src/ui/helpText';
 import { DEFAULT_ASSUMPTIONS, chubbyDefaultSpending, examplePlan, exampleStatus, searchPathsFor, fidelityDefaultSpending, untouchedSections } from '../src/engine/defaults';
 
 describe('default spending', () => {
@@ -118,26 +118,70 @@ describe('fields still holding example values (D64)', () => {
   });
 });
 
-describe('How this works: the mix after retiring (D96)', () => {
-  const row = (plan: ReturnType<typeof examplePlan>, label: string) => describeAssumptions(plan).find((r) => r.label === label)!;
+describe('Asset mix over time: defaults and the How-this-works row (D97)', () => {
+  const row = (plan: ReturnType<typeof examplePlan>) => {
+    const rows = describeAssumptions(plan).filter((r) => r.label.startsWith('Asset mix'));
+    expect(rows).toHaveLength(1);
+    return rows[0];
+  };
+  const shiftWhy = 'In each year the mix changes, the brokerage account sells part of itself to move to the new mix and pays capital-gains tax on that part of its gain; retirement accounts and the HSA move tax-free.';
+  const resetWhy = 'Every invested account holds the year’s mix and is put back to it each year.';
 
-  test('off by default: one mix throughout', () => {
-    const plan = examplePlan(2026);
-    expect(DEFAULT_ASSUMPTIONS.retiredAllocation).toBeNull();
-    expect(row(plan, 'Asset mix after you retire')).toMatchObject({ value: 'The same mix', status: 'default' });
-    expect(row(plan, 'Asset mix').value).toBe('70% stocks / 25% bonds / 5% cash, reset to this mix each year');
+  test('new plans follow Vanguard’s path; your own mix starts as a fixed 70/25/5 with Vanguard’s timing', () => {
+    expect(DEFAULT_ASSUMPTIONS).toMatchObject({
+      mixPlan: 'vanguard', allocation: { stocks: 0.7, bonds: 0.25, cash: 0.05 }, laterAllocation: { stocks: 0.7, bonds: 0.25, cash: 0.05 },
+      shiftStartAge: 40, shiftEndAge: 72,
+    });
+    expect('retiredAllocation' in DEFAULT_ASSUMPTIONS).toBe(false);
   });
 
-  test('set: both rows say when each mix applies', () => {
-    const plan = examplePlan(2026);
-    plan.assumptions.retiredAllocation = { stocks: 0.4, bonds: 0.5, cash: 0.1 };
-    expect(row(plan, 'Asset mix after you retire')).toMatchObject({ value: '40% stocks / 50% bonds / 10% cash, from the retirement year on', status: 'changed' });
-    expect(row(plan, 'Asset mix').value).toBe('70% stocks / 25% bonds / 5% cash, reset to this mix each year until you retire');
+  test('Vanguard (default): the target year, and this year’s, the target year’s and the final mix', () => {
+    const plan = examplePlan(2026); // You born 1984: 65 in 2049; 2026 is 23 years before
+    expect(row(plan)).toEqual({
+      group: 'Markets', label: 'Asset mix', status: 'default', decision: 'D8, D97', source: MIX_SOURCES.vanguard,
+      value: 'Vanguard’s Target Retirement path with 2049 as its target year (You: age 65): 87% stocks / 13% bonds in 2026, 50% stocks / 50% bonds in 2049, and 30% stocks / 70% bonds from 2056 on',
+      why: `${resetWhy} ${shiftWhy}`,
+    });
   });
-});
 
-test('every common mix in the after-retiring help adds up to 100%, and the first is the app’s default (D96)', () => {
-  for (const x of RETIRED_MIX_EXAMPLES) expect(x.mix[0] + x.mix[1] + x.mix[2]).toBe(100);
-  const d = DEFAULT_ASSUMPTIONS.allocation;
-  expect(RETIRED_MIX_EXAMPLES[0].mix).toEqual([d.stocks, d.bonds, d.cash].map((v) => Math.round(v * 100)));
+  test('Vanguard: the wording still reads when the plan starts before the path moves, past the target year or past its end', () => {
+    const at = (age: number) => {
+      const plan = examplePlan(2026);
+      plan.you.birthYear = 2026 - age;
+      return row(plan).value;
+    };
+    const head = (target: number) => `Vanguard’s Target Retirement path with ${target} as its target year (You: age 65): `;
+    expect(at(30)).toBe(`${head(2061)}90% stocks / 10% bonds until 2036, 50% stocks / 50% bonds in 2061, and 30% stocks / 70% bonds from 2068 on`);
+    expect(at(68)).toBe(`${head(2023)}41% stocks / 59% bonds in 2026, and 30% stocks / 70% bonds from 2030 on`);
+    expect(at(65)).toBe(`${head(2026)}50% stocks / 50% bonds in 2026, and 30% stocks / 70% bonds from 2033 on`);
+    expect(at(72)).toBe(`${head(2019)}30% stocks / 70% bonds every year from now on`);
+    expect(at(80)).toBe(`${head(2011)}30% stocks / 70% bonds every year from now on`);
+  });
+
+  test('Fidelity: 70/25/5 every year, no shift', () => {
+    const plan = examplePlan(2026);
+    plan.assumptions.mixPlan = 'fidelity';
+    expect(row(plan)).toEqual({
+      group: 'Markets', label: 'Asset mix', status: 'changed', decision: 'D8, D97', source: MIX_SOURCES.fidelity,
+      value: '70% stocks / 25% bonds / 5% cash every year (Fidelity’s FI Planner mix)', why: resetWhy,
+    });
+  });
+
+  test('your own: a fixed mix, one switch, or yearly steps', () => {
+    const plan = examplePlan(2026);
+    plan.you.name = 'Ana';
+    plan.assumptions.mixPlan = 'own';
+    plan.assumptions.allocation = { stocks: 0.6, bonds: 0.4, cash: 0 };
+    plan.assumptions.laterAllocation = { stocks: 0.6, bonds: 0.4, cash: 0 };
+    expect(row(plan)).toEqual({ group: 'Markets', label: 'Asset mix', status: 'changed', decision: 'D8, D97', value: '60% stocks / 40% bonds every year', why: resetWhy });
+    plan.assumptions.laterAllocation = { stocks: 0.4, bonds: 0.5, cash: 0.1 };
+    plan.assumptions.shiftStartAge = plan.assumptions.shiftEndAge = 65;
+    expect(row(plan)).toMatchObject({ value: '60% stocks / 40% bonds until 2048, then 40% stocks / 50% bonds / 10% cash from 2049 (Ana: age 65)', why: `${resetWhy} ${shiftWhy}` });
+    plan.assumptions.shiftStartAge = 55;
+    expect(row(plan)).toMatchObject({
+      value: '60% stocks / 40% bonds until 2038, then 11 equal yearly steps from 2039 to 2049 (Ana: ages 55 to 65), reaching 40% stocks / 50% bonds / 10% cash',
+      status: 'changed',
+    });
+    expect(row(plan).source).toBeUndefined();
+  });
 });

@@ -30,14 +30,58 @@ describe('older plan files', () => {
     expect(s.plan.spouse.coastContributions).toEqual({ pretax: 0, employerMatch: 0, roth: 0, hsa: 0 });
   });
 
-  test('a file saved before the mix after retiring existed keeps one mix throughout (D96)', () => {
-    const s = parseSession(sessionText((plan) => { delete (plan.assumptions as Record<string, unknown>).retiredAllocation; }));
-    expect(s.plan.assumptions.retiredAllocation).toBeNull();
+});
+
+describe('files saved before "Asset mix over time" keep the mix they were saved with (D97)', () => {
+  /** A file as saved before D97: no mixPlan, later mix or shift ages; `retiredAllocation` only in a D96 file. */
+  const oldFile = (allocation: unknown, retiredAllocation?: unknown) => parseSession(sessionText((plan) => {
+    const a = plan.assumptions as Record<string, unknown>;
+    for (const k of ['mixPlan', 'laterAllocation', 'shiftStartAge', 'shiftEndAge']) delete a[k];
+    a.allocation = allocation;
+    if (retiredAllocation !== undefined) a.retiredAllocation = retiredAllocation;
+  })).plan.assumptions as unknown as Record<string, unknown>;
+
+  test('the old default 70/25/5 becomes the Fidelity choice', () => {
+    const a = oldFile({ stocks: 0.7, bonds: 0.25, cash: 0.05 }, null);
+    expect(a.mixPlan).toBe('fidelity');
+    expect('retiredAllocation' in a).toBe(false);
   });
 
-  test('a mix after retiring is saved and loaded as entered (D96)', () => {
-    const s = parseSession(sessionText((plan) => { (plan.assumptions as Record<string, unknown>).retiredAllocation = { stocks: 0.4, bonds: 0.5, cash: 0.1 }; }));
-    expect(s.plan.assumptions.retiredAllocation).toEqual({ stocks: 0.4, bonds: 0.5, cash: 0.1 });
+  test('any other mix becomes your own mix, held every year', () => {
+    const a = oldFile({ stocks: 0.6, bonds: 0.4, cash: 0 });
+    expect(a).toMatchObject({ mixPlan: 'own', allocation: { stocks: 0.6, bonds: 0.4, cash: 0 }, laterAllocation: { stocks: 0.6, bonds: 0.4, cash: 0 } });
+    expect(a.laterAllocation).not.toBe(a.allocation);
+  });
+
+  test('a mix after retiring (D96) becomes your own mix with one switch at 65', () => {
+    const a = oldFile({ stocks: 0.7, bonds: 0.25, cash: 0.05 }, { stocks: 0.4, bonds: 0.5, cash: 0.1 });
+    expect(a).toMatchObject({
+      mixPlan: 'own', allocation: { stocks: 0.7, bonds: 0.25, cash: 0.05 }, laterAllocation: { stocks: 0.4, bonds: 0.5, cash: 0.1 },
+      shiftStartAge: 65, shiftEndAge: 65,
+    });
+    expect('retiredAllocation' in a).toBe(false);
+  });
+
+  test('a file with no mix at all takes the old default, Fidelity’s, as before', () => {
+    const a = oldFile(undefined);
+    expect(a).toMatchObject({ mixPlan: 'fidelity', allocation: { stocks: 0.7, bonds: 0.25, cash: 0.05 } });
+  });
+
+  test('a malformed mix is not guessed at: the file is rejected', () => {
+    expect(() => oldFile('70/30')).toThrow(/assumptions\.allocation/);
+  });
+
+  test('a file saved with the new setting loads as saved', () => {
+    const s = parseSession(sessionText((plan) => {
+      Object.assign(plan.assumptions as Record<string, unknown>, {
+        mixPlan: 'own', allocation: { stocks: 0.9, bonds: 0.1, cash: 0 }, laterAllocation: { stocks: 0.3, bonds: 0.6, cash: 0.1 }, shiftStartAge: 50, shiftEndAge: 60,
+      });
+    }));
+    expect(s.plan.assumptions).toMatchObject({
+      mixPlan: 'own', allocation: { stocks: 0.9, bonds: 0.1, cash: 0 }, laterAllocation: { stocks: 0.3, bonds: 0.6, cash: 0.1 }, shiftStartAge: 50, shiftEndAge: 60,
+    });
+    const v = parseSession(sessionText((plan) => { (plan.assumptions as Record<string, unknown>).mixPlan = 'vanguard'; }));
+    expect(v.plan.assumptions.mixPlan).toBe('vanguard');
   });
 });
 
@@ -62,9 +106,15 @@ describe('damaged or out-of-range plans are rejected with a clear message (D71)'
     ['0 simulated markets', (p) => { p.assumptions.paths = 0; }, /assumptions\.paths/],
     ['a negative balance', (p) => { p.you.balances.pretax = -5_000; }, /you\.balances\.pretax/],
     ['a negative amount kept while coasting', (p) => { p.spouse.coastContributions.roth = -1; }, /spouse\.coastContributions\.roth/],
-    ['a mix after retiring that does not add up to 100%', (p) => { p.assumptions.retiredAllocation = { stocks: 0.5, bonds: 0.6, cash: 0 }; }, /assumptions\.retiredAllocation must add up/],
-    ['a mix after retiring saved as text', (p) => { p.assumptions.retiredAllocation = '40/60'; }, /assumptions\.retiredAllocation/],
-    ['a negative bond share after retiring', (p) => { p.assumptions.retiredAllocation = { stocks: 1.1, bonds: -0.1, cash: 0 }; }, /assumptions\.retiredAllocation\.bonds/],
+    ['an unknown mix choice', (p) => { p.assumptions.mixPlan = 'blackrock'; }, /assumptions\.mixPlan must be one of/],
+    ['a later mix that does not add up to 100%', (p) => { p.assumptions.laterAllocation = { stocks: 0.5, bonds: 0.6, cash: 0 }; }, /assumptions\.laterAllocation must add up/],
+    ['a later mix saved as text', (p) => { p.assumptions.laterAllocation = '40/60'; }, /assumptions\.laterAllocation/],
+    ['a negative later bond share', (p) => { p.assumptions.laterAllocation = { stocks: 1.1, bonds: -0.1, cash: 0 }; }, /assumptions\.laterAllocation\.bonds/],
+    ['a first mix that does not add up to 100%', (p) => { p.assumptions.allocation = { stocks: 0.5, bonds: 0.6, cash: 0 }; }, /assumptions\.allocation must add up/],
+    ['a fractional age for the mix shift', (p) => { p.assumptions.shiftStartAge = 40.5; }, /assumptions\.shiftStartAge must be a whole number/],
+    ['a mix-shift age above the age limit', (p) => { p.assumptions.shiftEndAge = 200; }, /assumptions\.shiftEndAge must be at most 130/],
+    ['a missing mix-shift age', (p) => { p.assumptions.shiftEndAge = 'later'; }, /assumptions\.shiftEndAge must be a number/],
+    ['a mix shift that ends before it starts', (p) => { p.assumptions.shiftStartAge = 60; p.assumptions.shiftEndAge = 50; }, /assumptions\.shiftEndAge must not be below shiftStartAge/],
     ['a tax rate above 100%', (p) => { p.assumptions.stateTaxRate = 1.5; }, /assumptions\.stateTaxRate/],
     ['a trust-fund share below 0%', (p) => { p.assumptions.ssTrustFund.endPct = -0.1; }, /assumptions\.ssTrustFund\.endPct/],
     ['a fractional plan age', (p) => { p.assumptions.endAge = 96.5; }, /assumptions\.endAge/],

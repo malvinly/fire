@@ -1,13 +1,14 @@
 // Engine behavior with realistic inputs: taxes that must be paid, two spouses of different ages,
 // Social Security, healthcare phases, gains, the Roth ladder's 5-year rule, and working-year income.
 import { describe, expect, test } from 'vitest';
-import { buildContext, TAXABLE_YIELDS } from '../src/engine/context';
+import { buildContext, mixByYear, TAXABLE_YIELDS } from '../src/engine/context';
 import { bootstrapPaths, constantPath, firstPaths, historicalPaths, MARKET, type MarketYear, type ReturnPaths } from '../src/engine/returns';
 import { initialState, simulatePath, totalBalance } from '../src/engine/simulate';
 import { annualBenefits, ownClaimFactor, payableShare, spousalClaimFactor } from '../src/engine/socialSecurity';
 import { FEDERAL, LIMITS } from '../src/data/rules';
+import { computeTax } from '../src/engine/tax';
 import type { Plan } from '../src/engine/types';
-import { ctxFor, noYields, simplePlan, START } from './helpers';
+import { ctxFor, fixedMix, noYields, simplePlan, START } from './helpers';
 
 function retiree(ageYou: number, ageSpouse = ageYou) {
   const plan = simplePlan({ roth: 0 });
@@ -527,8 +528,7 @@ describe('taxed dated income (D66)', () => {
 describe('yearly tax on brokerage and cash income (D70)', () => {
   const [div, bond] = [TAXABLE_YIELDS.stockDividends, TAXABLE_YIELDS.bondInterest]; // 2%, 4%
   function allIn(plan: Plan, asset: 'stocks' | 'bonds') {
-    plan.assumptions.allocation = { stocks: asset === 'stocks' ? 1 : 0, bonds: asset === 'bonds' ? 1 : 0, cash: 0 };
-    return plan;
+    return fixedMix(plan, { stocks: asset === 'stocks' ? 1 : 0, bonds: asset === 'bonds' ? 1 : 0, cash: 0 });
   }
 
   test('retired: bond interest is ordinary income paid from withdrawals; the interest is reinvested at full basis', () => {
@@ -595,7 +595,7 @@ describe('yearly tax on brokerage and cash income (D70)', () => {
   function firstPastYear(plan: Plan, year: number) {
     plan.household.traditionalSpending = 0;
     const ctx = ctxFor(plan);
-    const hist = historicalPaths(ctx.len, plan.assumptions.allocation, 0);
+    const hist = historicalPaths(ctx.len, mixByYear(plan), 0);
     return simulatePath(ctx, hist, hist.startYears!.indexOf(year), { record: true, stopIdx: 1 }).records![0];
   }
 
@@ -657,8 +657,7 @@ describe('yearly tax on brokerage and cash income (D70)', () => {
 
 describe('review follow-ups: the rest of D66 and D70', () => {
   function allIn(plan: Plan, asset: 'stocks' | 'bonds' | 'cash') {
-    plan.assumptions.allocation = { stocks: asset === 'stocks' ? 1 : 0, bonds: asset === 'bonds' ? 1 : 0, cash: asset === 'cash' ? 1 : 0 };
-    return plan;
+    return fixedMix(plan, { stocks: asset === 'stocks' ? 1 : 0, bonds: asset === 'bonds' ? 1 : 0, cash: asset === 'cash' ? 1 : 0 });
   }
 
   test('working: dividends are taxed as gains on top of wages (15% above the 0% band, plus state)', () => {
@@ -724,6 +723,7 @@ describe('review follow-ups: the rest of D66 and D70', () => {
 describe('dated items and contributions', () => {
   test('while working, dated items not in today\'s budget use savings: cash, then taxable with gains tax (D17)', () => {
     const plan = retiree(45);
+    plan.assumptions.mixPlan = 'fidelity'; // a fixed mix: no yearly shift sells part of the account (D97)
     plan.you.salary = 150_000; // wages 150,000 → taxable income 150,000 − 32,200 = 117,800, above the 0% gains band
     plan.assumptions.stateTaxRate = 0.05;
     plan.household.cash = 10_000;
@@ -906,109 +906,268 @@ describe('dated items and contributions', () => {
   });
 });
 
-describe('asset mix after you retire (D96)', () => {
-  const working = { stocks: 1, bonds: 0, cash: 0 };
-  const retired = { stocks: 0, bonds: 1, cash: 0 };
 
-  test('simulated markets give both mixes the same historical year', () => {
-    const both = bootstrapPaths(40, 30, working, 0.001, 5, 11, undefined, retired);
-    const workOnly = bootstrapPaths(40, 30, working, 0.001, 5, 11);
-    const retiredOnly = bootstrapPaths(40, 30, retired, 0.001, 5, 11);
-    expect(Array.from(both.portfolio)).toEqual(Array.from(workOnly.portfolio));
-    expect(Array.from(both.portfolioRetired)).toEqual(Array.from(retiredOnly.portfolio));
-    expect(Array.from(both.inflation)).toEqual(Array.from(workOnly.inflation));
-    // Without a second mix, the retired years read the same array (no extra memory, D60).
-    expect(workOnly.portfolioRetired).toBe(workOnly.portfolio);
-  });
+describe('return paths carry each year’s asset mix (D97)', () => {
+  const A = { stocks: 1, bonds: 0, cash: 0 };
+  const B = { stocks: 0, bonds: 1, cash: 0 };
+  const C = { stocks: 0, bonds: 0, cash: 1 };
+  const H = { stocks: 0.5, bonds: 0.25, cash: 0.25 };
+  const fee = 0.001;
+  // Years 0–9 hold A, 10–19 B, 20–29 a blend.
+  const mixes = Array.from({ length: 30 }, (_, t) => (t < 10 ? A : t < 20 ? B : H));
 
-  test('real past markets and the quick-search sample keep both mixes', () => {
-    const both = historicalPaths(30, working, 0, undefined, retired);
-    const retiredOnly = historicalPaths(30, retired, 0);
-    expect(Array.from(both.portfolioRetired)).toEqual(Array.from(retiredOnly.portfolio));
-    expect(both.startYears).toEqual(retiredOnly.startYears);
-    const sub = firstPaths(both, 3);
-    expect(Array.from(sub.portfolioRetired)).toEqual(Array.from(retiredOnly.portfolio.subarray(0, 3 * 30)));
-    const single = firstPaths(historicalPaths(30, working, 0), 3);
-    expect(single.portfolioRetired).toBe(single.portfolio);
-  });
-
-  /** A path earning `work` while working and `ret` once retired. */
-  function twoMixPath(len: number, work: number, ret: number): ReturnPaths {
-    const path = constantPath(len, work, 0, 0);
-    return { ...path, portfolioRetired: new Float64Array(len).fill(ret) };
+  function expectYearMixes(yearly: ReturnPaths, single: (m: typeof A) => ReturnPaths) {
+    const [a, b, c] = [single(A), single(B), single(C)];
+    for (let p = 0; p < yearly.n; p++) {
+      for (let t = 0; t < 30; t++) {
+        const i = p * 30 + t;
+        if (t < 10) expect(yearly.portfolio[i]).toBe(a.portfolio[i]);
+        else if (t < 20) expect(yearly.portfolio[i]).toBe(b.portfolio[i]);
+        else {
+          // Each asset class's real return is a single-class path's return plus the fee.
+          const blend = 0.5 * (a.portfolio[i] + fee) + 0.25 * (b.portfolio[i] + fee) + 0.25 * (c.portfolio[i] + fee) - fee;
+          expect(yearly.portfolio[i]).toBeCloseTo(blend, 13);
+        }
+      }
+    }
+    expect(Array.from(yearly.cash)).toEqual(Array.from(a.cash));
+    expect(Array.from(yearly.inflation)).toEqual(Array.from(a.inflation));
+    expect(Array.from(yearly.bondYield)).toEqual(Array.from(a.bondYield));
+    expect('portfolioRetired' in yearly).toBe(false);
   }
 
-  test('working years earn the working mix, retired years the mix after retiring', () => {
-    const plan = simplePlan({ roth: 1_000_000, spending: 40_000 });
-    const ctx = ctxFor(plan, { stopContributingYear: START + 2, retireYear: START + 2, baseSpending: 40_000 });
-    const recs = simulatePath(ctx, twoMixPath(ctx.len, 0.1, 0), 0, { record: true, stopIdx: 3 }).records!;
-    expect(recs[0].balances.total).toBeCloseTo(1_100_000, 6);
-    expect(recs[1].balances.total).toBeCloseTo(1_210_000, 6);
-    expect(recs[2].balances.total).toBeCloseTo(1_210_000 - 40_000, 6); // retired: spending out, then 0%
+  test('simulated markets: each path year gets that year’s mix on the same historical year', () => {
+    expectYearMixes(bootstrapPaths(40, 30, mixes, fee, 5, 11), (m) => bootstrapPaths(40, 30, m, fee, 5, 11));
   });
 
-  test('brokerage income follows the year’s mix: dividends while working, bond interest once retired', () => {
-    const plan = retiree(62);
-    plan.household.traditionalSpending = 0;
-    plan.household.taxable = plan.household.taxableBasis = 1_000_000;
-    plan.assumptions.allocation = { ...working };
-    plan.assumptions.retiredAllocation = { ...retired };
-    const ctx = ctxFor(plan, { stopContributingYear: START + 1, retireYear: START + 1, baseSpending: 0 });
-    const recs = simulatePath(ctx, constantPath(ctx.len, 0), 0, { record: true, stopIdx: 2 }).records!;
-    expect(recs[0].working).toBe(true);
-    expect(recs[0].capitalGains).toBeCloseTo(TAXABLE_YIELDS.stockDividends * 1_000_000, 0); // all stocks: dividends
-    expect(recs[1].capitalGains).toBe(0); // all bonds: no dividends …
-    expect(recs[1].ordinaryIncome).toBeGreaterThan(0); // … interest instead
-    // From the same balances, the retired year is exactly that of a plan holding all bonds throughout.
-    const bonds = structuredClone(plan);
-    bonds.assumptions.allocation = { ...retired };
-    bonds.assumptions.retiredAllocation = null;
-    const bctx = ctxFor(bonds, { stopContributingYear: START + 1, retireYear: START + 1, baseSpending: 0 });
-    const path = constantPath(ctx.len, 0);
-    const s1 = simulatePath(ctx, path, 0, { stopIdx: 1 }).state;
-    const year = (c: typeof ctx) => simulatePath(c, path, 0, { startIdx: 1, startState: s1, record: true, stopIdx: 2 }).records![0];
-    expect(year(ctx)).toEqual(year(bctx));
-    expect(recs[1].federalTax).toBeGreaterThan(0);
+  test('real past markets and the quick-search sample likewise', () => {
+    const hist = historicalPaths(30, mixes, fee);
+    expectYearMixes(hist, (m) => historicalPaths(30, m, fee));
+    expect(hist.startYears).toEqual(historicalPaths(30, A, fee).startYears);
+    expectYearMixes(firstPaths(hist, 3), (m) => firstPaths(historicalPaths(30, m, fee), 3));
+  });
+
+  test('a list of mixes must have one per path year', () => {
+    expect(() => bootstrapPaths(2, 31, mixes, fee, 5, 11)).toThrow(/31 yearly mixes/);
   });
 });
 
-describe('asset mix after you retire: Coast years and the switch’s tax (D96, review)', () => {
-  test('Coast: the years after saving stops still earn the working mix until the Coast age', () => {
-    const plan = simplePlan({ roth: 1_000_000, spending: 40_000 });
-    const ctx = ctxFor(plan, { stopContributingYear: START + 1, retireYear: START + 3, baseSpending: 40_000 });
-    const path = { ...constantPath(ctx.len, 0.1, 0, 0), portfolioRetired: new Float64Array(ctx.len) }; // retired: 0%
-    const recs = simulatePath(ctx, path, 0, { record: true, stopIdx: 4 }).records!;
-    expect(recs.map((r) => r.working)).toEqual([true, true, true, false]);
-    expect(recs[2].balances.total).toBeCloseTo(1_331_000, 6); // three working-mix years at 10%
-    expect(recs[3].balances.total).toBeCloseTo(1_331_000 - 40_000, 6);
+describe('the yearly mix shift: income and the tax on what it sells (D97)', () => {
+  const STOCKS = { stocks: 1, bonds: 0, cash: 0 };
+  const BONDS = { stocks: 0, bonds: 1, cash: 0 };
+  const FID = { stocks: 0.7, bonds: 0.25, cash: 0.05 };
+  const SAFE = { stocks: 0.4, bonds: 0.5, cash: 0.1 };
+
+  /** Your own mix: `first` until You turns `start`, then equal yearly steps to `later` by age `end`. */
+  function own(plan: Plan, first: typeof FID, later: typeof FID, start: number, end = start) {
+    Object.assign(plan.assumptions, { mixPlan: 'own', allocation: { ...first }, laterAllocation: { ...later }, shiftStartAge: start, shiftEndAge: end });
+    return plan;
+  }
+  const tax = (t: { federal: number; state: number }) => t.federal + t.state;
+
+  test('brokerage dividends and interest follow each year’s mix, working and retired (D70)', () => {
+    // You 62: all stocks, half and half at 63, all bonds from 64; retiring at 64. The basis is at full value, so the
+    // shifts sell nothing at a gain.
+    const plan = own(retiree(62), STOCKS, BONDS, 63, 64);
+    plan.household.traditionalSpending = 0;
+    plan.household.taxable = plan.household.taxableBasis = 1_000_000;
+    const scenario = { stopContributingYear: START + 2, retireYear: START + 2, baseSpending: 0 };
+    const ctx = ctxFor(plan, scenario);
+    const path = constantPath(ctx.len, 0);
+    const recs = simulatePath(ctx, path, 0, { record: true, stopIdx: 3 }).records!;
+    expect(recs.map((r) => r.working)).toEqual([true, true, false]);
+    expect(recs[0].capitalGains).toBeCloseTo(0.02 * 1_000_000, 6); // dividends on all stocks
+    expect(recs[1].capitalGains).toBeCloseTo(0.5 * 0.02 * 1_000_000, 6); // half of it
+    expect(recs[0].federalTax + recs[1].federalTax).toBe(0);
+    // Reinvested at full basis: 20,000, then 10,000 of dividends + 20,000 of interest (all inside the deduction).
+    const s2 = simulatePath(ctx, path, 0, { stopIdx: 2 }).state;
+    expect(s2.taxableBasis).toBeCloseTo(1_050_000, 6);
+    // From the same balances, the retired year is exactly that of a plan holding all bonds throughout.
+    const year = (c: typeof ctx) => simulatePath(c, path, 0, { startIdx: 2, startState: s2, record: true, stopIdx: 3 }).records![0];
+    expect(year(ctx)).toEqual(year(ctxFor(fixedMix(structuredClone(plan), BONDS), scenario)));
+    expect(year(ctx).capitalGains).toBe(0);
+    expect(year(ctx).ordinaryIncome).toBeGreaterThan(0);
   });
 
-  /** Retiring next year with $1M in the brokerage account at a $500k basis; no yields, no state tax, 0% returns. */
-  function switching(retiredAllocation: Plan['assumptions']['retiredAllocation']) {
-    const plan = retiree(62);
+  /** Retired now at 62, no spending, $1M in the brokerage account at `basis`; no yields or state tax, 0% returns. */
+  function retiredShifts(plan: Plan, basis: number, years = 6) {
     plan.household.traditionalSpending = 0;
     plan.household.taxable = 1_000_000;
-    plan.household.taxableBasis = 500_000;
-    plan.assumptions.allocation = { stocks: 0.7, bonds: 0.25, cash: 0.05 };
-    plan.assumptions.retiredAllocation = retiredAllocation;
-    const ctx = noYields(ctxFor(plan, { stopContributingYear: START + 1, retireYear: START + 1, baseSpending: 0 }));
-    return simulatePath(ctx, constantPath(ctx.len, 0, 0, 0), 0, { record: true, stopIdx: 3 }).records!;
+    plan.household.taxableBasis = basis;
+    const ctx = noYields(ctxFor(plan));
+    const path = constantPath(ctx.len, 0, 0, 0);
+    return { ctx, recs: simulatePath(ctx, path, 0, { record: true, stopIdx: years }).records!, state: simulatePath(ctx, path, 0, { stopIdx: years }).state };
   }
 
-  test('moving to the mix after retiring taxes the gain on the brokerage share it sells, once, in the retirement year', () => {
-    // 70/25/5 → 40/50/10 sells 30% of the account: 30% of the $500k gain is realized.
-    const recs = switching({ stocks: 0.4, bonds: 0.5, cash: 0.1 });
-    expect(recs[0].capitalGains).toBe(0); // still working: no switch
-    expect(recs[1].capitalGains).toBeGreaterThanOrEqual(150_000);
-    expect(recs[1].capitalGains).toBeLessThan(150_000 + recs[1].federalTax); // plus the gain on selling the tax itself
-    expect(recs[1].federalTax).toBeGreaterThan(0);
-    expect(recs[1].withdrawals.taxable).toBeCloseTo(recs[1].federalTax, 0); // the tax loop stops within 50 cents
-    expect(recs[2].capitalGains).toBe(0); // only once
+  test('retired: each step sells its share and realizes that share of the gain; none in year 0 or after the last step', () => {
+    // 70/25/5 → 40/50/10 in three steps at 63, 64, 65: each sells 10% of the account. Gains of 50,000, 45,000 and
+    // 40,500 fall inside the deduction and the 0% band, so nothing is withdrawn for tax.
+    const { ctx, recs, state } = retiredShifts(own(retiree(62), FID, SAFE, 63, 65), 500_000);
+    expect(ctx.mixShift[0]).toBe(0);
+    expect(recs.map((r) => r.capitalGains)).toEqual([0, expect.closeTo(50_000, 6), expect.closeTo(45_000, 6), expect.closeTo(40_500, 6), 0, 0]);
+    expect(recs.every((r) => r.federalTax === 0 && r.withdrawals.taxable === 0)).toBe(true);
+    expect(state.taxable).toBe(1_000_000);
+    expect(state.taxableBasis).toBeCloseTo(500_000 + 50_000 + 45_000 + 40_500, 6); // stepped up by each gain
   });
 
-  test('the same mix entered again sells nothing', () => {
-    const recs = switching({ stocks: 0.7, bonds: 0.25, cash: 0.05 });
-    expect(recs[1].capitalGains).toBe(0);
-    expect(recs[1].federalTax).toBe(0);
+  test('retired: the shift’s tax is paid from the year’s withdrawals, as D96’s switch was', () => {
+    // One switch at 63 sells 30% of a $1M account with no basis: a 300,000 gain, taxed with the withdrawal that pays it.
+    const { ctx, recs } = retiredShifts(own(retiree(62), FID, SAFE, 63), 0, 3);
+    const r = recs[1];
+    expect(recs[0].capitalGains).toBe(0);
+    expect(r.federalTax).toBeGreaterThan(30_000);
+    expect(Math.abs(r.withdrawals.taxable - r.federalTax)).toBeLessThan(0.5); // the tax loop stops within 50 cents
+    // The withdrawal sells at the stepped-up basis (30% of the account), so 70% of it is gain.
+    expect(r.capitalGains).toBeCloseTo(300_000 + 0.7 * r.withdrawals.taxable, 6);
+    expect(r.federalTax).toBeCloseTo(computeTax({ ordinary: 0, ltcg: r.capitalGains, interest: 0, socialSecurity: 0, over65: ctx.over65Count[1], priceLevel: 1, stateRate: 0 }).federal, 6);
+    expect(recs[2].capitalGains).toBe(0);
+  });
+
+  test('a fixed mix (Fidelity, or your own with the same mix twice) never sells', () => {
+    const fidelity = retiree(62);
+    fidelity.assumptions.mixPlan = 'fidelity';
+    for (const plan of [fidelity, own(retiree(62), SAFE, SAFE, 63, 70)]) {
+      const { ctx, recs } = retiredShifts(plan, 0);
+      expect(Array.from(ctx.mixShift).every((v) => v === 0)).toBe(true);
+      expect(recs.every((r) => r.capitalGains === 0 && r.federalTax === 0)).toBe(true);
+    }
+  });
+
+  /** You 45 earning `salary`, $200k in the brokerage account at `basis`, switching 70/25/5 → `later` at `age`. */
+  function workingSwitch(salary: number, basis: number, later: typeof FID, age: number, state = 0.05) {
+    const plan = own(retiree(45), FID, later, age);
+    plan.you.salary = salary;
+    plan.assumptions.stateTaxRate = state;
+    plan.household.taxable = 200_000;
+    plan.household.taxableBasis = basis;
+    return plan;
+  }
+  const wageTax = (ctx: ReturnType<typeof ctxFor>, t: number, extra: { ordinary?: number; ltcg?: number; interest?: number } = {}) =>
+    computeTax({ ordinary: ctx.wages[t] + (extra.ordinary ?? 0), ltcg: extra.ltcg ?? 0, interest: extra.interest, socialSecurity: 0, over65: 0, priceLevel: 1, stateRate: ctx.plan.assumptions.stateTaxRate });
+
+  test('working: the gain is taxed on top of wages and paid from the brokerage account', () => {
+    const plan = workingSwitch(150_000, 100_000, SAFE, 46); // switch in year 1: 30% of the 100,000 gain
+    const ctx = noYields(ctxFor(plan, { stopContributingYear: START + 5, retireYear: START + 5, baseSpending: 0 }));
+    const path = constantPath(ctx.len, 0, 0, 0);
+    const recs = simulatePath(ctx, path, 0, { record: true, stopIdx: 2 }).records!;
+    const gain = 0.3 * 100_000;
+    const withGain = wageTax(ctx, 1, { ltcg: gain });
+    const expected = { federal: withGain.federal - wageTax(ctx, 1).federal, state: withGain.state - wageTax(ctx, 1).state };
+    expect(expected.federal).toBeCloseTo(0.15 * gain, 6); // above the 0% band
+    expect(recs[0].capitalGains).toBe(0);
+    expect(recs[1].capitalGains).toBeCloseTo(gain, 6);
+    expect(recs[1].federalTax).toBeCloseTo(expected.federal, 6);
+    expect(recs[1].stateTax).toBeCloseTo(expected.state, 6);
+    const s = simulatePath(ctx, path, 0, { stopIdx: 2 }).state;
+    expect(s.taxable).toBeCloseTo(200_000 - tax(expected), 6);
+    expect(s.taxableBasis).toBeCloseTo(100_000 + gain - tax(expected), 6); // stepped up, then the tax paid at full basis
+  });
+
+  test('working: the shift’s gain is in the base of the dated-cost sale (D17) and of the yearly income (D70)', () => {
+    // A roof paid from the brokerage account and bond interest in the same year as a switch to all bonds (selling 75%).
+    // Wages leave 72,000 of ordinary taxable income, so the gains straddle the top of the 0% band (98,900): a layer
+    // that left the shift's gain out of its base would tax less.
+    const plan = workingSwitch(104_200, 160_000, BONDS, 46);
+    plan.datedItems = [{ id: 'r', label: 'roof', direction: 'expense', amount: 30_000, frequency: 'oneTime', start: { kind: 'year', year: START + 1 }, fixedDollars: false }];
+    const ctx = ctxFor(plan, { stopContributingYear: START + 5, retireYear: START + 5, baseSpending: 0 });
+    const path = constantPath(ctx.len, 0, 0, 0);
+    const s1 = simulatePath(ctx, path, 0, { stopIdx: 1 }).state;
+    const r = simulatePath(ctx, path, 0, { record: true, stopIdx: 2 }).records![1];
+    // By hand from the start of year 1: the switch's gain and its tax, the roof's sale, then interest on what is left.
+    const mixGain = 0.75 * (s1.taxable - s1.taxableBasis);
+    const mixTax = tax(wageTax(ctx, 1, { ltcg: mixGain })) - tax(wageTax(ctx, 1));
+    const [taxable, basis] = [s1.taxable - mixTax, s1.taxableBasis + mixGain - mixTax];
+    const saleGain = r.withdrawals.taxable * (1 - basis / taxable);
+    const interest = 0.04 * (taxable - r.withdrawals.taxable);
+    const ordinaryTaxable = ctx.wages[1] - FEDERAL.standardDeduction;
+    expect(ordinaryTaxable + mixGain).toBeLessThan(FEDERAL.ltcg0Top);
+    expect(ordinaryTaxable + mixGain + saleGain).toBeGreaterThan(FEDERAL.ltcg0Top);
+    expect(r.withdrawals.cash).toBe(0);
+    expect(r.capitalGains).toBeCloseTo(mixGain + saleGain, 6);
+    const all = tax(wageTax(ctx, 1, { ordinary: interest, ltcg: mixGain + saleGain, interest })) - tax(wageTax(ctx, 1));
+    expect(Math.abs(r.federalTax + r.stateTax - all)).toBeLessThan(0.5);
+  });
+
+  test('Coast: the years after saving stops follow the calendar path like any working year', () => {
+    const plan = workingSwitch(150_000, 100_000, SAFE, 47, 0); // switch in year 2, between the stop year and the Coast age
+    const ctx = noYields(ctxFor(plan, { stopContributingYear: START + 1, retireYear: START + 3, baseSpending: 0 }));
+    const recs = simulatePath(ctx, constantPath(ctx.len, 0, 0, 0), 0, { record: true, stopIdx: 4 }).records!;
+    expect(recs.map((r) => r.working)).toEqual([true, true, true, false]);
+    expect(recs.map((r) => r.capitalGains)).toEqual([0, 0, expect.closeTo(30_000, 6), 0]);
+    expect(recs[2].federalTax).toBeCloseTo(wageTax(ctx, 2, { ltcg: 30_000 }).federal - wageTax(ctx, 2).federal, 6);
+  });
+});
+
+describe('the working-year shift tax: other income in its base, and a tax savings cannot pay (D97, review)', () => {
+  const FID = { stocks: 0.7, bonds: 0.25, cash: 0.05 };
+  const SAFE = { stocks: 0.4, bonds: 0.5, cash: 0.1 };
+  function switchAt(plan: Plan, first: typeof FID, later: typeof FID, age: number) {
+    Object.assign(plan.assumptions, { mixPlan: 'own', allocation: { ...first }, laterAllocation: { ...later }, shiftStartAge: age, shiftEndAge: age });
+    return plan;
+  }
+  const total = (t: { federal: number; state: number }) => t.federal + t.state;
+
+  test('the shift’s gain is taxed on top of Social Security, RMDs (D49) and taxed dated income (D66)', () => {
+    // Both 74 and still working: an RMD from $1M, Social Security claimed at 70, a $20k taxed payment, and a switch at
+    // 75 selling 30% of a brokerage account with a $100k gain. On wages alone the gain would sit in the 0% band; on
+    // top of the rest it doesn't.
+    const plan = switchAt(retiree(74), FID, SAFE, 75);
+    plan.you.salary = 40_000;
+    plan.you.balances.pretax = 1_000_000;
+    plan.you.socialSecurity = { mode: 'manual', earnings: [], manualPia: 2_000, claimAge: 70 };
+    plan.assumptions.stateTaxRate = 0.05;
+    plan.household.taxable = 200_000;
+    plan.household.taxableBasis = 100_000;
+    plan.datedItems = [{ id: 'p', label: 'payment', direction: 'income', amount: 20_000, frequency: 'oneTime', start: { kind: 'year', year: START + 1 }, fixedDollars: false, taxable: true }];
+    const ctx = noYields(ctxFor(plan, { stopContributingYear: START + 3, retireYear: START + 3, baseSpending: 0 }));
+    const path = constantPath(ctx.len, 0, 0, 0);
+    const s1 = simulatePath(ctx, path, 0, { stopIdx: 1 }).state;
+    const r = simulatePath(ctx, path, 0, { record: true, stopIdx: 2 }).records![1];
+    expect(r.working).toBe(true);
+    expect(r.rmd).toBeGreaterThan(30_000);
+    expect(r.socialSecurity).toBeGreaterThan(20_000);
+    const gain = 0.3 * (s1.taxable - s1.taxableBasis);
+    expect(r.capitalGains).toBeCloseTo(gain, 6);
+    const tax = (ordinary: number, socialSecurity: number, ltcg: number) =>
+      computeTax({ ordinary: ctx.wages[1] + ordinary, socialSecurity, ltcg, over65: ctx.over65Count[1], priceLevel: 1, stateRate: 0.05 });
+    const everything = tax(r.rmd + 20_000, r.socialSecurity, gain);
+    expect(Math.abs(r.federalTax + r.stateTax - (total(everything) - total(tax(0, 0, 0))))).toBeLessThan(0.5);
+    // The base matters: the gain's tax on top of everything else is well above its tax on wages alone.
+    const inBase = total(everything) - total(tax(r.rmd + 20_000, r.socialSecurity, 0));
+    const alone = total(tax(0, 0, gain)) - total(tax(0, 0, 0));
+    expect(inBase - alone).toBeGreaterThan(1_000);
+  });
+
+  /** A switch from all stocks to all bonds at 46 sells the whole $1M account, almost all gain, at a state rate of 99%. */
+  function overTaxed(cash: number) {
+    const plan = switchAt(retiree(45), { stocks: 1, bonds: 0, cash: 0 }, { stocks: 0, bonds: 1, cash: 0 }, 46);
+    plan.you.salary = 300_000;
+    plan.assumptions.stateTaxRate = 0.99;
+    plan.household.taxable = 1_000_000;
+    plan.household.taxableBasis = 1;
+    plan.household.cash = cash;
+    const ctx = noYields(ctxFor(plan, { stopContributingYear: START + 5, retireYear: START + 5, baseSpending: 0 }));
+    const res = simulatePath(ctx, constantPath(ctx.len, 0, 0, 0), 0, { record: true, stopIdx: 3 });
+    const withGain = computeTax({ ordinary: ctx.wages[1], ltcg: 1_000_000 - 1, socialSecurity: 0, over65: 0, priceLevel: 1, stateRate: 0.99 });
+    const without = computeTax({ ordinary: ctx.wages[1], ltcg: 0, socialSecurity: 0, over65: 0, priceLevel: 1, stateRate: 0.99 });
+    return { res, r: res.records![1], owed: total(withGain) - total(without) };
+  }
+
+  test('a shift tax above what the brokerage account holds comes from the cash account', () => {
+    const { res, r, owed } = overTaxed(500_000);
+    expect(owed).toBeGreaterThan(1_000_000);
+    expect(r.federalTax + r.stateTax).toBeCloseTo(owed, 6);
+    expect(r.balances.taxable).toBe(0);
+    expect(r.withdrawals.cash).toBeCloseTo(owed - 1_000_000, 6);
+    expect(r.balances.cash).toBeCloseTo(500_000 - (owed - 1_000_000), 6);
+    expect(r.shortfall).toBe(0);
+    expect(res.success).toBe(true);
+  });
+
+  test('a shift tax savings can’t pay fails the path that year, like a dated cost (D17)', () => {
+    const { res, r, owed } = overTaxed(0);
+    expect(r.shortfall).toBeCloseTo(owed - 1_000_000, 6);
+    expect(res.success).toBe(false);
+    expect(res.failYear).toBe(START + 1);
   });
 });

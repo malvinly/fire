@@ -47,12 +47,15 @@ code comments cite) first. Planned work is in [pending-features.md](pending-feat
    - If results change for the same inputs, bump `DATA_VERSIONS.engine` in `src/engine/assumptions.ts`
      (D59) so saved sessions are flagged for recalculation, and refresh
      [Reproducing the numbers](#reproducing-the-numbers).
-   - Record any judgement call as a new D-number in DECISIONS.md (the next free number is **D97**). Update
+   - Record any judgement call as a new D-number in DECISIONS.md (the next free number is **D99**). Update
      an existing D-row if its behavior changes, and update the "Which way the assumptions lean" table.
    - If the change affects an assumption shown to users, update its row in `describeAssumptions` in
      `src/engine/assumptions.ts` (the "How this works" page) and its help text in `src/ui/helpText.ts`.
-   - If the withdrawal order (`planDraws` in `src/engine/simulate.ts`), the milestone ages, or the bracket-fill,
-     RMD or HSA rules change, update the steps in `src/ui/playbook.ts` (D93), then run
+   - A change to the built-in mixes (`VANGUARD_PATH` or `FIDELITY_MIX` in `src/data/mixPaths.ts`, D97) changes
+     results for the same inputs, so it needs the engine-version bump above.
+   - If the withdrawal order (`planDraws` in `src/engine/simulate.ts`), the milestone ages, the bracket-fill,
+     RMD or HSA rules, or the asset-mix rules (`src/engine/mix.ts`, D97) change, update the steps in
+     `src/ui/playbook.ts` (D93), then run
      `tests/playbook-engine.test.ts` and review the diff of `tests/__snapshots__/playbook-profiles.test.ts.snap`
      before accepting it with `-u`.
    - Remove a finished item from pending-features.md.
@@ -80,7 +83,8 @@ src/
     tax.ts         federal/state tax, Social Security taxation, bracket-fill room
     socialSecurity.ts  PIA from earnings, claiming adjustments, spousal, trust-fund cut
     earnings.ts    reads an SSA earnings record (XML statement or pasted table)
-    returns.ts     historical windows and block bootstrap
+    returns.ts     historical windows and block bootstrap, each year's asset mix applied to its returns
+    mix.ts         "Asset mix over time": each calendar year's mix and the share each shift sells (D97)
     assumptions.ts the "How this works" content
     defaults.ts    default assumptions and the example plan
     migrate.ts     fills fields missing from older session files and drafts
@@ -88,9 +92,11 @@ src/
   data/
     market.json    generated annual returns and January 10-year yields (committed)
     rules.ts       tax brackets, SSA constants, RMD table (update yearly)
+    mixPaths.ts    the built-in asset mixes: Vanguard's glide path, Fidelity's mix, their sources (update yearly, D97)
   worker/          engine workers off the main thread: one per FIRE type, one for the detail view (D80)
   ui/              React components (About.tsx, HowItWorks.tsx, InputsPanel.tsx, Results.tsx…), charts, session
-                   files, input help text (helpText.ts), field and year parsing (format.ts), the warnings
+                   files, input help text (helpText.ts), the asset mix in words (mixText.ts, D97), field and
+                   year parsing (format.ts), the warnings
                    panel's lines (warnings.ts), the dark/light choice (theme.ts), and playbook.ts (the "What to do
                    each year after you retire" timeline: restates the engine's withdrawal rules, D93)
 public/
@@ -129,34 +135,52 @@ Layered so each kind of mistake has a test that can catch it:
 5. **Account rules** (`tests/withdrawals.test.ts`, `tests/paths.test.ts`) — 59½ boundary, Roth-ladder
    5-year rule, penalties, RMDs, HSA, two spouses of different ages, Social Security in the simulation,
    healthcare phases, gains/basis, an after-tax cash-flow identity (withdrawals + income = spending + taxes),
-   yearly tax on brokerage and cash income with bond interest at each market's 10-year yield (D70, D82), and
-   money reinvested in retired years (D83).
-6. **Headline numbers** (`tests/solve.test.ts`) — the FIRE number, earliest date and Coast number pass at
-   the value shown and fail just below it; stricter-of-two; percentile bands; worst-years ordering.
-7. **Properties** (`tests/properties.test.ts`) — more spending never helps, more savings never delays FIRE.
-8. **Loading and the UI's logic** (`tests/sessions.test.ts`, `tests/warnings.test.ts`, `tests/format.test.ts`,
-   `tests/client.test.ts`) — damaged files rejected and old ones migrated, a stale session's saved detail shown
+   yearly tax on brokerage and cash income with bond interest at each market's 10-year yield (D70, D82),
+   money reinvested in retired years (D83), return paths carrying each year's asset mix, and the tax on each
+   year's mix shift, working and retired (D97).
+6. **Asset mix** (`tests/mix.test.ts`) — Vanguard's path at and between its points, Fidelity's fixed mix,
+   your own mix's yearly steps, the share each shift sells, and whole percents that add up to 100 (D97).
+7. **Headline numbers** (`tests/solve.test.ts`) — the FIRE number, earliest date and Coast number pass at
+   the value shown and fail just below it; stricter-of-two; percentile bands; worst-years ordering; results
+   from before D97 kept exactly for fixed mixes, and for D96's switch when the retirement year is the year the
+   first person turns 65 (characterization); on Vanguard's path, the earliest year by bisection (checked
+   against an exhaustive scan on own-mix plans), success never falling with a later year, and the FIRE
+   number's projection and retirement-only test in each year's mix (D97).
+8. **Properties** (`tests/properties.test.ts`) — more spending never helps, more savings never delays FIRE.
+9. **Loading and the UI's logic** (`tests/sessions.test.ts`, `tests/warnings.test.ts`, `tests/format.test.ts`,
+   `tests/client.test.ts`, `tests/mixText.test.ts`, `tests/helpText.test.ts`) — damaged files rejected and old
+   ones migrated (files saved before D97 keep their mix), the asset mix described in words and the common
+   mixes in its help adding up to 100% (D97), a stale session's saved detail shown
    only for its own FIRE type and year (D85) and its versions kept when saved (D86), the warnings panel's
    lines, field parsing and limits, money boxes' separators and the pronoun for the default name (D90), the
-   year picker's typed text (D84), the colour choice from the system preference (`tests/theme.test.ts`, D91), and superseded
-   worker requests cancelled (D80).
-9. **Defaults and earnings records** (`tests/defaults.test.ts`, `tests/earnings.test.ts`) — the 10%
-   bracket-fill default (D29), default spending levels (D18, D57), the quick-search sample (D5), fields and sections
+   year picker's typed text (D84), the colour choice from the system preference (`tests/theme.test.ts`, D91), superseded
+   worker requests cancelled (D80), and the "What to do each year after you retire" steps, the asset mix's
+   yearly steps included (`tests/playbook.test.ts`, `tests/playbook-profiles.test.ts`,
+   `tests/playbook-engine.test.ts`; D93, D97).
+10. **Defaults and earnings records** (`tests/defaults.test.ts`, `tests/earnings.test.ts`) — the 10%
+   bracket-fill default (D29), default spending levels (D18, D57), the asset-mix default and its How-this-works
+   row (D97), the quick-search sample (D5), fields and sections
    still holding example numbers (D64), and SSA earnings read from the XML statement or pasted rows (including CSV).
 
 ## Reproducing the numbers
 
 "Example plan" means `examplePlan(2026)` from `src/engine/defaults.ts`: plan start 2026, 10,000 simulated
-markets, seed 20260924. Current results (engine version 8, 10% bracket-fill default):
+markets, seed 20260924. Current results (engine version 8, 10% bracket-fill default, Vanguard's glide path as
+the asset mix, D97):
 
 | Tier | Earliest year | FIRE number | Success at that year | Penalty rate at that year |
 |---|---|---|---|---|
-| Traditional | 2040 | $2,517,100 | 93.6% | 8.8% |
-| Chubby | 2043 | $3,278,500 | 91.8% | 0% |
-| Coast | stop saving now | $803,900 needed today | 92.3% | 0% |
+| Traditional | 2040 | $2,719,200 | 91.4% | 8.3% |
+| Chubby | 2044 | $3,503,600 | 91.8% | 0% |
+| Coast | stop saving in 2027 | $934,400 needed today | 90.8% | 0% |
 
-Engines 7 (D88, over-limit HSA entries) and 8 (D95, HSA contributions end with Medicare) left these and the panel
-below unchanged: the example plan has no HSA contributions. Engine 4 (before D82) gave Traditional 2039 / $2,630,700 (90.3%, 26.9% penalty rate), Chubby 2043 /
+With the Fidelity choice of "Asset mix over time" (`plan.assumptions.mixPlan = 'fidelity'`, the example's only mix
+before D97) the example reproduces the previous table exactly: Traditional 2040 / $2,517,100 / 93.6% / 8.8%
+penalty rate, Chubby 2043 / $3,278,500 / 91.8%, Coast stop saving now / $803,900 needed today / 92.3%. D97 did not
+bump the engine version: saved plans keep their mix (D65), and for a fixed mix the results are unchanged.
+
+Before D97, engines 7 (D88, over-limit HSA entries) and 8 (D95, HSA contributions end with Medicare) left that
+table and its panel unchanged: the example plan has no HSA contributions. Engine 4 (before D82) gave Traditional 2039 / $2,630,700 (90.3%, 26.9% penalty rate), Chubby 2043 /
 $3,274,700 (91.9%) and Coast $803,000 (92.4%). Taxing bond interest at each market's own 10-year yield (D82) moved
 Traditional's date, but only just: 2039 still passes on all 10,000 markets (90.2%, 27.4% penalty rate) and now
 fails on the 2,000-market search subset, so the earliest date is 2040 (D5). The lower penalty rate and FIRE number
@@ -178,6 +202,7 @@ import { makeEngine, solveTier, detailFor } from '<path to this repo>/src/engine
 test('probe', () => {
   const plan = examplePlan(2026);
   // plan.assumptions.bracketFill = '10';   // change inputs here
+  // plan.assumptions.mixPlan = 'fidelity'; // the fixed 70/25/5 mix (D97)
   const e = makeEngine(plan);
   const r = solveTier(e, 'traditional');
   const d = detailFor(e, 'traditional', 2040);
@@ -193,12 +218,15 @@ export default { test: { include: ['*.test.ts'], testTimeout: 600000 }, server: 
 Run it with `npx --prefix <path to this repo> vitest run --root <scratch> --reporter=verbose`. One
 `solveTier` takes about 7 s at 10k markets; `detailFor` takes about 0.7 s.
 
-The "Before you act on these numbers" panel (D67) for the example plan:
+The "Before you act on these numbers" panel (D67) for the example plan (with the Fidelity mix it is the
+previous panel: no borderline lines, Chubby 2043 and $3.28M, $2.52M for Traditional, a 9% penalty rate):
 
 > **Before you act on these numbers**
-> - Traditional 2040 and Chubby 2043 assume you'll have about $2.52M and $3.28M by then. Re-run each year
+> - Traditional 2040 and Chubby 2044 assume you'll have about $2.72M and $3.50M by then. Re-run each year
 >   with your real balances.
-> - In 9% of markets the Traditional plan pays a 10% penalty on early 401(k)/IRA withdrawals.
+> - Traditional 2040 is borderline (91.4%); it could be a year later.
+> - Coast 2027 is borderline (90.8%); it could be a year later.
+> - In 8% of markets the Traditional plan pays a 10% penalty on early 401(k)/IRA withdrawals.
 > - Coast assumes you both keep working until 2049 (You 65) with pay covering all spending, and that stopping
 >   saving includes giving up employer matches.
 > - All amounts are in today's dollars. These are estimates, not financial advice. *What this doesn't model →*

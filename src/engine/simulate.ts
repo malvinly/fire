@@ -99,7 +99,12 @@ export interface SimOptions {
   /** Exclusive: stop before this year index and return the state (used for projections). */
   stopIdx?: number;
   startState?: State;
-  /** Path year used for plan year t is t - pathShift. */
+  /**
+   * Path year used for plan year t is t - pathShift. Path year j must have been built with the mix of the plan year it
+   * is used for (plan year j + pathShift, D97): returns come from the paths, while `ctx.incomeMix` and `ctx.mixShift`
+   * are read by plan year. Only `histFor` in solve.ts builds shifted paths, so a shifted run must never reuse
+   * `e.hist` or `e.boot`.
+   */
   pathShift?: number;
   /**
    * Price level (cumulative inflation since the plan start) at `startIdx`. Defaults to the path's own
@@ -266,14 +271,31 @@ interface IncomeRates {
 }
 
 /**
- * Sets `r` to year `pi` of `paths` for that year's asset `mix`: dividends at the fixed yield, bond interest at the
- * market's own January 10-year yield but never below the fixed one (D82), and its T-bill rate for the cash share
- * and the cash account.
+ * Sets `r` to year `pi` of `paths` for plan year `t`'s asset mix (D97): dividends at the fixed yield, bond interest
+ * at the market's own January 10-year yield but never below the fixed one (D82), and its T-bill rate for the cash
+ * share and the cash account.
  */
-function setIncomeRates(mix: Context['incomeMix'], paths: ReturnPaths, pi: number, r: IncomeRates) {
+function setIncomeRates(ctx: Context, t: number, paths: ReturnPaths, pi: number, r: IncomeRates) {
+  const mix = ctx.incomeMix;
   r.tbill = Math.max(0, (1 + paths.cash[pi]) * (1 + paths.inflation[pi]) - 1);
-  r.dividendRate = mix.stocks * TAXABLE_YIELDS.stockDividends;
-  r.interestRate = mix.bonds * bondInterestRate(paths.bondYield[pi]) + mix.cash * r.tbill;
+  r.dividendRate = mix.stocks[t] * TAXABLE_YIELDS.stockDividends;
+  r.interestRate = mix.bonds[t] * bondInterestRate(paths.bondYield[pi]) + mix.cash[t] * r.tbill;
+}
+
+/**
+ * The year's shift to its new mix (D97) sells share `ctx.mixShift[t]` of the brokerage account at the start of the
+ * year and buys the other asset classes: its gain, at the account's average gain share (losses ignored, D40), is
+ * realized and the basis steps up by it, so what is bought back carries today's price. Returns the gain to tax.
+ * Retirement accounts and the HSA shift tax-free; the cash account stays cash.
+ * It changes the state (steps the basis up), so call it exactly once per simulated year, outside the retired year's
+ * tax iteration.
+ */
+function realizeShiftGain(ctx: Context, t: number, s: State): number {
+  const share = ctx.mixShift[t];
+  if (!(share > 0 && s.taxable > s.taxableBasis)) return 0;
+  const gain = share * (s.taxable - s.taxableBasis);
+  s.taxableBasis += gain;
+  return gain;
 }
 
 /**
@@ -290,16 +312,16 @@ function investmentIncome(taxable: number, cash: number, r: IncomeRates) {
 /**
  * Tax for a retired year given the withdrawals in `d`. `otherOrdinary`: ordinary income that isn't a withdrawal
  * (taxed dated income, D66). Investment income is earned on what stays invested after the withdrawals (D7, D70).
- * `switchGain`: the brokerage gain realized by moving to the mix after retiring this year (D96).
+ * `mixGain`: the brokerage gain realized by this year's shift to its new mix (D97).
  */
-function taxOf(ctx: Context, t: number, d: Draws, s: State, ss: number, priceLevel: number, otherOrdinary: number, rates: IncomeRates, switchGain: number) {
+function taxOf(ctx: Context, t: number, d: Draws, s: State, ss: number, priceLevel: number, otherOrdinary: number, rates: IncomeRates, mixGain: number) {
   const inv = investmentIncome(s.taxable - d.taxable + d.rmdSurplus + d.surplus, s.cash - d.cash, rates);
   const ordinary = otherOrdinary + inv.interest +
     d.rmd[0] + d.rmd[1] + d.fill[0] + d.fill[1] + d.pretaxExtra[0] + d.pretaxExtra[1] +
     d.pretaxPenalty[0] + d.pretaxPenalty[1] + d.rothPenaltyEarnings[0] + d.rothPenaltyEarnings[1] + d.hsaNonMedical;
   const tax = computeTax({
     ordinary,
-    ltcg: d.gain + inv.dividends + switchGain,
+    ltcg: d.gain + inv.dividends + mixGain,
     interest: inv.interest,
     socialSecurity: ss,
     over65: ctx.over65Count[t],
@@ -331,10 +353,9 @@ export function simulatePath(ctx: Context, paths: ReturnPaths, p: number, opts: 
 
   for (let t = startIdx; t < stopIdx; t++) {
     const pi = p * paths.len + (t - shift);
-    // Invested accounts hold the working mix until the retirement year, then the mix after retiring (D96).
-    const r = ctx.working[t] ? paths.portfolio[pi] : paths.portfolioRetired[pi];
+    const r = paths.portfolio[pi];
     const rc = paths.cash[pi];
-    setIncomeRates(ctx.working[t] ? ctx.incomeMix : ctx.incomeMixRetired, paths, pi, rates);
+    setIncomeRates(ctx, t, paths, pi, rates);
     const ss = ctx.socialSecurity[t];
     const rmd0 = ctx.rmdDivisor[0][t] > 0 ? s.pretax[0] / ctx.rmdDivisor[0][t] : 0;
     const rmd1 = ctx.rmdDivisor[1][t] > 0 ? s.pretax[1] / ctx.rmdDivisor[1][t] : 0;
@@ -356,9 +377,10 @@ export function simulatePath(ctx: Context, paths: ReturnPaths, p: number, opts: 
       s.taxableBasis += ctx.contrib.taxable[t];
       s.cash += ctx.contrib.cash[t];
       // Working-year tax is figured in layers, each as the extra tax on top of the layers before it:
-      //   wages → Social Security and RMDs (D49) → taxed dated income (D66) → the gain on a brokerage sale for a
-      //   dated cost (D17) → brokerage and cash income (D70).
-      // A new kind of working-year income must be added to the `ordinary` of every later layer.
+      //   wages → Social Security and RMDs (D49) → taxed dated income (D66) → the gain on the year's mix shift
+      //   (D97) → the gain on a brokerage sale for a dated cost (D17) → brokerage and cash income (D70).
+      // A new kind of working-year income must be added to the `ordinary` (a gain: the `ltcg`) of both the "before"
+      // and the "after" tax of every later layer.
       // Social Security already claimed and RMDs while still working: the paycheck covers spending, so they
       // are saved to taxable after the extra tax they cause on top of wages (D49). Taxed dated income is stacked
       // on top of those and loses its own extra tax (D66).
@@ -383,6 +405,36 @@ export function simulatePath(ctx: Context, paths: ReturnPaths, p: number, opts: 
         s.taxable += saved;
         s.taxableBasis += saved;
       }
+      // The year's mix shift (D97) sells part of the brokerage account. Its gain is the same before or after this
+      // year's deposits (they are at full basis). It is taxed as a long-term gain on top of the layers above, and the
+      // tax is paid from the sale's proceeds, which sit at full basis after the step-up. Only a combined rate above
+      // 100% can owe more than the account holds: the rest comes from cash, and a tax savings can't pay fails the path
+      // like a dated cost (D17).
+      const mixGain = realizeShiftGain(ctx, t, s);
+      let mixFederal = 0;
+      let mixState = 0;
+      let mixFromCash = 0;
+      let mixShort = 0;
+      if (mixGain > 0) {
+        const base = {
+          ordinary: ctx.wages[t] + rmd0 + rmd1 + taxedIn, socialSecurity: ss, over65: ctx.over65Count[t], priceLevel,
+          stateRate: ctx.plan.assumptions.stateTaxRate,
+        };
+        const before = computeTax({ ...base, ltcg: 0 });
+        const after = computeTax({ ...base, ltcg: mixGain });
+        mixFederal = after.federal - before.federal;
+        mixState = after.state - before.state;
+        const owed = mixFederal + mixState;
+        const paid = Math.min(owed, s.taxable);
+        s.taxable -= paid;
+        s.taxableBasis = Math.min(s.taxable, Math.max(0, s.taxableBasis - paid));
+        if (owed > paid) {
+          mixFromCash = Math.min(owed - paid, s.cash);
+          s.cash -= mixFromCash;
+          mixShort = owed - paid - mixFromCash;
+          if (mixShort > RUN_OUT_SHORTFALL && failYear === null) failYear = ctx.years[t];
+        }
+      }
       // Dated items not already in today's budget (D17): inflows are saved to taxable; costs come from cash, then
       // taxable (paying the capital-gains tax on the sale). A cost savings can't cover fails the path.
       const datedIn = ctx.realIn[t] + ctx.nominalIn[t] / priceLevel - datedFederal - datedState;
@@ -406,9 +458,9 @@ export function simulatePath(ctx: Context, paths: ReturnPaths, p: number, opts: 
             ordinary: ctx.wages[t] + rmd0 + rmd1 + taxedIn, socialSecurity: ss, over65: ctx.over65Count[t], priceLevel,
             stateRate: ctx.plan.assumptions.stateTaxRate,
           };
-          const before = computeTax({ ...base, ltcg: 0 });
+          const before = computeTax({ ...base, ltcg: mixGain });
           const gainsTax = (sold: number) => {
-            const after = computeTax({ ...base, ltcg: sold * gainShare });
+            const after = computeTax({ ...base, ltcg: mixGain + sold * gainShare });
             return [after.federal - before.federal, after.state - before.state] as const;
           };
           // The sale also pays its own tax: iterate to a fixed point.
@@ -439,8 +491,8 @@ export function simulatePath(ctx: Context, paths: ReturnPaths, p: number, opts: 
       if (inv.dividends + inv.interest > 0) {
         const base = { socialSecurity: ss, over65: ctx.over65Count[t], priceLevel, stateRate: ctx.plan.assumptions.stateTaxRate };
         const ordinary = ctx.wages[t] + rmd0 + rmd1 + taxedIn;
-        const before = computeTax({ ...base, ordinary, ltcg: gain });
-        const after = computeTax({ ...base, ordinary: ordinary + inv.interest, ltcg: gain + inv.dividends, interest: inv.interest });
+        const before = computeTax({ ...base, ordinary, ltcg: mixGain + gain });
+        const after = computeTax({ ...base, ordinary: ordinary + inv.interest, ltcg: mixGain + gain + inv.dividends, interest: inv.interest });
         invFederal = after.federal - before.federal;
         invState = after.state - before.state;
         // Each account pays the tax on its own income; the brokerage reinvests the rest at full basis. The income
@@ -459,12 +511,12 @@ export function simulatePath(ctx: Context, paths: ReturnPaths, p: number, opts: 
         rec.otherIncome = datedIn + datedFederal + datedState;
         rec.socialSecurity = ss;
         rec.rmd = rmd0 + rmd1;
-        rec.withdrawals.cash = fromCash;
+        rec.withdrawals.cash = fromCash + mixFromCash;
         rec.withdrawals.taxable = fromTaxable;
-        rec.capitalGains = gain + inv.dividends;
-        rec.federalTax = extraFederal + datedFederal + gainsFederal + invFederal;
-        rec.stateTax = extraState + datedState + gainsState + invState;
-        rec.shortfall = short;
+        rec.capitalGains = mixGain + gain + inv.dividends;
+        rec.federalTax = extraFederal + datedFederal + mixFederal + gainsFederal + invFederal;
+        rec.stateTax = extraState + datedState + mixState + gainsState + invState;
+        rec.shortfall = short + mixShort;
       }
     } else {
       // The HSA-first, RMD and bracket-fill rules below are restated for the user in plain language in
@@ -475,14 +527,8 @@ export function simulatePath(ctx: Context, paths: ReturnPaths, p: number, opts: 
       const hsaMedical = Math.min(s.hsa, hc);
       const baseNeed = outflow + hc - hsaMedical - ss - inflow;
       const order: readonly [0 | 1, 0 | 1] = ctx.ages[0][t] >= ctx.ages[1][t] ? [0, 1] : [1, 0];
-      // Moving to the mix after retiring (D96) sells that share of the brokerage account at the start of the retirement
-      // year: its gain (at the account's average gain share; losses ignored, D40) is taxed this year, and what is bought
-      // back carries a basis at today's price. Retirement accounts switch tax-free.
-      let switchGain = 0;
-      if (t === ctx.retireIdx && ctx.mixSwitch > 0 && s.taxable > s.taxableBasis) {
-        switchGain = ctx.mixSwitch * (s.taxable - s.taxableBasis);
-        s.taxableBasis += switchGain;
-      }
+      // The year's mix shift (D97): its gain is taxed with this year's withdrawals, which pay the tax.
+      const mixGain = realizeShiftGain(ctx, t, s);
 
       d.rmd[0] = rmd0;
       d.rmd[1] = rmd1;
@@ -501,10 +547,10 @@ export function simulatePath(ctx: Context, paths: ReturnPaths, p: number, opts: 
 
       // Taxes are part of the need, and withdrawals change taxes: iterate to a fixed point.
       planDraws(ctx, s, t, baseNeed, hsaMedical, order, d);
-      let tax = taxOf(ctx, t, d, s, ss, priceLevel, taxedIn, rates, switchGain);
+      let tax = taxOf(ctx, t, d, s, ss, priceLevel, taxedIn, rates, mixGain);
       for (let iter = 0; iter < 20; iter++) {
         planDraws(ctx, s, t, baseNeed + tax.total, hsaMedical, order, d);
-        const next = taxOf(ctx, t, d, s, ss, priceLevel, taxedIn, rates, switchGain);
+        const next = taxOf(ctx, t, d, s, ss, priceLevel, taxedIn, rates, mixGain);
         const converged = Math.abs(next.total - tax.total) < 0.5;
         tax = next;
         if (converged) break;
@@ -558,7 +604,7 @@ export function simulatePath(ctx: Context, paths: ReturnPaths, p: number, opts: 
         rec.rmd = d.rmd[0] + d.rmd[1];
         rec.penaltyWithdrawals = penaltyAmt;
         rec.ordinaryIncome = tax.ordinary + tax.taxableSocialSecurity;
-        rec.capitalGains = d.gain + tax.inv.dividends + switchGain;
+        rec.capitalGains = d.gain + tax.inv.dividends + mixGain;
         rec.taxableIncome = tax.taxableIncome;
         rec.federalTax = tax.federal;
         rec.stateTax = tax.state;
@@ -567,7 +613,7 @@ export function simulatePath(ctx: Context, paths: ReturnPaths, p: number, opts: 
       }
     }
 
-    // Growth (invested accounts share the year's mix, `r` above; cash earns T-bills, D8/D9/D96).
+    // Growth (invested accounts share the year's mix, D8/D97; cash earns T-bills, D9).
     s.cash *= 1 + rc;
     s.taxable *= 1 + r;
     s.hsa *= 1 + r;

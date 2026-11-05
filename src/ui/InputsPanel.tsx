@@ -1,15 +1,16 @@
 import { useState } from 'react';
 import { LIMITS, TRUST_FUND_DEFAULT } from '../data/rules';
-import { CHUBBY_SPENDING_FACTOR, DEFAULT_ASSUMPTIONS, FIDELITY_SPENDING_FACTOR, chubbyDefaultSpending, coastContributionTotal, datedExpensesToday, exampleStatus, fidelityDefaultSpending, searchPathsFor, type ExampleSection } from '../engine/defaults';
+import { CHUBBY_SPENDING_FACTOR, FIDELITY_SPENDING_FACTOR, chubbyDefaultSpending, coastContributionTotal, datedExpensesToday, exampleStatus, fidelityDefaultSpending, searchPathsFor, type ExampleSection } from '../engine/defaults';
 import { parseEarnings } from '../engine/earnings';
 import { computePia } from '../engine/socialSecurity';
-import type { BracketFill, Person, PersonId, Plan } from '../engine/types';
+import type { BracketFill, MixPlan, Person, PersonId, Plan } from '../engine/types';
 import { hsaEligible, planEndYear } from '../engine/context';
 import { FIELD_LIMITS, birthYearProblem, coastAgeProblem, coastKeptProblem } from '../engine/validate';
 import { DatedItemsEditor } from './DatedItemsEditor';
 import { Help, NumberField, Section, SelectField, TextField } from './fields';
 import { money, percent, whose } from './format';
-import { HELP, RETIRED_MIX_EXAMPLES } from './helpText';
+import { COMMON_MIXES, HELP, MIX_CHOICES_HELP } from './helpText';
+import { MIX_AGE_RANGE_MESSAGE, fidelityOptionLabel, fidelitySentence, ownMixLine, resetAdvancedAssumptions, shiftAgeProblem, vanguardSentence, withShare } from './mixText';
 
 type Update = (fn: (draft: Plan) => void) => void;
 
@@ -154,6 +155,38 @@ export function InputsPanel({ plan, update }: { plan: Plan; update: Update }) {
         </details>
       </Section>
 
+      <Section title="Investments" icon="trendingUp">
+        <SelectField<MixPlan> label="Asset mix over time" help={MIX_PLAN_HELP} value={a.mixPlan}
+          options={[{ value: 'vanguard', label: 'Vanguard Target Retirement path' }, { value: 'fidelity', label: fidelityOptionLabel() }, { value: 'own', label: 'My own mix' }]}
+          onChange={(v) => update((d) => { d.assumptions.mixPlan = v; })}
+          hint={a.mixPlan === 'vanguard' ? vanguardSentence(plan) : a.mixPlan === 'fidelity' ? fidelitySentence() : undefined} />
+        {a.mixPlan === 'own' && (
+          <>
+            <div className="grid2">
+              <NumberField label="Stocks share at first" help={STOCKS_HELP} kind="percent" {...RATE} value={a.allocation.stocks}
+                onChange={(v) => update((d) => { d.assumptions.allocation = withShare(d.assumptions.allocation, 'stocks', v ?? 0); })} />
+              <NumberField label="Bonds share at first" help={HELP.bonds} kind="percent" {...RATE} value={a.allocation.bonds}
+                onChange={(v) => update((d) => { d.assumptions.allocation = withShare(d.assumptions.allocation, 'bonds', v ?? 0); })}
+                hint={`Cash = the rest (${percent(a.allocation.cash)})`} />
+              <NumberField label="Stocks share later" help={STOCKS_HELP} kind="percent" {...RATE} value={a.laterAllocation.stocks}
+                onChange={(v) => update((d) => { d.assumptions.laterAllocation = withShare(d.assumptions.laterAllocation, 'stocks', v ?? 0); })} />
+              <NumberField label="Bonds share later" help={HELP.bonds} kind="percent" {...RATE} value={a.laterAllocation.bonds}
+                onChange={(v) => update((d) => { d.assumptions.laterAllocation = withShare(d.assumptions.laterAllocation, 'bonds', v ?? 0); })}
+                hint={`Cash = the rest (${percent(a.laterAllocation.cash)})`} />
+              <NumberField label={`Start shifting at ${whose(plan.you.name)} age`} help={HELP.shiftStart} kind="int" {...L.age} rangeMessage={MIX_AGE_RANGE_MESSAGE} value={a.shiftStartAge}
+                check={(v) => shiftAgeProblem(a, 'start', v)} onChange={(v) => update((d) => { d.assumptions.shiftStartAge = v ?? d.assumptions.shiftStartAge; })} />
+              <NumberField label={`Finish shifting at ${whose(plan.you.name)} age`} help={HELP.shiftEnd} kind="int" {...L.age} rangeMessage={MIX_AGE_RANGE_MESSAGE} value={a.shiftEndAge}
+                check={(v) => shiftAgeProblem(a, 'end', v)} onChange={(v) => update((d) => { d.assumptions.shiftEndAge = v ?? d.assumptions.shiftEndAge; })} />
+            </div>
+            <p className="text-2">{ownMixLine(plan)}</p>
+          </>
+        )}
+        <div className="grid2">
+          <NumberField label="Fund fees (expense ratio)" help={HELP.fees} kind="percent" {...RATE} value={a.feeRate} step={0.01}
+            warn={a.feeRate > 0.03 ? 'Unusually high: most funds charge under 1%, and fees come off returns every year.' : null} onChange={(v) => update((d) => { d.assumptions.feeRate = v ?? 0; })} />
+        </div>
+      </Section>
+
       <Section title="Spending" icon="receipt" flag={flag('Spending')}>
         <NumberField label="Current yearly spending (today)" help={HELP.currentSpending} {...NO_DEBT} value={h.currentSpending} example={exampleOf('household.currentSpending')} onChange={(v) => update((d) => { d.household.currentSpending = v ?? 0; })}
           hint="Everything you spend today, including mortgage and any healthcare you pay yourself." />
@@ -218,29 +251,6 @@ export function InputsPanel({ plan, update }: { plan: Plan; update: Update }) {
             warn={planEndYear(plan) <= plan.startYear ? "Must be above the younger spouse's current age" : null} />
           <NumberField label="Required chance of success" help={HELP.targetSuccess} kind="percent" value={a.targetSuccess} {...L.targetSuccess}
             onChange={(v) => update((d) => { d.assumptions.targetSuccess = Math.min(L.targetSuccess.max, Math.max(L.targetSuccess.min, v ?? 0.9)); })} />
-          <NumberField label="Stocks share" help={HELP.stocks} kind="percent" {...RATE} value={a.allocation.stocks}
-            onChange={(v) => update((d) => { setAllocation(d, 'stocks', v ?? 0); })} />
-          <NumberField label="Bonds share" help={HELP.bonds} kind="percent" {...RATE} value={a.allocation.bonds}
-            onChange={(v) => update((d) => { setAllocation(d, 'bonds', v ?? 0); })}
-            hint={`Cash = the rest (${percent(a.allocation.cash)})`} />
-        </div>
-        <label className="check">
-          <input type="checkbox" checked={a.retiredAllocation !== null}
-            onChange={(e) => { const on = e.target.checked; update((d) => { d.assumptions.retiredAllocation = on ? { ...d.assumptions.allocation } : null; }); }} />
-          <Help text={RETIRED_MIX_HELP}>Switch to a different mix when you retire</Help>
-        </label>
-        {a.retiredAllocation && (
-          <div className="grid2">
-            <NumberField label="Stocks share after you retire" help={RETIRED_MIX_HELP} kind="percent" {...RATE} value={a.retiredAllocation.stocks}
-              onChange={(v) => update((d) => { setAllocation(d, 'stocks', v ?? 0, 'retiredAllocation'); })} />
-            <NumberField label="Bonds share after you retire" help={HELP.retiredBonds} kind="percent" {...RATE} value={a.retiredAllocation.bonds}
-              onChange={(v) => update((d) => { setAllocation(d, 'bonds', v ?? 0, 'retiredAllocation'); })}
-              hint={`Cash = the rest (${percent(a.retiredAllocation.cash)})`} />
-          </div>
-        )}
-        <div className="grid2">
-          <NumberField label="Fund fees (expense ratio)" help={HELP.fees} kind="percent" {...RATE} value={a.feeRate} step={0.01}
-            warn={a.feeRate > 0.03 ? 'Unusually high: most funds charge under 1%, and fees come off returns every year.' : null} onChange={(v) => update((d) => { d.assumptions.feeRate = v ?? 0; })} />
           <NumberField label="Raises above inflation" help={HELP.wageGrowth} kind="percent" {...GROWTH} value={a.wageGrowth} onChange={(v) => update((d) => { d.assumptions.wageGrowth = v ?? 0; })} />
           <NumberField label="Healthcare cost growth above inflation" help={HELP.healthcareInflation} kind="percent" {...GROWTH} value={a.healthcareInflation}
             warn={a.healthcareInflation > 0.1 ? 'Unusually high: it compounds every year.' : a.healthcareInflation < 0 ? 'Healthcare costs have usually risen faster than other prices.' : null} onChange={(v) => update((d) => { d.assumptions.healthcareInflation = v ?? 0; })} />
@@ -266,7 +276,7 @@ export function InputsPanel({ plan, update }: { plan: Plan; update: Update }) {
           <NumberField label="Share paid from then on" help={HELP.tfEndPct} kind="percent" {...RATE} value={a.ssTrustFund.endPct} onChange={(v) => update((d) => { d.assumptions.ssTrustFund.endPct = v ?? 0; })}
             />
         </div>
-        <button className="btn small" onClick={() => update((d) => { d.assumptions = structuredClone(DEFAULT_ASSUMPTIONS); })}>
+        <button className="btn small" onClick={() => update((d) => { d.assumptions = resetAdvancedAssumptions(d.assumptions); })}>
           Reset assumptions to defaults
         </button>
       </Section>
@@ -274,25 +284,27 @@ export function InputsPanel({ plan, update }: { plan: Plan; update: Update }) {
   );
 }
 
-/** The "after you retire" help: what the switch does and common mixes to enter (D96). */
-const RETIRED_MIX_HELP = (
+/** The "Asset mix over time" help: what it means, the three choices, and how the path and its shifts work (D97). */
+const MIX_PLAN_HELP = (
   <>
-    {HELP.retiredMix}
+    {HELP.mixPlan}
     <ul>
-      {RETIRED_MIX_EXAMPLES.map((x) => <li key={x.name}>{x.name}: <b>{x.mix.join(' / ')}</b></li>)}
+      {MIX_CHOICES_HELP.map((x) => <li key={x}>{x}</li>)}
     </ul>
-    {HELP.retiredMixNote}
+    {HELP.mixPlanNote}
   </>
 );
 
-function setAllocation(d: Plan, key: 'stocks' | 'bonds', v: number, which: 'allocation' | 'retiredAllocation' = 'allocation') {
-  const al = d.assumptions[which];
-  if (!al) return;
-  al[key] = Math.min(1, Math.max(0, v));
-  const other = key === 'stocks' ? 'bonds' : 'stocks';
-  al[other] = Math.min(al[other], 1 - al[key]);
-  al.cash = +(1 - al.stocks - al.bonds).toFixed(6);
-}
+/** The own-mix stocks help, with common mixes to enter (D97). */
+const STOCKS_HELP = (
+  <>
+    {HELP.stocks}
+    <ul>
+      {COMMON_MIXES.map((x) => <li key={x.name}>{x.name}: <b>{x.mix.join(' / ')}</b></li>)}
+    </ul>
+    {HELP.stocksNote}
+  </>
+);
 
 function SocialSecurityInputs({ id, person, ssWageGrowth, update, examplePia }: { id: PersonId; person: Person; ssWageGrowth: number; update: Update; examplePia: number | undefined }) {
   const ss = person.socialSecurity;

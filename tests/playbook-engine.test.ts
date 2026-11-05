@@ -8,11 +8,14 @@
 //
 // Records: `balances` are end-of-year and nothing changes before the next year, so the previous record's balances
 // are this year's starting balances; the year's withdrawals come out of them.
-import { expect, test } from 'vitest';
+import { describe, expect, test } from 'vitest';
+import { buildContext } from '../src/engine/context';
 import { examplePlan } from '../src/engine/defaults';
-import { detailFor, makeEngine } from '../src/engine/solve';
+import { mixInYear, mixPercents, type Allocation } from '../src/engine/mix';
+import { simulatePath } from '../src/engine/simulate';
+import { detailFor, makeEngine, type Tier } from '../src/engine/solve';
 import type { Plan, YearRecord } from '../src/engine/types';
-import { buildPlaybook } from '../src/ui/playbook';
+import { buildPlaybook, type Playbook } from '../src/ui/playbook';
 
 const RETIRE = 2039;
 
@@ -52,6 +55,13 @@ for (const [name, d] of [['example', detail], ['with HSA', hsaDetail]] as const)
   }
 }
 
+/** The retirement routine (the example plan's default mix shifts before it, so it is not the first phase). */
+const retirePhase = (pb: typeof playbook) => {
+  const ph = pb.phases.find((x) => x.year === RETIRE)!;
+  expect(ph.title.startsWith('You retire')).toBe(true);
+  return ph;
+};
+
 /** Every action line and lettered item of a playbook. */
 const lines = (pb: typeof playbook) => pb.phases.flatMap((ph) => ph.steps.flatMap((s) => [s.action, ...(s.items ?? [])]));
 const says = (pb: typeof playbook, re: RegExp) => lines(pb).some((l) => re.test(l));
@@ -61,8 +71,7 @@ const cashLeft = (y: Year) => y.start.cash - y.r.withdrawals.cash;
 const brokerageLeft = (y: Year) => y.start.taxable - y.r.withdrawals.taxable;
 
 test('order step a–c ("Cash", then "Brokerage", then "Roth"): Roth is drawn only once cash and brokerage are empty', () => {
-  expect(playbook.phases[0].year).toBe(RETIRE);
-  const items = playbook.phases[0].steps.find((s) => s.items)!.items!;
+  const items = retirePhase(playbook).steps.find((s) => s.items)!.items!;
   const cash = items.findIndex((it) => it.startsWith('Cash.'));
   const brokerage = items.findIndex((it) => it.startsWith('Brokerage.'));
   const roth = items.findIndex((it) => it.startsWith('Roth:'));
@@ -97,7 +106,7 @@ test('order step d ("If those run out while you are under 59½ … with the 10% 
 });
 
 test('"Each January … up to the top of the 10% bracket" and "Don’t spend it while you are both under 59½": before either is 60, the fill is converted and 401(k)/IRA money is spent only with the penalty', () => {
-  const routine = playbook.phases[0].steps.map((s) => s.action);
+  const routine = retirePhase(playbook).steps.map((s) => s.action);
   expect(routine.some((a) => /^Each January, take money out of the 401\(k\)\/IRA up to the top of the 10% tax bracket/.test(a))).toBe(true);
   expect(routine.some((a) => /while you are both under 59½: move it straight into a Roth IRA/.test(a))).toBe(true);
 
@@ -150,5 +159,126 @@ test('"Take the required minimum withdrawal … Spend it first; whatever you don
   for (const y of rmdYears.filter((x) => (x.r.reinvested ?? 0) > 1)) {
     expect(y.r.withdrawals.cash + y.r.withdrawals.taxable + y.r.withdrawals.roth, y.label).toBeLessThanOrEqual(1);
     expect(y.r.withdrawals.pretax, y.label).toBeLessThanOrEqual(y.r.rmd + 1);
+  }
+});
+
+// Asset mix over time (D97): the mix steps against mix.ts and the engine's yearly shift (`ctx.mixShift`, taxed by
+// `shiftGain` in simulate.ts), for each kind of path: Vanguard's (moving before and after retirement), a Coast plan,
+// your own mix in yearly steps (spanning retirement, starting the year you retire, moving back toward stocks before
+// retirement), one switch (in the retirement year, after it), Fidelity's fixed mix, and a household without a
+// brokerage account.
+describe('asset mix steps (D97)', () => {
+  const A: Allocation = { stocks: 0.7, bonds: 0.25, cash: 0.05 };
+  const B: Allocation = { stocks: 0.4, bonds: 0.5, cash: 0.1 };
+  const own = (first: Allocation, later: Allocation, start: number, end: number) => (p: Plan) => {
+    p.assumptions.mixPlan = 'own';
+    p.assumptions.allocation = { ...first };
+    p.assumptions.laterAllocation = { ...later };
+    p.assumptions.shiftStartAge = start;
+    p.assumptions.shiftEndAge = end;
+  };
+  const cases: { name: string; tier?: Tier; year?: number; set: (p: Plan) => void }[] = [
+    { name: 'Vanguard, the example plan', set: () => {} },
+    { name: 'Vanguard, Coast stopping in 2030', tier: 'coast', year: 2030, set: () => {} },
+    { name: 'own, yearly steps at 50–59 spanning retirement', set: own(A, B, 50, 59) },
+    { name: 'own, yearly steps at 55–60 starting the year you retire', set: own(A, B, 55, 60) },
+    { name: 'own, back toward stocks at 40–49, before retirement', set: own(B, A, 40, 49) },
+    { name: 'own, one switch the year you retire', set: own(A, B, 55, 55) },
+    { name: 'own, one switch at 65, after retirement', set: own(A, B, 65, 65) },
+    { name: 'Fidelity', set: (p) => { p.assumptions.mixPlan = 'fidelity'; } },
+    { name: 'Vanguard, no brokerage account', set: (p) => { p.household.taxable = p.household.taxableBasis = p.household.taxableContribution = 0; } },
+    { name: 'Vanguard, no brokerage account, but an older spouse’s large required withdrawals from 2050 are partly reinvested', set: (p) => {
+      p.household.taxable = p.household.taxableBasis = p.household.taxableContribution = 0;
+      p.spouse.birthYear = 1975;
+      p.spouse.balances.pretax = 1_500_000;
+    } },
+  ];
+
+  /** The years in which the playbook tells the reader to move the mix, read from its mix steps. */
+  function claimedMoves(pb: Playbook, retireYear: number): Set<number> {
+    const out = new Set<number>();
+    const range = (a: number, b: number) => { for (let y = a; y <= b; y++) out.add(y); };
+    for (const ph of pb.phases) {
+      for (const s of ph.steps) {
+        const t = s.action;
+        if (!t.includes('every invested account')) continue;
+        let m: RegExpExecArray | null;
+        if (t.startsWith('Each year until you retire,')) range(ph.year, retireYear);
+        else if ((m = /^Each year from (\d{4}) through (\d{4}),/.exec(t))) range(+m[1], +m[2]);
+        else if (/^Move every invested account .* this year/.test(t)) out.add(ph.year);
+        else if ((m = /until the switch to .* in (\d{4})\.$/.exec(t))) out.add(+m[1]);
+        else if ((m = /^Once a year,( starting this year,)? move every invested account to that year’s mix .* this year, then .*?(?: from (\d{4}))? through (\d{4}),/.exec(t))) {
+          if (m[1]) out.add(ph.year);
+          range(m[2] ? +m[2] : ph.year + 1, +m[3]);
+        } else expect(t).toMatch(/^Once a year, put every invested account back to [^,]*\(cash stays cash\)\.$/);
+      }
+    }
+    return out;
+  }
+
+  for (const c of cases) {
+    test(c.name, () => {
+      const p = smallPlan(false);
+      c.set(p);
+      const e = makeEngine(p);
+      const d = detailFor(e, c.tier ?? 'traditional', c.year ?? RETIRE);
+      const retireYear = d.scenario.retireYear;
+      const pb = buildPlaybook(p, d);
+      const ctx = buildContext(p, d.scenario);
+
+      // (a) Every mix stated for a year is the engine's mix that year, in whole percents that add up to 100.
+      let stated = 0;
+      for (const ph of pb.phases) {
+        for (const s of ph.steps) {
+          const t = `${s.action} ${s.why ?? ''}`;
+          for (const m of t.matchAll(/(\d+)% stocks \/ (\d+)% bonds(?: \/ (\d+)% cash)? (in (\d{4})|this year)/g)) {
+            const year = m[5] ? +m[5] : ph.year;
+            expect([+m[1], +m[2], +(m[3] ?? 0)], `${year}: ${t}`).toEqual(mixPercents(mixInYear(p, year)));
+            stated++;
+          }
+          for (const m of t.matchAll(/(\d{4}): (\d+) \/ (\d+)(?: \/ (\d+))?/g)) {
+            expect([+m[2], +m[3], +(m[4] ?? 0)], `${m[1]}: ${t}`).toEqual(mixPercents(mixInYear(p, +m[1])));
+          }
+          const fixed = /^Once a year, put every invested account back to (\d+)% stocks \/ (\d+)% bonds(?: \/ (\d+)% cash)?/.exec(s.action);
+          if (fixed) expect([+fixed[1], +fixed[2], +(fixed[3] ?? 0)]).toEqual(mixPercents(mixInYear(p, ph.year)));
+        }
+      }
+
+      // (b) The playbook names a move in exactly the years the engine shifts the mix, and none after its last-change phase.
+      const shifted = Array.from(ctx.mixShift, (x, t) => (x > 0 ? p.startYear + t : 0)).filter((y) => y > 0);
+      expect([...claimedMoves(pb, retireYear)].sort((x, y) => x - y)).toEqual(shifted);
+      const end = pb.phases.find((ph) => /Last change to the asset mix|Switch to a new asset mix/.test(ph.title));
+      if (end) expect(Math.max(...shifted)).toBe(end.year);
+      if (c.name !== 'Fidelity') expect(stated).toBeGreaterThan(0);
+
+      // (c) In a year with a shift, a brokerage account holding a gain realizes at least that share of it, so the tax
+      // sentence is said exactly when the engine can charge the tax.
+      const why = (re: RegExp) => pb.phases.some((ph) => ph.steps.some((s) => re.test(s.why ?? '')));
+      const says = why(/capital-gains tax on that sale/);
+      const saysIf = why(/^.*If money from .* goes into a brokerage account by then/); // no brokerage account today
+      let charged = 0;
+      for (let path = 0; path < 10; path++) {
+        const records = simulatePath(ctx, e.boot, path, { record: true }).records!;
+        for (let t = 1; t < ctx.len; t++) {
+          if (!(ctx.mixShift[t] > 0)) continue;
+          const start = simulatePath(ctx, e.boot, path, { stopIdx: t }).state;
+          const gain = start.taxable - start.taxableBasis;
+          const r = records[t];
+          expect(r.year).toBe(p.startYear + t);
+          if (gain > 1) {
+            expect(r.capitalGains, `path ${path}, ${r.year}`).toBeGreaterThanOrEqual(ctx.mixShift[t] * gain - 1);
+            charged++;
+          }
+          if (!says && !saysIf) expect(start.taxable, `path ${path}, ${r.year}`).toBe(0);
+        }
+      }
+      expect(says || saysIf).toBe(charged > 0);
+      expect(says && saysIf).toBe(false);
+      if (saysIf) {
+        // The engine's brokerage balance turns positive before the last move year in the markets checked.
+        const last = Math.max(...shifted);
+        expect(d.medianPath.some((r) => r.year < last && r.balances.taxable > 0)).toBe(true);
+      }
+    }, 120_000);
   }
 });

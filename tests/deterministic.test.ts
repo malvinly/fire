@@ -95,6 +95,7 @@ describe('amounts fixed in nominal dollars are deflated each year (D63)', () => 
 
   test('a sale after 20 years realizes the true gain share: 1 − 100,000 / (265,330 × 1.806) = 79.1%', () => {
     const plan = simplePlan({ roth: 0 });
+    plan.assumptions.mixPlan = 'fidelity'; // a fixed mix: no yearly shift sells part of the account (D97)
     plan.household.taxable = plan.household.taxableBasis = 100_000;
     const ctx = noYields(buildContext(plan, { stopContributingYear: START + 20, retireYear: START + 20, baseSpending: 40_000 }));
     const rec = simulatePath(ctx, constantPath(ctx.len, r, r, inflation), 0, { record: true }).records![20];

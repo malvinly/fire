@@ -14,7 +14,9 @@ version 8; if they have moved, search for the name given. The v1 audit's fixes a
 landed (D63–D87 in DECISIONS.md).
 
 Features are ordered by **importance**: how much each changes a typical user's answer. Numbers come from the
-current engine (version 8; the same numbers as version 7) on the example plan unless marked *estimate* or *v1*. Example screen text is illustrative; the final
+current engine (version 8; the same numbers as version 7) on the example plan with Fidelity's fixed 70/25/5 mix
+(the "Fidelity" choice of "Asset mix over time", the example's mix before D97; new plans now start on Vanguard's
+path, which gives other numbers, see DEVELOPMENT.md) unless marked *estimate* or *v1*. Example screen text is illustrative; the final
 wording is up to whoever builds it.
 
 **Any feature that adds a `Plan` or `Assumptions` field** must fill in that field's default for older
@@ -83,8 +85,9 @@ of your stocks are international. For example, with 70% in stocks and a third of
 ### For implementers
 
 - **Where:** results state in `src/App.tsx`; `TierCard` (`src/ui/Results.tsx:76`). `feeRate` is subtracted
-  in `realYears` (`src/engine/returns.ts:53`, used by the simulated and historical markets) and in
-  `averageRealReturns` (`src/engine/solve.ts:246`, the FIRE number's projection in `projectState`). The fee
+  in `portfolioReturn` (`src/engine/returns.ts:56`, used by the simulated and historical markets for each year's
+  asset mix, D97) and in `averageRealReturns` (`src/engine/solve.ts:247`, the FIRE number's projection in
+  `projectState`). The fee
   leaves each market's 10-year yield (`bondYield`, D82) alone, so bond interest is taxed the same; whether
   lower returns should also mean lower taxed yields is a question for the maintainer.
 - **First version:**
@@ -98,7 +101,8 @@ of your stocks are international. For example, with 70% in stocks and a third of
   - Two texts already say international funds are simulated as US stocks. Add to each that the new setting
     is where to account for them, e.g. "…as US stocks; if you hold some, lower 'Returns vs. history'
     (Assumptions, advanced)":
-    - the stocks field's help (`stocks` in `src/ui/helpText.ts`);
+    - the stocks field's help under "My own mix" (`HELP.stocks` in `src/ui/helpText.ts`); it is shown only for
+      that choice, so the help of the mix choice itself (`HELP.mixPlan`) needs the same sentence;
     - the "Markets" row under "What this doesn't model" (`describeAssumptions`,
       `src/engine/assumptions.ts`), which also says lower returns are "planned".
   - Side-by-side comparison of saved session files comes later.

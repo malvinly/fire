@@ -2,14 +2,17 @@
 // financial novice can follow, each with the reason for it (D93). Pure function of the plan and the detail view's
 // data so it can be tested; `PlaybookPanel` in Results.tsx draws it as a timeline.
 
+import { VANGUARD_PATH } from '../data/mixPaths';
 import { FEDERAL, RULES_YEAR, rmdStartAge } from '../data/rules';
-import { mixSwitchShare, timingYear } from '../engine/context';
+import { timingYear } from '../engine/context';
+import { mixInYear, mixPercents, mixShiftYears, shiftShare } from '../engine/mix';
 import { RUN_OUT_SHORTFALL } from '../engine/simulate';
 import { ownClaimFactor, payableShare, spousalClaimFactor } from '../engine/socialSecurity';
 import type { Detail } from '../engine/solve';
 import { bracketTop } from '../engine/tax';
 import type { DatedItem, Plan, YearRecord } from '../engine/types';
 import { andList, money, moneyShort, nameIs, whose } from './format';
+import { mixLabel } from './mixText';
 
 export interface Step {
   /** What to do, one or two short sentences. */
@@ -154,6 +157,141 @@ export function buildPlaybook(plan: Plan, detail: Detail): Playbook {
       });
   }
 
+  // Asset mix over time (D97): every invested account holds the year's mix (mix.ts). The plan starts with the
+  // accounts already holding the first year's mix; every later year whose mix differs from the year before is a move,
+  // which in the brokerage account sells holdings and is taxed that year (`shiftGain` in simulate.ts).
+  //
+  // Two kinds of first/last year, not to be mixed up:
+  //   - `moveYears`, `firstMove`, `lastMove`: the moves inside the plan's years (from its second year to its last),
+  //     the years the engine moves and taxes (`ctx.mixShift`). Every step and phase is placed and worded from these.
+  //   - `pathYears` (`mixShiftYears`): the path's own first and last move, not limited to the plan. Used only to say
+  //     whether the shift was already under way before the plan, whether it had already ended (the routine's "done"),
+  //     and whether the path is a single switch.
+  const mixIn = (year: number) => mixInYear(plan, year);
+  const mixOf = (year: number) => mixLabel(mixIn(year));
+  const moved = (year: number) => shiftShare(mixIn(year - 1), mixIn(year));
+  const moveYears: number[] = [];
+  for (let y = plan.startYear + 1; y <= endYear; y++) if (moved(y) > 0) moveYears.push(y);
+  const firstMove = moveYears.length ? moveYears[0] : undefined;
+  const lastMove = moveYears.length ? moveYears[moveYears.length - 1] : undefined;
+  const pathYears = mixShiftYears(plan);
+  const singleSwitch = pathYears !== null && pathYears.first === pathYears.last;
+  const movesIn = (from: number, to: number) => moveYears.filter((y) => y >= from && y <= to);
+  /** "about 1.5 percentage points a year", or "about 1.5 to 3 …" when the yearly move varies (Vanguard's path). */
+  const perYear = (years: number[]) => {
+    const pts = years.map((y) => {
+      const x = moved(y) * 100;
+      return Math.max(0.1, x >= 1 ? Math.round(x * 2) / 2 : Math.round(x * 10) / 10);
+    });
+    const lo = Math.min(...pts);
+    const hi = Math.max(...pts);
+    return `about ${lo === hi ? lo : `${lo} to ${hi}`} percentage points a year`;
+  };
+  /** "from stocks into bonds", "from bonds and cash into stocks", …, as the mix moves between the two years. */
+  const direction = (from: number, to: number) => {
+    const x = mixIn(from);
+    const y = mixIn(to);
+    const kinds = ['stocks', 'bonds', 'cash'] as const;
+    return `from ${andList(kinds.filter((k) => y[k] < x[k] - 1e-9))} into ${andList(kinds.filter((k) => y[k] > x[k] + 1e-9))}`;
+  };
+  const you = plan.you;
+  const turnsAt = (age: number) => `the year ${who(you.name)} ${verb(you.name, 'turn')} ${age}`;
+  const pathName = a.mixPlan === 'vanguard'
+    ? `This follows Vanguard’s Target Retirement path, tied to ${turnsAt(VANGUARD_PATH.targetAge)} (${you.birthYear + VANGUARD_PATH.targetAge}).`
+    : a.mixPlan === 'fidelity'
+      ? 'This is the mix Fidelity’s FI Planner uses.'
+      : `This is the path you entered: ${mixLabel(a.allocation)} at first, ` + (a.shiftStartAge === a.shiftEndAge
+        ? `switching to ${mixLabel(a.laterAllocation)} in ${turnsAt(a.shiftStartAge)}.`
+        : `moving to ${mixLabel(a.laterAllocation)} in equal steps, one in each year ${nameIs(you.name)} ${a.shiftStartAge} to ${a.shiftEndAge}.`);
+  // A target-date fund makes Vanguard's moves itself; only someone holding separate funds makes them by hand.
+  const fundNote = a.mixPlan === 'vanguard'
+    ? ` A target-date fund dated near ${you.birthYear + VANGUARD_PATH.targetAge}, ${turnsAt(VANGUARD_PATH.targetAge)}, follows about this path and ` +
+      'makes these moves for you; with separate stock and bond funds, you make them yourself.'
+    : '';
+  const vanguardEnd = VANGUARD_PATH.points[VANGUARD_PATH.points.length - 1].years;
+  const pathEnd = a.mixPlan === 'vanguard'
+    ? `This is where Vanguard’s Target Retirement path ends, ${vanguardEnd} years after ${who(you.name)} ${verb(you.name, 'turn')} ${VANGUARD_PATH.targetAge}.`
+    : pathName;
+  const drift = 'Drifting toward more stocks raises the risk in a bad market; toward less lowers growth.';
+  // Only a brokerage account pays tax on a move (D97); the others are named only when the household has them (D93).
+  const taxFree = [has.pretax && '401(k)/IRA', has.roth && 'Roth', has.hsa && 'HSA'].filter((k): k is string => !!k);
+  const inside = taxFree.length ? ` Inside the ${andList(taxFree)}, moving costs no tax.` : '';
+  // A household with no brokerage account today can still get one: the engine saves Social Security and required
+  // withdrawals received while working (D49), and deposits unspent required withdrawals and dated income (D17, D30).
+  // The year money can first arrive, and what it is; a move can tax it only in a later year, once it has grown.
+  const sources: { year: number; what: string }[] = [];
+  if (!has.taxable) {
+    const rmdYears = people.filter((p) => p.hasPretax).map((p) => Math.max(p.rmd, plan.startYear));
+    if (rmdYears.length) sources.push({ year: Math.min(...rmdYears), what: 'unspent required withdrawals' });
+    const ssWorking = people.map((p) => Math.max(p.claim, plan.startYear)).filter((y) => y < retireYear);
+    if (ssWorking.length) sources.push({ year: Math.min(...ssWorking), what: 'Social Security received while you still work' });
+    for (const it of plan.datedItems) {
+      if (it.direction === 'income') sources.push({ year: Math.max(timingYear(plan, it.start), plan.startYear), what: it.label });
+    }
+  }
+  /**
+   * The tax on the moves through year `upTo` (" Each move sells …"). Without a brokerage account: a conditional
+   * sentence when money can reach one before `upTo`, else "".
+   */
+  const moveTax = (moves: 'each' | 'this', retired: boolean, upTo: number) => {
+    const Each = moves === 'each' ? 'Each' : 'This';
+    if (!has.taxable) {
+      const can = sources.filter((s) => s.year < upTo).map((s) => s.what);
+      if (!can.length) return '';
+      const either = can.length === 1 ? can[0] : `${can.slice(0, -1).join(', ')} or ${can[can.length - 1]}`;
+      return ` If money from ${either} goes into a brokerage account by then, ${Each.toLowerCase()} move sells some of that too, and the results count the capital-gains tax on it.${inside}`;
+    }
+    return ` ${Each} move sells some of what the brokerage account holds; the results already count the capital-gains tax on that sale` +
+      (retired
+        ? ` in ${moves === 'each' ? 'the' : 'this'} year’s tax bill, so set it aside with the rest of the tax.`
+        : ', paid from the brokerage account itself.') + inside;
+  };
+  /** A single move in `year`: the switch, or the last step of a longer shift. */
+  const moveAction = (year: number) => (singleSwitch
+    ? `Move every invested account from ${mixOf(year - 1)} to ${mixOf(year)} this year (cash stays cash).`
+    : `Move every invested account to ${mixOf(year)} this year, the last step of the shift (cash stays cash).`) +
+    ' From now on, put every invested account back to that mix once a year.';
+
+  // A mix that moves before retirement: a phase in the first year it moves (never the plan's first year).
+  if (firstMove !== undefined && lastMove !== undefined && firstMove < retireYear) {
+    const P = firstMove;
+    const underWay = pathYears !== null && pathYears.first < P;
+    const shifting = underWay ? 'Keep shifting the asset mix' : 'Start shifting the asset mix';
+    let title: string;
+    let action: string;
+    let each = true;
+    if (lastMove >= retireYear) {
+      title = shifting;
+      action = `Each year until you retire, move every invested account to that year’s mix (cash stays cash): ${mixOf(P)} in ${P}, then ` +
+        `${perYear(movesIn(P + 1, retireYear))} ${direction(P - 1, retireYear)}, to ${mixOf(retireYear)} in ${retireYear}, the year you retire.`;
+    } else if (lastMove === P) {
+      title = singleSwitch ? 'Switch to a new asset mix' : 'Last change to the asset mix';
+      action = moveAction(P);
+      each = false;
+    } else {
+      title = shifting;
+      action = `Each year from ${P} through ${lastMove}, move every invested account to that year’s mix (cash stays cash): ${mixOf(P)} in ${P}, then ` +
+        `${perYear(movesIn(P + 1, lastMove))} ${direction(P - 1, lastMove)}, to ${mixOf(lastMove)} in ${lastMove}. ` +
+        'From then on, put every invested account back to that mix once a year.';
+    }
+    const before = underWay
+      ? `The shift is already under way: the results assume your accounts hold ${mixOf(plan.startYear)} in ${plan.startYear}, the plan’s first year.`
+      : `Until now the results assume ${mixOf(P - 1)} in every account.`;
+    const step: Step = {
+      action,
+      why: `${before} ${pathName}${fundNote} ${each ? 'The results assume that year’s mix in every account each year.' : 'The results assume this mix in every account from now on.'}` +
+        moveTax(each ? 'each' : 'this', false, Math.min(lastMove, retireYear)),
+    };
+    const same = phases.find((ph) => ph.year === P); // Coast's stop year: one phase per year (the timeline keys on it)
+    if (same) {
+      same.title += ` · ${title}`;
+      same.steps.push(step);
+    } else {
+      phases.push({ year: P, title, ages: ages(P), steps: [step] });
+      phases.sort((x, y) => x.year - y.year);
+    }
+  }
+
   // Retirement: the yearly routine, as it stands on the day you retire.
   const steps: Step[] = [];
   const recurring = plan.datedItems.filter((it) => it.direction === 'expense' && it.frequency === 'recurring' &&
@@ -262,18 +400,42 @@ export function buildPlaybook(plan: Plan, detail: Detail): Playbook {
     action: 'Set aside the tax on what you take out, and pay it with your return in April or in four estimated payments during the year.',
     why: 'The money you take out has to cover the tax on it too; the plan’s withdrawals include it.',
   });
-  const switching = a.retiredAllocation !== null && mixSwitchShare(a) > 0; // D96
-  const alloc = switching ? a.retiredAllocation! : a.allocation;
-  const mix = `${pct(alloc.stocks)} stocks / ${pct(alloc.bonds)} bonds / ${pct(alloc.cash)} cash`;
-  steps.push(switching
-    ? {
-        action: `Move every invested account to ${mix} (cash stays cash), and once a year put it back to that mix.`,
-        why: `The results assume you switch to this mix the year you retire and keep it every year after${has.taxable ? ', and they include the capital-gains tax on what the switch sells in the brokerage account' : ''}. Drifting toward more stocks raises the risk in a bad market; toward less lowers growth.`,
-      }
-    : {
-        action: `Once a year, put every invested account back to ${mix} (cash stays cash).`,
-        why: 'The results assume this mix in every account, every year. Drifting toward more stocks raises the risk in a bad market; toward less lowers growth.',
-      });
+  // The mix from the retirement year on (D97): fixed, one move this year, a later switch, or a move every year.
+  const after = lastMove !== undefined ? movesIn(retireYear + 1, lastMove) : [];
+  const retireMove = moveYears.includes(retireYear);
+  if (lastMove === undefined || lastMove < retireYear) {
+    steps.push({
+      action: `Once a year, put every invested account back to ${mixOf(retireYear)} (cash stays cash).`,
+      why: (a.mixPlan === 'fidelity'
+        ? `${pathName} The results assume this mix in every account, every year.`
+        : pathYears !== null && pathYears.last <= retireYear
+          ? `${pathName} The move to this mix is done: the results assume it in every account, every year from now on.`
+          : 'The results assume this mix in every account, every year.') + ` ${drift}`,
+    });
+  } else if (lastMove === retireYear) {
+    steps.push({
+      action: moveAction(retireYear),
+      why: `${pathName}${fundNote} The results assume this mix in every account, every year from now on.${moveTax('this', true, retireYear)} ${drift}`,
+    });
+  } else if (!retireMove && after.length === 1) {
+    steps.push({
+      action: `Once a year, put every invested account back to ${mixOf(retireYear)} (cash stays cash), until the switch to ${mixOf(lastMove)} in ${lastMove}.`,
+      why: `${pathName} The results assume this mix in every account until then. ${drift}`,
+    });
+  } else {
+    const from = retireMove || after[0] === retireYear + 1 ? '' : ` from ${after[0]}`;
+    const starting = retireMove && firstMove === retireYear ? ' starting this year,' : ''; // no phase before it says so
+    const shown = after.length <= 8 ? after : [...after.slice(0, 5), after[after.length - 1]];
+    const noCash = shown.every((y) => mixPercents(mixIn(y))[2] === 0); // then the list leaves cash out, as mixLabel does
+    const byYear = shown.map((y) => `${y}: ${mixPercents(mixIn(y)).slice(0, noCash ? 2 : 3).join(' / ')}`);
+    if (shown.length < after.length) byYear.splice(5, 0, '…');
+    steps.push({
+      action: `Once a year,${starting} move every invested account to that year’s mix (cash stays cash): ${mixOf(retireYear)} this year, then ` +
+        `${perYear(after)} ${direction(retireYear, lastMove)}${from} through ${lastMove}, and ${mixOf(lastMove)} from then on.`,
+      why: `${pathName}${fundNote} Mix by year (stocks / bonds${noCash ? '' : ' / cash'}): ${byYear.join(' · ')}. The results assume that year’s mix in every account.` +
+        `${moveTax('each', true, lastMove)} ${drift}`,
+    });
+  }
   steps.push({
     action: 'Once a year, enter your real balances here and recalculate.',
     why: 'Markets will not follow any single simulated path. If the chance your money lasts falls, spending is the lever to adjust early.',
@@ -379,6 +541,13 @@ export function buildPlaybook(plan: Plan, detail: Detail): Playbook {
     }]);
   }
   for (const it of plan.datedItems) datedPhases(plan, it, retireYear, converting ? fill : null, add);
+  // The mix's last move after retirement (D97); `add` joins it to a milestone in the same year.
+  if (lastMove !== undefined && lastMove > retireYear) {
+    add(lastMove, singleSwitch ? 'Switch to a new asset mix' : 'Last change to the asset mix', [{
+      action: moveAction(lastMove),
+      why: `${pathEnd}${fundNote} The results assume this mix in every account, every year from now on.${moveTax('this', true, lastMove)}`,
+    }]);
+  }
   steps.splice(atRetire, 0, ...retireSteps);
   retirePhase.title = ['You retire', ...retireTitles].join(' · ');
   for (const year of [...later.keys()].sort((x, y) => x - y)) {

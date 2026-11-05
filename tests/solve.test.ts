@@ -1,18 +1,21 @@
 // The headline numbers: FIRE number, earliest date, Coast number, stricter-of-two, bands, worst windows.
 // Search paths = all paths here, so "just enough" and "just short" are exact on the same path set.
 import { describe, expect, test } from 'vitest';
-import { buildContext } from '../src/engine/context';
+import { buildContext, mixByYear } from '../src/engine/context';
 import { examplePlan } from '../src/engine/defaults';
+import { mixInYear } from '../src/engine/mix';
 import { bootstrapPaths, constantPath, historicalPaths, MARKET, type ReturnPaths } from '../src/engine/returns';
 import { initialState, scaleState, simulatePath } from '../src/engine/simulate';
 import {
-  averageInflation, averageRealReturns, contributionMix, detailFor, evaluate, makeEngine, projectState, scenarioFor, solveTier,
+  averageBondInterestRate, averageInflation, averageRealReturns, contributionMix, detailFor, evaluate, makeEngine, projectState, scenarioFor,
+  solveTier,
 } from '../src/engine/solve';
 import type { Plan } from '../src/engine/types';
-import { noYields, simplePlan, START } from './helpers';
+import { fidelityPlan, fixedMix, noYields, simplePlan, START } from './helpers';
 
+/** The example plan at 400 markets, pinned to Fidelity's fixed mix (the default before D97) like the expected values below. */
 function smallPlan(): Plan {
-  const plan = examplePlan(2026);
+  const plan = fidelityPlan(2026);
   plan.assumptions.paths = 400;
   plan.assumptions.searchPaths = 400;
   plan.household.chubbySpending = 110_000;
@@ -333,7 +336,7 @@ describe('price level in retirement-only runs', () => {
       }
       return ok / paths.n;
     };
-    const windows = historicalPaths(ctx.len - idx, p.assumptions.allocation, p.assumptions.feeRate);
+    const windows = historicalPaths(ctx.len - idx, mixByYear(p).slice(idx), p.assumptions.feeRate);
     expect(windows.n).toBe(MARKET.years.length - (ctx.len - idx) + 1);
     const s = evaluate(e, ctx, { startIdx: idx, startState, retirementOnly: true }, true);
     expect(s.historical).toBe(rate(windows, idx, level));
@@ -358,7 +361,7 @@ describe('review follow-ups', () => {
     const floored = MARKET.years.reduce((acc, y) => acc + Math.max(0.04, y.bondYield), 0) / MARKET.years.length;
     const plain = MARKET.years.reduce((acc, y) => acc + y.bondYield, 0) / MARKET.years.length;
     expect(floored).toBeGreaterThan(plain + 0.003);
-    const avg = averageRealReturns(p.assumptions.allocation, p.assumptions.feeRate);
+    const avg = averageRealReturns(mixInYear(p, p.startYear), p.assumptions.feeRate); // a fixed mix
     const run = (bond: number) =>
       simulatePath(ctx, constantPath(ctx.len, avg.portfolio, avg.cash, averageInflation(), bond), 0, { stopIdx: idx }).state;
     const projected = projectState(ctx, idx);
@@ -419,77 +422,175 @@ describe('age-gap couples (D43)', () => {
   });
 });
 
-describe('asset mix after you retire (D96)', () => {
-  const withMix = (mix: Plan['assumptions']['retiredAllocation']) => {
-    const p = smallPlan();
-    p.assumptions.retiredAllocation = mix;
-    return makeEngine(p);
+// Results recorded on the engine before D97 (commit 29fc416), at 1,000 markets with a 500-market search. A plan saved
+// with a fixed mix, or with D96's switch in the retirement year 2049 (You: age 65, so the same as one switch
+// at 65), must give exactly these results now (D65, D81: no engine-version bump).
+const CHAR_FIDELITY = { traditional: { tier: 'traditional', spending: 76500, currentBalance: 880000, successToday: { bootstrap: 0, historical: 0, combined: 0, binding: 'bootstrap' }, simpleNumber: 2712500, fireNumber: 2533200, successAtEarliest: { bootstrap: 0.907, historical: 0.9292929292929293, combined: 0.907, binding: 'bootstrap' }, penaltyRate: 0.266, earliest: { year: 2039, ageYou: 55, ageSpouse: 53 }, projectedAtEarliest: { p50: 3226586.4679979105, p10: 2010361.2421072721 }, searchLimit: 2061 }, chubby: { tier: 'chubby', spending: 108000, currentBalance: 880000, successToday: { bootstrap: 0, historical: 0, combined: 0, binding: 'bootstrap' }, simpleNumber: 3500000, fireNumber: 3334300, successAtEarliest: { bootstrap: 0.901, historical: 0.9292929292929293, combined: 0.901, binding: 'bootstrap' }, penaltyRate: 0.001, earliest: { year: 2042, ageYou: 58, ageSpouse: 56 }, projectedAtEarliest: { p50: 4186954.649677286, p10: 2532013.2047578865 }, searchLimit: 2061 }, coast: { tier: 'coast', spending: 76500, currentBalance: 880000, successToday: { bootstrap: 0.931, historical: 1, combined: 0.931, binding: 'bootstrap' }, simpleNumber: 2739921.578333301, fireNumber: 763000, successAtEarliest: { bootstrap: 0.931, historical: 1, combined: 0.931, binding: 'bootstrap' }, penaltyRate: 0, earliest: { year: 2026, ageYou: 42, ageSpouse: 40 }, projectedAtEarliest: null, coastMix: { pretax: [0.38461538461538464, 0.38461538461538464], roth: [0, 0], hsa: 0, taxable: 0.23076923076923078 } } };
+const CHAR_60_40 = { traditional: { tier: 'traditional', spending: 76500, currentBalance: 880000, successToday: { bootstrap: 0, historical: 0, combined: 0, binding: 'bootstrap' }, simpleNumber: 2712500, fireNumber: 2487600, successAtEarliest: { bootstrap: 0.938, historical: 1, combined: 0.938, binding: 'bootstrap' }, penaltyRate: 0.091, earliest: { year: 2040, ageYou: 56, ageSpouse: 54 }, projectedAtEarliest: { p50: 3345075.198682112, p10: 2178580.539565909 }, searchLimit: 2061 }, chubby: { tier: 'chubby', spending: 108000, currentBalance: 880000, successToday: { bootstrap: 0, historical: 0, combined: 0, binding: 'bootstrap' }, simpleNumber: 3500000, fireNumber: 3247600, successAtEarliest: { bootstrap: 0.924, historical: 1, combined: 0.924, binding: 'bootstrap' }, penaltyRate: 0, earliest: { year: 2043, ageYou: 59, ageSpouse: 57 }, projectedAtEarliest: { p50: 4257870.379512135, p10: 2689626.6848786497 }, searchLimit: 2061 }, coast: { tier: 'coast', spending: 76500, currentBalance: 880000, successToday: { bootstrap: 0.922, historical: 1, combined: 0.922, binding: 'bootstrap' }, simpleNumber: 2739921.578333301, fireNumber: 809300, successAtEarliest: { bootstrap: 0.922, historical: 1, combined: 0.922, binding: 'bootstrap' }, penaltyRate: 0, earliest: { year: 2026, ageYou: 42, ageSpouse: 40 }, projectedAtEarliest: null, coastMix: { pretax: [0.38461538461538464, 0.38461538461538464], roth: [0, 0], hsa: 0, taxable: 0.23076923076923078 } } };
+const CHAR_SWITCH_AT_65 = { success: { bootstrap: 0.999, historical: 1, combined: 0.999, binding: 'bootstrap' }, penaltyRate: 0, failures: { share: 0.001, medianYear: 2080, socialSecurity: 40023.529411764706, spending: 110016.41355693461 }, bandsLast: { p50: 16329952.892211154, p25: 9393948.048447287, p10: 5291006.994427283 }, bandsSum: { p50: 465763065.484951, p25: 310266176.7631775, p10: 212428266.17718577 }, medianLast: { year: 2082, ageYou: 98, ageSpouse: 96, working: false, spending: 111029.44715669296, healthcare: 34529.44715669296, socialSecurity: 39741.17647058824, otherIncome: 0, withdrawals: { cash: 0, taxable: 0, roth: 0, pretax: 566685.436589444, hsa: 0 }, conversions: 0, reinvested: 142286.53077768022, seasonedRoth: 1991172.0574761527, rmd: 566685.436589444, penaltyWithdrawals: 0, ordinaryIncome: 969988.7701239577, capitalGains: 90652.76640856743, taxableIncome: 1025141.5365325251, federalTax: 303542.59002541495, stateTax: 49568.07682662626, penaltyTax: 0, balances: { cash: 0, taxable: 13274274.247644775, pretax: 4578455.541038845, roth: 2332536.7785080695, hsa: 0, total: 20185266.567191686 }, shortfall: 0 }, p10Last: { year: 2082, ageYou: 98, ageSpouse: 96, working: false, spending: 111029.44715669296, healthcare: 34529.44715669296, socialSecurity: 39741.17647058824, otherIncome: 0, withdrawals: { cash: 0, taxable: 0, roth: 0, pretax: 383388.47105389286, hsa: 0 }, conversions: 0, reinvested: 128165.92330984364, seasonedRoth: 1022677.0195842996, rmd: 383388.47105389286, penaltyWithdrawals: 0, ordinaryIncome: 604027.3739474335, capitalGains: 54971.6370218138, taxableIncome: 623499.0109692473, federalTax: 154448.33750011964, stateTax: 29485.950548462366, penaltyTax: 0, balances: { cash: 0, taxable: 7002117.8096012585, pretax: 2707449.0928665237, roth: 1042123.5910379856, hsa: 0, total: 10751690.493505767 }, shortfall: 0 } };
+
+describe('results before D97 are kept exactly (characterization)', () => {
+  const base = () => {
+    const p = examplePlan(2026);
+    p.assumptions.paths = 1000;
+    p.assumptions.searchPaths = 500;
+    return p;
+  };
+  const tiers = (p: Plan) => {
+    const e = makeEngine(p);
+    return { traditional: solveTier(e, 'traditional'), chubby: solveTier(e, 'chubby'), coast: solveTier(e, 'coast') };
   };
 
-  test('entering the working mix again changes nothing', () => {
-    const same = withMix({ ...plan.assumptions.allocation });
-    expect(solveTier(same, 'traditional')).toEqual(trad);
-    expect(solveTier(same, 'coast')).toEqual(coast);
-    const y = trad.earliest!.year;
-    expect(detailFor(same, 'traditional', y).bands).toEqual(detailFor(engine, 'traditional', y).bands);
-  });
+  test('the Fidelity mix every year', () => {
+    const p = base();
+    p.assumptions.mixPlan = 'fidelity';
+    expect(tiers(p)).toEqual(CHAR_FIDELITY);
+  }, 30_000);
 
-  test('a different mix leaves the working years alone and changes the retired years and the FIRE number', () => {
-    const y = trad.earliest!.year;
-    const idx = y - plan.startYear;
-    const safer = withMix({ stocks: 0.3, bonds: 0.6, cash: 0.1 });
-    const a = detailFor(engine, 'traditional', y).bands.p50;
-    const b = detailFor(safer, 'traditional', y).bands.p50;
-    expect(b.slice(0, idx)).toEqual(a.slice(0, idx));
-    expect(b[idx]).not.toBe(a[idx]);
-    // The FIRE number's retirement-only test runs entirely in the mix after retiring.
-    const ctx = buildContext(plan, scenarioFor(plan, 'traditional', y));
-    const start = scaleState(projectState(ctx, idx), trad.fireNumber!);
-    const opts = { startIdx: idx, startState: start, retirementOnly: true };
-    const saferCtx = buildContext(safer.plan, scenarioFor(safer.plan, 'traditional', y));
-    expect(evaluate(safer, saferCtx, opts, true).combined).not.toBe(evaluate(engine, ctx, opts, true).combined);
-    expect(solveTier(safer, 'traditional').fireNumber).not.toBe(trad.fireNumber);
+  test('a fixed mix of your own (60/40/0)', () => {
+    const p = fixedMix(base(), { stocks: 0.6, bonds: 0.4, cash: 0 });
+    expect(tiers(p)).toEqual(CHAR_60_40);
+  }, 30_000);
+
+  test('D96’s switch in the retirement year = a single switch at 65', () => {
+    const p = base();
+    Object.assign(p.assumptions, {
+      mixPlan: 'own', allocation: { stocks: 0.7, bonds: 0.25, cash: 0.05 }, laterAllocation: { stocks: 0.4, bonds: 0.5, cash: 0.1 },
+      shiftStartAge: 65, shiftEndAge: 65,
+    });
+    const d = detailFor(makeEngine(p), 'traditional', 2049);
+    const sum = (x: number[]) => x.reduce((s, v) => s + v, 0);
+    expect({
+      success: d.success, penaltyRate: d.penaltyRate, failures: d.failures,
+      bandsLast: { p50: d.bands.p50.at(-1), p25: d.bands.p25.at(-1), p10: d.bands.p10.at(-1) },
+      bandsSum: { p50: sum(d.bands.p50), p25: sum(d.bands.p25), p10: sum(d.bands.p10) },
+      medianLast: d.medianPath.at(-1), p10Last: d.p10Path.at(-1),
+    }).toEqual(CHAR_SWITCH_AT_65);
   });
 });
 
-describe('asset mix after you retire: engine wiring and the earliest-date search (D96, review)', () => {
-  const R = { stocks: 0.3, bonds: 0.6, cash: 0.1 };
-  const planWith = (retired: Plan['assumptions']['retiredAllocation'], allocation = plan.assumptions.allocation) => {
-    const p = smallPlan();
-    p.assumptions.allocation = { ...allocation };
-    p.assumptions.retiredAllocation = retired;
-    return p;
-  };
-  const switched = makeEngine(planWith(R));
+describe('Vanguard’s path, the default (D97)', () => {
+  // The example plan as new plans get it, at 400 markets searched on all of them (exact pass/fail edges). You: age 65 in
+  // 2049; the mix changes every year from 2025 to 2056.
+  const v = examplePlan(2026);
+  v.assumptions.paths = 400;
+  v.assumptions.searchPaths = 400;
+  const e = makeEngine(v);
+  const passes = (s: { combined: number }) => s.combined >= target - 1e-9;
+  const rate = (tier: 'traditional' | 'coast', year: number, full = true) => evaluate(e, buildContext(v, scenarioFor(v, tier, year)), {}, full);
+  const t = solveTier(e, 'traditional');
 
-  test('both the simulated and the real past markets carry the mix after retiring', () => {
-    const a = plan.assumptions;
-    expect(Array.from(switched.boot.portfolioRetired)).toEqual(Array.from(bootstrapPaths(a.paths, switched.len, R, a.feeRate, a.blockLength, a.seed).portfolio));
-    expect(Array.from(switched.hist.portfolioRetired)).toEqual(Array.from(historicalPaths(switched.len, R, a.feeRate).portfolio));
+  test('the engine’s simulated and real past markets carry each plan year’s mix', () => {
+    const a = v.assumptions;
+    const len = e.len;
+    const boot = bootstrapPaths(a.paths, len, mixByYear(v), a.feeRate, a.blockLength, a.seed);
+    const hist = historicalPaths(len, mixByYear(v), a.feeRate);
+    expect(Array.from(e.boot.portfolio)).toEqual(Array.from(boot.portfolio));
+    expect(Array.from(e.hist.portfolio)).toEqual(Array.from(hist.portfolio));
+    // Not one mix for every year:
+    expect(Array.from(e.boot.portfolio)).not.toEqual(Array.from(bootstrapPaths(a.paths, len, a.allocation, a.feeRate, a.blockLength, a.seed).portfolio));
+    expect(Array.from(e.hist.portfolio)).not.toEqual(Array.from(historicalPaths(len, a.allocation, a.feeRate).portfolio));
   });
 
-  test('the FIRE number’s retirement-only test runs every retired year in the mix after retiring, in both kinds of market', () => {
-    // From the same balances (no brokerage gain, so the switch costs no tax), a plan that switches to R at retirement
-    // must score exactly like a plan that holds R throughout.
-    const y = trad.earliest!.year;
-    const holdsR = makeEngine(planWith(null, R));
-    const ctxSwitch = buildContext(switched.plan, scenarioFor(switched.plan, 'traditional', y));
-    const ctxR = buildContext(holdsR.plan, scenarioFor(holdsR.plan, 'traditional', y));
-    const start = scaleState(projectState(ctxSwitch, ctxSwitch.retireIdx), 2_500_000);
-    start.taxableBasis = start.taxable;
-    const opts = { startIdx: ctxSwitch.retireIdx, startState: start, retirementOnly: true };
-    const a = evaluate(switched, ctxSwitch, opts, true);
-    const b = evaluate(holdsR, ctxR, opts, true);
-    expect(a.historical).not.toBeNull();
-    expect(a.bootstrap).toBe(b.bootstrap);
-    expect(a.historical).toBe(b.historical);
-  });
-
-  test('with a mix after retiring, the earliest year is the first year that passes (every earlier year checked)', () => {
-    const t = solveTier(switched, 'traditional');
+  test('the earliest year is the first that passes: every earlier year fails the search, the answer passes on all paths', () => {
+    expect(v.assumptions.mixPlan).toBe('vanguard');
     const y = t.earliest!.year;
-    const rate = (year: number) => evaluate(switched, buildContext(switched.plan, scenarioFor(switched.plan, 'traditional', year)), {}, true).combined;
-    expect(rate(y)).toBeGreaterThanOrEqual(target - 1e-9);
-    for (let year = plan.startYear; year < y; year++) expect(rate(year)).toBeLessThan(target - 1e-9);
+    expect(y).toBeGreaterThan(v.startYear);
+    for (let year = v.startYear; year < y; year++) expect(passes(rate('traditional', year, false)), String(year)).toBe(false);
+    expect(passes(rate('traditional', y))).toBe(true);
   });
+
+  test('success never falls when retiring a year later (Traditional) or stopping saving a year later (Coast)', () => {
+    const y = t.earliest!.year;
+    const trad = [y - 3, y - 2, y - 1, y, y + 1, y + 2].map((year) => rate('traditional', year).combined);
+    for (let i = 1; i < trad.length; i++) expect(trad[i]).toBeGreaterThanOrEqual(trad[i - 1]);
+    const coast = [2026, 2028, 2030, 2032, 2034].map((year) => rate('coast', year).combined);
+    for (let i = 1; i < coast.length; i++) expect(coast[i]).toBeGreaterThanOrEqual(coast[i - 1]);
+  });
+
+  test('the FIRE number’s projection earns each year’s own mix on the way to retirement (D42)', () => {
+    const ctx = buildContext(v, scenarioFor(v, 'traditional', t.earliest!.year));
+    const fee = v.assumptions.feeRate;
+    const path = constantPath(ctx.len, 0, averageRealReturns(mixInYear(v, 2026), fee).cash, averageInflation(), averageBondInterestRate());
+    for (let k = 0; k < ctx.len; k++) path.portfolio[k] = averageRealReturns(mixInYear(v, 2026 + k), fee).portfolio;
+    expect(path.portfolio[0]).not.toBe(path.portfolio[ctx.retireIdx]); // the path changes before retirement
+    expect(projectState(ctx, ctx.retireIdx)).toEqual(simulatePath(ctx, path, 0, { stopIdx: ctx.retireIdx }).state);
+  });
+
+  test('the FIRE number passes at the value shown and 1% less does not, in the mixes after retiring (D47)', () => {
+    const ctx = buildContext(v, scenarioFor(v, 'traditional', t.earliest!.year));
+    const idx = ctx.retireIdx;
+    const base = projectState(ctx, idx);
+    const run = (x: number) => evaluate(e, ctx, { startIdx: idx, startState: scaleState(base, x), retirementOnly: true }, true);
+    expect(run(t.fireNumber!).combined).toBeGreaterThanOrEqual(target);
+    expect(run(t.fireNumber! * 0.99).combined).toBeLessThan(target);
+  });
+
+  test('the FIRE number’s real past markets use the mixes from the retirement year on (D47, D97)', () => {
+    const ctx = buildContext(v, scenarioFor(v, 'traditional', t.earliest!.year));
+    const idx = ctx.retireIdx;
+    const n = ctx.len - idx;
+    const base = projectState(ctx, idx);
+    const level = Math.pow(1 + averageInflation(), idx);
+    const histRate = (windows: ReturnPaths, x: number) => {
+      const startState = scaleState(base, x);
+      let ok = 0;
+      for (let q = 0; q < windows.n; q++) {
+        if (simulatePath(ctx, windows, q, { startIdx: idx, startState, pathShift: idx, initialPriceLevel: level }).success) ok++;
+      }
+      return ok / windows.n;
+    };
+    const fee = v.assumptions.feeRate;
+    const right = historicalPaths(n, mixByYear(v).slice(idx), fee);
+    // A balance at which some past markets fail and some don't, so a wrong mix would show.
+    const x = [0.5, 0.6, 0.7, 0.8, 0.9, 1].map((k) => k * t.fireNumber!).find((b) => {
+      const r = histRate(right, b);
+      return r > 0 && r < 1;
+    })!;
+    expect(x).toBeDefined();
+    const shown = evaluate(e, ctx, { startIdx: idx, startState: scaleState(base, x), retirementOnly: true }, true).historical!;
+    expect(shown).toBeGreaterThan(0);
+    expect(shown).toBeLessThan(1);
+    expect(shown).toBe(histRate(right, x));
+    expect(histRate(historicalPaths(n, mixByYear(v).slice(0, n), fee), x)).not.toBe(shown); // plan year 0's mixes
+    expect(histRate(historicalPaths(n, mixInYear(v, v.startYear + idx), fee), x)).not.toBe(shown); // one fixed mix
+  });
+});
+
+describe('the earliest-year bisection agrees with a year-by-year scan when the mix changes over time (D5, D97)', () => {
+  /** The rule earliestYear implements, by checking every year: the first year passing the search, then the first from there passing on all paths. */
+  function scan(p: Plan, latest: number): number | null {
+    const e = makeEngine(p);
+    const ok = (y: number, full: boolean) =>
+      evaluate(e, buildContext(p, scenarioFor(p, 'traditional', y)), {}, full).combined >= p.assumptions.targetSuccess - 1e-9;
+    let y = p.startYear;
+    while (y <= latest && !ok(y, false)) y++;
+    for (; y <= latest; y++) if (ok(y, true)) return y;
+    return null;
+  }
+  function own(first: Plan['assumptions']['allocation'], later: Plan['assumptions']['allocation'], start: number, end: number, rich = false) {
+    const p = examplePlan(2026);
+    p.assumptions.paths = 300;
+    p.assumptions.searchPaths = 150;
+    Object.assign(p.assumptions, { mixPlan: 'own', allocation: first, laterAllocation: later, shiftStartAge: start, shiftEndAge: end });
+    if (rich) {
+      // A large brokerage account holding a large gain, so the shift's tax matters.
+      p.household.taxable = 900_000;
+      p.household.taxableBasis = 150_000;
+    }
+    return p;
+  }
+  const cases: [string, Plan][] = [
+    ['yearly steps toward bonds across the retirement years', own({ stocks: 0.8, bonds: 0.2, cash: 0 }, { stocks: 0.4, bonds: 0.5, cash: 0.1 }, 50, 62)],
+    ['yearly steps toward stocks', own({ stocks: 0.4, bonds: 0.5, cash: 0.1 }, { stocks: 0.8, bonds: 0.2, cash: 0 }, 50, 62)],
+    ['a single switch shortly before retiring, with a large taxed gain', own({ stocks: 0.9, bonds: 0.1, cash: 0 }, { stocks: 0.3, bonds: 0.6, cash: 0.1 }, 51, 51, true)],
+    ['yearly steps with a large taxed gain', own({ stocks: 0.9, bonds: 0.1, cash: 0 }, { stocks: 0.3, bonds: 0.6, cash: 0.1 }, 44, 56, true)],
+  ];
+  for (const [name, p] of cases) {
+    test(name, () => {
+      const r = solveTier(makeEngine(p), 'traditional');
+      expect(r.earliest).not.toBeNull();
+      expect(r.earliest!.year).toBe(scan(p, r.searchLimit!));
+    }, 30_000);
+  }
 });

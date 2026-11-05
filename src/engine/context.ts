@@ -2,6 +2,7 @@
 // per-path loop in simulate.ts stays fast.
 
 import { LIMITS, UNIFORM_LIFETIME, rmdStartAge } from '../data/rules';
+import { mixInYear, shiftShare, type Allocation } from './mix';
 import { annualBenefits, computePia, payableShare, wageLevelAt60 } from './socialSecurity';
 import { bracketTop } from './tax';
 import type { Contributions, DatedItem, DatedTiming, Person, Plan, Scenario } from './types';
@@ -67,30 +68,21 @@ export interface Context {
   hsaPenalty: Uint8Array;
   fillTop: number; // 0 = no bracket fill
   /**
-   * The asset mix while working, as the shares of the brokerage balance that pay dividends (`stocks`), bond interest
-   * (`bonds`) and the T-bill rate (`cash`) each year (D70, D82) — shares, not yields. A copy of the allocation so
-   * tests can switch brokerage income off (`noYields` in tests/helpers.ts). The cash account's interest doesn't
-   * depend on it.
+   * Each year's asset mix (D97) as the shares of the brokerage balance that pay dividends (`stocks`), bond interest
+   * (`bonds`) and the T-bill rate (`cash`) that year (D70, D82) — shares, not yields. Kept apart from the return
+   * paths so tests can switch brokerage income off (`noYields` in tests/helpers.ts). The cash account's interest
+   * doesn't depend on it.
    */
-  incomeMix: { stocks: number; bonds: number; cash: number };
-  /** The same for retired years: the mix after retiring, or the working mix when there is none (D96). */
-  incomeMixRetired: { stocks: number; bonds: number; cash: number };
-  /** Share of each account sold to move to the mix after retiring in the retirement year (`mixSwitchShare`, D96). */
-  mixSwitch: number;
+  incomeMix: { stocks: Float64Array; bonds: Float64Array; cash: Float64Array };
+  /**
+   * Share of the brokerage account sold at the start of each year to move from last year's mix to this year's
+   * (`shiftShare`, D97); 0 in the first plan year.
+   */
+  mixShift: Float64Array;
   pia: [number, number];
 }
 
 /** The last plan year: the younger spouse reaches the plan-to age (D2). */
-/**
- * The share of every invested account sold (and the same amount bought) to move from the working mix to the mix after
- * retiring: the sum of the shares that shrink. 0 with no second mix, or one equal to the working mix (D96).
- */
-export function mixSwitchShare(a: Plan['assumptions']): number {
-  const r = a.retiredAllocation;
-  if (!r) return 0;
-  return Math.max(0, a.allocation.stocks - r.stocks) + Math.max(0, a.allocation.bonds - r.bonds) + Math.max(0, a.allocation.cash - r.cash);
-}
-
 export function planEndYear(plan: Plan): number {
   return Math.max(plan.you.birthYear, plan.spouse.birthYear) + plan.assumptions.endAge;
 }
@@ -106,6 +98,12 @@ export function planYears(plan: Plan): { startYear: number; endYear: number; len
   // A typo (plan start "202", plan to age "960") would otherwise run for hours.
   if (len > 120) throw new Error(`The plan runs ${len} years (${plan.startYear}–${endYear}). Check "Plan starts in year", birth years and "Plan until … age".`);
   return { startYear: plan.startYear, endYear, len };
+}
+
+/** Each plan year's mix: index t = year − plan.startYear, length planYears(plan).len (D97). */
+export function mixByYear(plan: Plan): Allocation[] {
+  const { startYear, len } = planYears(plan);
+  return Array.from({ length: len }, (_, t) => mixInYear(plan, startYear + t));
 }
 
 export function timingYear(plan: Plan, t: DatedTiming): number {
@@ -190,11 +188,19 @@ export function buildContext(plan: Plan, scenario: Scenario): Context {
     rmdDivisor: [f64(), f64()],
     hsaPenalty: new Uint8Array(len),
     fillTop: a.bracketFill === 'none' ? 0 : bracketTop(a.bracketFill),
-    incomeMix: { ...a.allocation },
-    incomeMixRetired: { ...(a.retiredAllocation ?? a.allocation) },
-    mixSwitch: mixSwitchShare(a),
+    incomeMix: { stocks: f64(), bonds: f64(), cash: f64() },
+    mixShift: f64(),
     pia: [0, 0],
   };
+
+  // The plan starts with the accounts already holding the first year's mix: nothing is shifted or taxed in year 0 (D97).
+  const mixes = mixByYear(plan);
+  for (let t = 0; t < len; t++) {
+    ctx.incomeMix.stocks[t] = mixes[t].stocks;
+    ctx.incomeMix.bonds[t] = mixes[t].bonds;
+    ctx.incomeMix.cash[t] = mixes[t].cash;
+    if (t > 0) ctx.mixShift[t] = shiftShare(mixes[t - 1], mixes[t]);
+  }
 
   ctx.pia = [
     pia(plan.you, startYear, scenario.retireYear, a.wageGrowth, a.ssWageGrowth),

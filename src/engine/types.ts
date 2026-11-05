@@ -80,12 +80,27 @@ export interface DatedItem {
 
 export type BracketFill = 'none' | '10' | '12' | '22' | '24';
 
+/** Vanguard's Target Retirement glide path to You's age 65, Fidelity's fixed mix, or your own (D97). */
+export type MixPlan = 'vanguard' | 'fidelity' | 'own';
+
 export interface Assumptions {
   endAge: number;
   targetSuccess: number; // 0-1
-  allocation: { stocks: number; bonds: number; cash: number }; // fractions summing to 1
-  /** The mix every invested account switches to in the retirement year (D96); null = keep `allocation`. */
-  retiredAllocation: { stocks: number; bonds: number; cash: number } | null;
+  /**
+   * "Asset mix over time" (D97): the mix every invested account holds in each calendar year. 'vanguard' and
+   * 'fidelity' ignore the four fields below, which stay in the plan so switching back to 'own' restores them.
+   */
+  mixPlan: MixPlan;
+  /**
+   * 'own': the mix at first (fractions summing to 1). Only that; it is not the mix in use. Code must get a year's mix
+   * from `mixInYear` (mix.ts) or `mixByYear` (context.ts) and never pass `allocation` to the path builders.
+   */
+  allocation: { stocks: number; bonds: number; cash: number };
+  /** 'own': the mix later (fractions summing to 1). */
+  laterAllocation: { stocks: number; bonds: number; cash: number };
+  /** 'own': You's whole ages in which the move from `allocation` to `laterAllocation` is made, in equal yearly steps (start ≤ end). */
+  shiftStartAge: number;
+  shiftEndAge: number;
   feeRate: number;
   wageGrowth: number; // real
   healthcareInflation: number; // real, above CPI

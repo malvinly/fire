@@ -1,12 +1,18 @@
+import { FIDELITY_MIX } from '../data/mixPaths';
 import { TRUST_FUND_DEFAULT } from '../data/rules';
 import { ZERO_CONTRIBUTIONS, inTodaysBudget } from './context';
 import type { Assumptions, Person, Plan } from './types';
 
 export const DEFAULT_ASSUMPTIONS: Assumptions = {
   endAge: 96, // Fidelity planning age
-  targetSuccess: 0.9, // Fidelity "significantly below average market"
-  allocation: { stocks: 0.7, bonds: 0.25, cash: 0.05 }, // Fidelity FI Planner mix
-  retiredAllocation: null, // the same mix after retiring (D96)
+  targetSuccess: 0.9, // Fidelity FI Planner's confidence level
+  mixPlan: 'vanguard', // Vanguard Target Retirement glide path (D97)
+  allocation: { ...FIDELITY_MIX }, // 'own' starts as a fixed Fidelity FI Planner mix
+  laterAllocation: { ...FIDELITY_MIX },
+  // About Vanguard's span. The conventions differ by one: a VANGUARD_PATH point is the last year AT that mix (its first
+  // change is in the year You turns 41), while shiftStartAge is the first year that DIFFERS (33 steps from 40 to 72).
+  shiftStartAge: 40,
+  shiftEndAge: 72,
   feeRate: 0.001,
   wageGrowth: 0.015, // Fidelity real wage growth
   healthcareInflation: 0.015,

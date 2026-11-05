@@ -21,6 +21,8 @@ function base(): Plan {
 /**
  * `year` is the retirement (or Coast stop-saving) year. A, D, E, G, H, J and L use the solver's earliest year at 400
  * markets when they were pinned (engine 7); they stay fixed even if a later engine would find a different year.
+ * "Asset mix over time" (D97): every profile has the default Vanguard path except H (Fidelity's fixed mix) and L
+ * (your own mix, moving after retirement), so the snapshot covers all three choices.
  */
 const profiles: { name: string; tier?: Tier; year: number; plan: (p: Plan) => void }[] = [
   { name: 'A. The example plan', year: 2039, plan: () => {} },
@@ -67,7 +69,10 @@ const profiles: { name: string; tier?: Tier; year: number; plan: (p: Plan) => vo
     p.household.taxableBasis = 200_000;
   } },
   { name: 'G. Coast FIRE on the example plan', tier: 'coast', year: 2026, plan: () => {} },
-  { name: 'H. Yearly Roth conversions off', year: 2039, plan: (p) => { p.assumptions.bracketFill = 'none'; } },
+  { name: 'H. Yearly Roth conversions off', year: 2039, plan: (p) => {
+    p.assumptions.bracketFill = 'none';
+    p.assumptions.mixPlan = 'fidelity';
+  } },
   { name: 'I. Ten-year age gap, 62 and 52 at retirement, with an HSA', year: 2034, plan: (p) => {
     p.you.birthYear = 1972;
     p.spouse.birthYear = 1982;
@@ -87,6 +92,12 @@ const profiles: { name: string; tier?: Tier; year: number; plan: (p: Plan) => vo
       { id: 'p', label: 'Pension', direction: 'income', amount: 24_000, frequency: 'ongoing', start: { kind: 'age', person: 'you', age: 65 }, fixedDollars: true, taxable: true },
       { id: 'c', label: 'A car', direction: 'expense', amount: 35_000, frequency: 'recurring', start: { kind: 'year', year: 2030 }, everyYears: 10, fixedDollars: false },
     ];
+    // Your own mix: 70/25/5 until 59, then 3 points a year into bonds and cash at 60–69 (2044–2053), after retiring.
+    p.assumptions.mixPlan = 'own';
+    p.assumptions.allocation = { stocks: 0.7, bonds: 0.25, cash: 0.05 };
+    p.assumptions.laterAllocation = { stocks: 0.4, bonds: 0.5, cash: 0.1 };
+    p.assumptions.shiftStartAge = 60;
+    p.assumptions.shiftEndAge = 69;
   } },
   { name: 'M. The spouse is older than "You": 56 and 62 at retirement', year: 2042, plan: (p) => {
     p.you.birthYear = 1986;

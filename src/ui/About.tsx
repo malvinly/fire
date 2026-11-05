@@ -1,8 +1,19 @@
+import { MIX_SOURCES, VANGUARD_PATH } from '../data/mixPaths';
 import { DATA_VERSIONS } from '../engine/assumptions';
 import { APP_VERSION, REPO_URL } from '../version';
+import { vanguardPathFacts } from './mixText';
+
+const V = MIX_SOURCES.vanguard;
+const R = MIX_SOURCES.vanguardResearch;
+const F = MIX_SOURCES.fidelity;
+
+function Source({ src }: { src: { title: string; url: string } }) {
+  return <a href={src.url} target="_blank" rel="noreferrer">{src.title}</a>;
+}
 
 /** The About tab: where your numbers go, whom the tool is for, and where the source lives (D90). */
 export function About({ onHowItWorks }: { onHowItWorks: () => void }) {
+  const path = vanguardPathFacts();
   return (
     <div className="page">
       <div style={{ display: 'grid', gap: 10 }}>
@@ -22,6 +33,25 @@ export function About({ onHowItWorks }: { onHowItWorks: () => void }) {
         </p>
         <p>
           The results are estimates, not financial advice.
+        </p>
+        <h3>Where the investment mix comes from</h3>
+        <p>
+          The default asset mix follows Vanguard's Target Retirement glide path. The glide-path chart and table in Vanguard's{' '}
+          <Source src={V} /> ({V.date}) show stocks at {path.firstStocks}% until {path.firstYearsBefore} years before a fund's
+          target year and at {path.targetStocks}% in it, and the prospectus says each fund reaches the mix of the Target
+          Retirement Income fund, about {path.finalStocks}% stocks, within {path.finalYearsAfter} years after.
+        </p>
+        <p>
+          The planner ties the path to the year the first person in the plan turns {VANGUARD_PATH.targetAge}. Vanguard's research
+          paper <Source src={R} /> ({R.date}) describes the path as reaching "{R.quotes[0]}" and "{R.quotes[1]}", and lists a
+          retirement age of 65 among its assumptions. That is what the path was designed around, so it is tied to
+          age {VANGUARD_PATH.targetAge} rather than to your own retirement year; tied to an earlier retirement it would turn
+          conservative years sooner. What this choice changes is measured in
+          the <a href={`${REPO_URL}/blob/main/docs/DECISIONS.md`} target="_blank" rel="noreferrer">decisions log</a> (D97).
+        </p>
+        <p>
+          The fixed mix is the one Fidelity's FI Planner uses: its <Source src={F} /> says "{F.quotes[0]}". This planner puts
+          your accounts back to the mix once a year. "My own mix" is there for anything else.
         </p>
         <p className="text-2">
           Version {APP_VERSION} · market history through {DATA_VERSIONS.marketThrough} · {DATA_VERSIONS.rulesYear} tax and Social

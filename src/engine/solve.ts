@@ -1,6 +1,6 @@
 // Turns the simulator into answers: success rates, earliest retirement dates, FIRE numbers (D3, D5).
 
-import { bondInterestRate, buildContext, mixSwitchShare, planYears, type Context } from './context';
+import { bondInterestRate, buildContext, mixByYear, planYears, type Context } from './context';
 import { bootstrapPaths, constantPath, firstPaths, historicalPaths, MARKET, type ReturnPaths } from './returns';
 import { initialState, scaleState, simulatePath, totalBalance, type Mix, type State } from './simulate';
 import type { Plan, Scenario, YearRecord } from './types';
@@ -86,12 +86,14 @@ export interface Engine {
 export function makeEngine(plan: Plan): Engine {
   const a = plan.assumptions;
   const { startYear, endYear, len } = planYears(plan);
-  const boot = bootstrapPaths(a.paths, len, a.allocation, a.feeRate, a.blockLength, a.seed, undefined, a.retiredAllocation);
+  // Each plan year's mix is baked into the paths (D97): it depends only on the calendar year.
+  const mixes = mixByYear(plan);
+  const boot = bootstrapPaths(a.paths, len, mixes, a.feeRate, a.blockLength, a.seed);
   return {
     plan,
     boot,
     search: firstPaths(boot, a.searchPaths),
-    hist: historicalPaths(len, a.allocation, a.feeRate, undefined, a.retiredAllocation),
+    hist: historicalPaths(len, mixes, a.feeRate),
     startYear,
     endYear,
     len,
@@ -151,11 +153,14 @@ function successRate(ctx: Context, paths: ReturnPaths, opts: RunOpts, shift = 0)
   return { rate: paths.n ? ok / paths.n : 0, penaltyRate: paths.n ? penalty / paths.n : 0, outcomes };
 }
 
-/** Historical windows appropriate for a run starting at `startIdx`. */
+/**
+ * Historical windows appropriate for a run starting at `startIdx`. Retirement-only windows start at that plan year, so
+ * path year j carries plan year startIdx + j's mix (D97).
+ */
 function histFor(e: Engine, startIdx: number, retirementOnly: boolean): { paths: ReturnPaths; shift: number } {
   if (!retirementOnly || startIdx === 0) return { paths: e.hist, shift: 0 };
-  const a = e.plan.assumptions;
-  return { paths: historicalPaths(e.len - startIdx, a.allocation, a.feeRate, undefined, a.retiredAllocation), shift: startIdx };
+  const mixes = mixByYear(e.plan).slice(startIdx);
+  return { paths: historicalPaths(e.len - startIdx, mixes, e.plan.assumptions.feeRate), shift: startIdx };
 }
 
 export function evaluate(e: Engine, ctx: Context, opts: RunOpts = {}, full = false): Success {
@@ -191,11 +196,12 @@ function passes(s: Success, target: number): boolean {
 }
 
 /**
- * Smallest year in [lo, hi] whose scenario passes on the path subset, then the first year from there that also passes
- * on all paths. Bisection assumes a later year never does worse, which holds while every year earns the same mix. With
- * a mix after retiring (D96) it doesn't: an extra working year earns the working mix, so a crash that year can leave
- * less than retiring into the other mix would. Traditional and Chubby then check every year from `lo`; Coast's search
- * moves only the stop-saving year, so its switch year (the Coast age) stays put and bisection still holds.
+ * Smallest year in [lo, hi] whose scenario passes, found by bisection on the path subset, then the first year from
+ * there that also passes on all paths. Bisection assumes retiring (or, for Coast, stopping saving) a year later never
+ * does worse. With a mix that changes over time, every calendar year still earns the same mix whatever the retirement
+ * year (D97), so a later year adds a year of saving; the one thing that differs is how that year's mix shift is taxed
+ * (on top of wages instead of in a retired year's bill), which is small next to a year of saving. tests/solve.test.ts
+ * checks the result against a year-by-year scan.
  */
 function earliestYear(e: Engine, tier: Tier, lo: number, hi: number): number | null {
   const target = e.plan.assumptions.targetSuccess;
@@ -203,14 +209,10 @@ function earliestYear(e: Engine, tier: Tier, lo: number, hi: number): number | n
   if (!ok(hi, false)) return null;
   let a = lo;
   let b = hi;
-  if (tier !== 'coast' && mixSwitchShare(e.plan.assumptions) > 0) {
-    while (!ok(a, false)) a++; // stops by hi, which passed above
-  } else {
-    while (a < b) {
-      const mid = Math.floor((a + b) / 2);
-      if (ok(mid, false)) b = mid;
-      else a = mid + 1;
-    }
+  while (a < b) {
+    const mid = Math.floor((a + b) / 2);
+    if (ok(mid, false)) b = mid;
+    else a = mid + 1;
   }
   // Confirm on the full path set; move later if the subset was optimistic.
   for (let y = a; y <= hi; y++) if (ok(y, true)) return y;
@@ -233,13 +235,14 @@ export function averageBondInterestRate(): number {
 /**
  * Deterministic projection of balances to the start of `idx` using long-run average real returns and average
  * inflation (which shrinks cost basis and Roth principal in today's dollars, D63), with bond interest taxed at the
- * average rate the markets pay (D82). Callers project only up to the retirement year, so every projected year holds
- * the working mix (D96).
+ * average rate the markets pay (D82). Each projected year earns the average return of that year's mix, and its mix
+ * shift is taxed like any other year's (D97).
  */
 export function projectState(ctx: Context, idx: number): State {
-  const a = ctx.plan.assumptions;
-  const avg = averageRealReturns(a.allocation, a.feeRate);
-  const path = constantPath(ctx.len, avg.portfolio, avg.cash, averageInflation(), averageBondInterestRate());
+  const fee = ctx.plan.assumptions.feeRate;
+  const mixes = mixByYear(ctx.plan);
+  const path = constantPath(ctx.len, 0, averageRealReturns(mixes[0], fee).cash, averageInflation(), averageBondInterestRate());
+  for (let t = 0; t < ctx.len; t++) path.portfolio[t] = averageRealReturns(mixes[t], fee).portfolio;
   return simulatePath(ctx, path, 0, { stopIdx: idx }).state;
 }
 

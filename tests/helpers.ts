@@ -1,8 +1,27 @@
 import { buildContext, type Context } from '../src/engine/context';
 import { examplePlan } from '../src/engine/defaults';
+import type { Allocation } from '../src/engine/mix';
 import type { Plan, Scenario } from '../src/engine/types';
 
 export const START = 2026;
+
+/**
+ * The example plan pinned to Fidelity's fixed 70/25/5 mix, the default before D97, for tests whose expected values
+ * were worked out with it.
+ */
+export function fidelityPlan(startYear = START): Plan {
+  const plan = examplePlan(startYear);
+  plan.assumptions.mixPlan = 'fidelity';
+  return plan;
+}
+
+/** Sets the plan to hold `mix` every year ("your own" mix with the same mix twice, D97). */
+export function fixedMix(plan: Plan, mix: Allocation): Plan {
+  plan.assumptions.mixPlan = 'own';
+  plan.assumptions.allocation = { ...mix };
+  plan.assumptions.laterAllocation = { ...mix };
+  return plan;
+}
 
 /**
  * A plan with no taxes, Social Security or healthcare: both spouses 65, everything in Roth contributions.
@@ -50,7 +69,8 @@ export function ctxFor(plan: Plan, scenario: Scenario = retiredNow(plan)) {
  * account still earns the path's T-bill rate (zero on a 0%-return, 0%-inflation path).
  */
 export function noYields(ctx: Context): Context {
-  ctx.incomeMix = { stocks: 0, bonds: 0, cash: 0 };
-  ctx.incomeMixRetired = { stocks: 0, bonds: 0, cash: 0 };
+  ctx.incomeMix.stocks.fill(0);
+  ctx.incomeMix.bonds.fill(0);
+  ctx.incomeMix.cash.fill(0);
   return ctx;
 }

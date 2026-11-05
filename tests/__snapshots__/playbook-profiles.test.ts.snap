@@ -3,6 +3,10 @@
 exports[`the playbook for fourteen household profiles > A. The example plan 1`] = `
 "traditional, retire 2039
 
+## 2027 · Keep shifting the asset mix (You 43 · Spouse 41)
+1. Each year until you retire, move every invested account to that year’s mix (cash stays cash): 86% stocks / 14% bonds in 2027, then about 1.5 percentage points a year from stocks into bonds, to 68% stocks / 32% bonds in 2039, the year you retire.
+   (The shift is already under way: the results assume your accounts hold 87% stocks / 13% bonds in 2026, the plan’s first year. This follows Vanguard’s Target Retirement path, tied to the year you turn 65 (2049). A target-date fund dated near 2049, the year you turn 65, follows about this path and makes these moves for you; with separate stock and bond funds, you make them yourself. The results assume that year’s mix in every account each year. Each move sells some of what the brokerage account holds; the results already count the capital-gains tax on that sale, paid from the brokerage account itself. Inside the 401(k)/IRA and Roth, moving costs no tax.)
+
 ## 2039 · You retire (You 55 · Spouse 53)
 1. Live on about $76,500 a year plus healthcare, in today’s dollars.
    (This is the budget the results are based on. Raise it with inflation each year: every figure here is in today’s dollars. Spending more than this, especially in the first years or in a bad market, is what runs money out early.)
@@ -20,18 +24,18 @@ exports[`the playbook for fourteen household profiles > A. The example plan 1`] 
    (Cash and brokerage cost the least tax to spend. Roth money grows tax-free, so it is worth the most if it is left alone the longest.)
 6. Set aside the tax on what you take out, and pay it with your return in April or in four estimated payments during the year.
    (The money you take out has to cover the tax on it too; the plan’s withdrawals include it.)
-7. Once a year, put every invested account back to 70% stocks / 25% bonds / 5% cash (cash stays cash).
-   (The results assume this mix in every account, every year. Drifting toward more stocks raises the risk in a bad market; toward less lowers growth.)
+7. Once a year, move every invested account to that year’s mix (cash stays cash): 68% stocks / 32% bonds this year, then about 1.5 to 3 percentage points a year from stocks into bonds through 2056, and 30% stocks / 70% bonds from then on.
+   (This follows Vanguard’s Target Retirement path, tied to the year you turn 65 (2049). A target-date fund dated near 2049, the year you turn 65, follows about this path and makes these moves for you; with separate stock and bond funds, you make them yourself. Mix by year (stocks / bonds): 2040: 66 / 34 · 2041: 65 / 35 · 2042: 63 / 37 · 2043: 62 / 38 · 2044: 60 / 40 · … · 2056: 30 / 70. The results assume that year’s mix in every account. Each move sells some of what the brokerage account holds; the results already count the capital-gains tax on that sale in the year’s tax bill, so set it aside with the rest of the tax. Inside the 401(k)/IRA and Roth, moving costs no tax. Drifting toward more stocks raises the risk in a bad market; toward less lowers growth.)
 8. Once a year, enter your real balances here and recalculate.
    (Markets will not follow any single simulated path. If the chance your money lasts falls, spending is the lever to adjust early.)
-> In the typical market of the table below, 2039: spent $115K; $36K from cash; $85K from brokerage; $51K moved from 401(k)/IRA to Roth; $5K in taxes.
+> In the typical market of the table below, 2039: spent $115K; $28K from cash; $92K from brokerage; $35K moved from 401(k)/IRA to Roth; $5K in taxes.
 
 ## 2044 · You turn 60 (You 60 · Spouse 58)
 1. Your 401(k)/IRA and all of your Roth can now be used with no penalty.
    (The IRS rule is 59½; the plan counts the year you turn 60.)
 2. From now on, spend what you need from the yearly withdrawal and move only the leftover into Roth. In the order above, your 401(k)/IRA now comes after brokerage and before Roth.
    (Before 59½, spending that money cost a 10% penalty. Now it doesn’t, so it is cheaper to spend than Roth money, which keeps growing tax-free.)
-> In the typical market of the table below, 2044: spent $118K; $68K from brokerage; $56K from 401(k)/IRA; $5K in taxes.
+> In the typical market of the table below, 2044: spent $118K; $68K from brokerage; $55K from 401(k)/IRA; $5K in taxes.
 
 ## 2046 · Spouse turns 60 (You 62 · Spouse 60)
 1. Spouse’s 401(k)/IRA and all of Spouse’s Roth can now be used with no penalty.
@@ -57,20 +61,29 @@ exports[`the playbook for fourteen household profiles > A. The example plan 1`] 
    (From then on Spouse’s benefit adds about $22K a year in today’s dollars, so you take that much less from the accounts. It also counts as income, so there is less room under the 10% bracket and the yearly 401(k)/IRA withdrawal shrinks. The amount already assumes only 73% of the full benefit is paid by then, in case Congress does not fix the shortfall in Social Security’s trust fund. If it does, you will get more.)
 > In the typical market of the table below, 2053: spent $99K; $33K from Social Security; $76K from 401(k)/IRA; $10K in taxes.
 
+## 2056 · Last change to the asset mix (You 72 · Spouse 70)
+1. Move every invested account to 30% stocks / 70% bonds this year, the last step of the shift (cash stays cash). From now on, put every invested account back to that mix once a year.
+   (This is where Vanguard’s Target Retirement path ends, 7 years after you turn 65. A target-date fund dated near 2049, the year you turn 65, follows about this path and makes these moves for you; with separate stock and bond funds, you make them yourself. The results assume this mix in every account, every year from now on. This move sells some of what the brokerage account holds; the results already count the capital-gains tax on that sale in this year’s tax bill, so set it aside with the rest of the tax. Inside the 401(k)/IRA and Roth, moving costs no tax.)
+> In the typical market of the table below, 2056: spent $100K; $43K from Social Security; $66K from 401(k)/IRA; $9K in taxes.
+
 ## 2059 · You turn 75 (You 75 · Spouse 73)
 1. Take the required minimum withdrawal from your 401(k)/IRA every year before December 31. Spend it first; whatever you don’t need goes into the brokerage account.
    (The IRS now requires it (a “required minimum distribution”, or RMD): about 4% of the balance at first and a slightly bigger share each year, from an IRS table. Your brokerage will tell you the exact figure. Missing it costs a 25% penalty.)
-> In the typical market of the table below, 2059: spent $101K; $43K from Social Security; $67K from 401(k)/IRA; $3K of that required by the IRS; $9K in taxes.
+> In the typical market of the table below, 2059: spent $101K; $43K from Social Security; $67K from 401(k)/IRA; $32K of that required by the IRS; $9K in taxes.
 
 ## 2061 · Spouse turns 75 (You 77 · Spouse 75)
 1. Take the required minimum withdrawal from Spouse’s 401(k)/IRA every year before December 31. Spend it first; whatever you don’t need goes into the brokerage account.
    (The IRS now requires it (a “required minimum distribution”, or RMD): about 4% of the balance at first and a slightly bigger share each year, from an IRS table. Your brokerage will tell you the exact figure. Missing it costs a 25% penalty.)
-> In the typical market of the table below, 2061: spent $102K; $43K from Social Security; $69K from 401(k)/IRA; $57K of that required by the IRS; $9K in taxes.
+> In the typical market of the table below, 2061: spent $102K; $43K from Social Security; $144K from 401(k)/IRA; $144K of that required by the IRS; $57K not needed and reinvested; $28K in taxes.
 "
 `;
 
 exports[`the playbook for fourteen household profiles > B. Modest income, small balances, retiring at 66 and 64 1`] = `
 "traditional, retire 2050
+
+## 2027 · Keep shifting the asset mix (You 43 · Spouse 41)
+1. Each year until you retire, move every invested account to that year’s mix (cash stays cash): 86% stocks / 14% bonds in 2027, then about 1.5 to 3 percentage points a year from stocks into bonds, to 47% stocks / 53% bonds in 2050, the year you retire.
+   (The shift is already under way: the results assume your accounts hold 87% stocks / 13% bonds in 2026, the plan’s first year. This follows Vanguard’s Target Retirement path, tied to the year you turn 65 (2049). A target-date fund dated near 2049, the year you turn 65, follows about this path and makes these moves for you; with separate stock and bond funds, you make them yourself. The results assume that year’s mix in every account each year. Each move sells some of what the brokerage account holds; the results already count the capital-gains tax on that sale, paid from the brokerage account itself. Inside the 401(k)/IRA and Roth, moving costs no tax.)
 
 ## 2050 · You retire (You 66 · Spouse 64)
 1. Live on about $51,000 a year plus healthcare, in today’s dollars.
@@ -89,38 +102,47 @@ exports[`the playbook for fourteen household profiles > B. Modest income, small 
    (Cash and brokerage cost the least tax to spend. Roth money grows tax-free, so it is worth the most if it is left alone the longest.)
 6. Set aside the tax on what you take out, and pay it with your return in April or in four estimated payments during the year.
    (The money you take out has to cover the tax on it too; the plan’s withdrawals include it.)
-7. Once a year, put every invested account back to 70% stocks / 25% bonds / 5% cash (cash stays cash).
-   (The results assume this mix in every account, every year. Drifting toward more stocks raises the risk in a bad market; toward less lowers growth.)
+7. Once a year, move every invested account to that year’s mix (cash stays cash): 47% stocks / 53% bonds this year, then about 3 percentage points a year from stocks into bonds through 2056, and 30% stocks / 70% bonds from then on.
+   (This follows Vanguard’s Target Retirement path, tied to the year you turn 65 (2049). A target-date fund dated near 2049, the year you turn 65, follows about this path and makes these moves for you; with separate stock and bond funds, you make them yourself. Mix by year (stocks / bonds): 2051: 44 / 56 · 2052: 41 / 59 · 2053: 39 / 61 · 2054: 36 / 64 · 2055: 33 / 67 · 2056: 30 / 70. The results assume that year’s mix in every account. Each move sells some of what the brokerage account holds; the results already count the capital-gains tax on that sale in the year’s tax bill, so set it aside with the rest of the tax. Inside the 401(k)/IRA and Roth, moving costs no tax. Drifting toward more stocks raises the risk in a bad market; toward less lowers growth.)
 8. Once a year, enter your real balances here and recalculate.
    (Markets will not follow any single simulated path. If the chance your money lasts falls, spending is the lever to adjust early.)
-> In the typical market of the table below, 2050: spent $85K; $19K from cash; $15K from brokerage; $54K from 401(k)/IRA; $4K in taxes.
+> In the typical market of the table below, 2050: spent $85K; $13K from cash; $21K from brokerage; $55K from 401(k)/IRA; $4K in taxes.
 
 ## 2051 · You start Social Security (age 67) · Spouse turns 65 (You 67 · Spouse 65)
 1. Apply for Social Security up to 4 months before you turn 67.
    (From then on your benefit adds about $18K a year in today’s dollars, so you take that much less from the accounts. It also counts as income, so there is less room under the 10% bracket and the yearly 401(k)/IRA withdrawal shrinks. The amount already assumes only 73% of the full benefit is paid by then, in case Congress does not fix the shortfall in Social Security’s trust fund. If it does, you will get more.)
 2. Spouse moves to Medicare. Sign up in the 3 months before the birthday.
    (Signing up late carries a lifelong penalty. Health insurance for Spouse goes from about $23,200 to about $10,900 a year in 2051, in today’s dollars.)
-> In the typical market of the table below, 2051: spent $73K; $9K from Social Security; $17K from brokerage; $50K from 401(k)/IRA; $4K in taxes.
+> In the typical market of the table below, 2051: spent $73K; $9K from Social Security; $19K from brokerage; $49K from 401(k)/IRA; $4K in taxes.
 
 ## 2053 · Spouse starts Social Security (age 67) (You 69 · Spouse 67)
 1. Apply for Social Security up to 4 months before Spouse turns 67.
    (From then on Spouse’s benefit adds about $16K a year in today’s dollars, so you take that much less from the accounts. It also counts as income, so there is less room under the 10% bracket and the yearly 401(k)/IRA withdrawal shrinks. The amount already assumes only 73% of the full benefit is paid by then, in case Congress does not fix the shortfall in Social Security’s trust fund. If it does, you will get more.)
-> In the typical market of the table below, 2053: spent $73K; $25K from Social Security; $15K from brokerage; $36K from 401(k)/IRA; $3K in taxes.
+> In the typical market of the table below, 2053: spent $73K; $25K from Social Security; $17K from brokerage; $35K from 401(k)/IRA; $3K in taxes.
+
+## 2056 · Last change to the asset mix (You 72 · Spouse 70)
+1. Move every invested account to 30% stocks / 70% bonds this year, the last step of the shift (cash stays cash). From now on, put every invested account back to that mix once a year.
+   (This is where Vanguard’s Target Retirement path ends, 7 years after you turn 65. A target-date fund dated near 2049, the year you turn 65, follows about this path and makes these moves for you; with separate stock and bond funds, you make them yourself. The results assume this mix in every account, every year from now on. This move sells some of what the brokerage account holds; the results already count the capital-gains tax on that sale in this year’s tax bill, so set it aside with the rest of the tax. Inside the 401(k)/IRA and Roth, moving costs no tax.)
+> In the typical market of the table below, 2056: spent $74K; $33K from Social Security; $15K from brokerage; $29K from 401(k)/IRA; $3K in taxes.
 
 ## 2059 · You turn 75 (You 75 · Spouse 73)
 1. Take the required minimum withdrawal from your 401(k)/IRA every year before December 31. Spend it first; whatever you don’t need goes into the brokerage account.
    (The IRS now requires it (a “required minimum distribution”, or RMD): about 4% of the balance at first and a slightly bigger share each year, from an IRS table. Your brokerage will tell you the exact figure. Missing it costs a 25% penalty.)
-> In the typical market of the table below, 2059: spent $76K; $33K from Social Security; $5K from brokerage; $43K from 401(k)/IRA; $43K of that required by the IRS; $5K in taxes.
+> In the typical market of the table below, 2059: spent $76K; $33K from Social Security; $9K from brokerage; $37K from 401(k)/IRA; $37K of that required by the IRS; $4K in taxes.
 
 ## 2061 · Spouse turns 75 (You 77 · Spouse 75)
 1. Take the required minimum withdrawal from Spouse’s 401(k)/IRA every year before December 31. Spend it first; whatever you don’t need goes into the brokerage account.
    (The IRS now requires it (a “required minimum distribution”, or RMD): about 4% of the balance at first and a slightly bigger share each year, from an IRS table. Your brokerage will tell you the exact figure. Missing it costs a 25% penalty.)
-> In the typical market of the table below, 2061: spent $76K; $32K from Social Security; $102K from 401(k)/IRA; $102K of that required by the IRS; $43K not needed and reinvested; $15K in taxes.
+> In the typical market of the table below, 2061: spent $76K; $32K from Social Security; $63K from 401(k)/IRA; $63K of that required by the IRS; $10K not needed and reinvested; $9K in taxes.
 "
 `;
 
 exports[`the playbook for fourteen household profiles > C. High income, $2.4M pre-tax, retiring at 50 and 48 with an HSA 1`] = `
 "traditional, retire 2034
+
+## 2027 · Keep shifting the asset mix (You 43 · Spouse 41)
+1. Each year until you retire, move every invested account to that year’s mix (cash stays cash): 86% stocks / 14% bonds in 2027, then about 1.5 percentage points a year from stocks into bonds, to 75% stocks / 25% bonds in 2034, the year you retire.
+   (The shift is already under way: the results assume your accounts hold 87% stocks / 13% bonds in 2026, the plan’s first year. This follows Vanguard’s Target Retirement path, tied to the year you turn 65 (2049). A target-date fund dated near 2049, the year you turn 65, follows about this path and makes these moves for you; with separate stock and bond funds, you make them yourself. The results assume that year’s mix in every account each year. Each move sells some of what the brokerage account holds; the results already count the capital-gains tax on that sale, paid from the brokerage account itself. Inside the 401(k)/IRA, Roth and HSA, moving costs no tax.)
 
 ## 2034 · You retire (You 50 · Spouse 48)
 1. Live on about $153,000 a year plus healthcare, in today’s dollars.
@@ -141,30 +163,30 @@ exports[`the playbook for fourteen household profiles > C. High income, $2.4M pr
    (Cash and brokerage cost the least tax to spend. Roth money grows tax-free, so it is worth the most if it is left alone the longest.)
 7. Set aside the tax on what you take out, and pay it with your return in April or in four estimated payments during the year.
    (The money you take out has to cover the tax on it too; the plan’s withdrawals include it.)
-8. Once a year, put every invested account back to 70% stocks / 25% bonds / 5% cash (cash stays cash).
-   (The results assume this mix in every account, every year. Drifting toward more stocks raises the risk in a bad market; toward less lowers growth.)
+8. Once a year, move every invested account to that year’s mix (cash stays cash): 75% stocks / 25% bonds this year, then about 1.5 to 3 percentage points a year from stocks into bonds through 2056, and 30% stocks / 70% bonds from then on.
+   (This follows Vanguard’s Target Retirement path, tied to the year you turn 65 (2049). A target-date fund dated near 2049, the year you turn 65, follows about this path and makes these moves for you; with separate stock and bond funds, you make them yourself. Mix by year (stocks / bonds): 2035: 74 / 26 · 2036: 72 / 28 · 2037: 71 / 29 · 2038: 69 / 31 · 2039: 68 / 32 · … · 2056: 30 / 70. The results assume that year’s mix in every account. Each move sells some of what the brokerage account holds; the results already count the capital-gains tax on that sale in the year’s tax bill, so set it aside with the rest of the tax. Inside the 401(k)/IRA, Roth and HSA, moving costs no tax. Drifting toward more stocks raises the risk in a bad market; toward less lowers growth.)
 9. Once a year, enter your real balances here and recalculate.
    (Markets will not follow any single simulated path. If the chance your money lasts falls, spending is the lever to adjust early.)
-> In the typical market of the table below, 2034: spent $189K; $36K from the HSA; $98K from cash; $61K from brokerage; $37K moved from 401(k)/IRA to Roth; $6K in taxes.
+> In the typical market of the table below, 2034: spent $189K; $36K from the HSA; $99K from cash; $61K from brokerage; $36K moved from 401(k)/IRA to Roth; $8K in taxes.
 
 ## 2044 · You turn 60 (You 60 · Spouse 58)
 1. Your 401(k)/IRA and all of your Roth can now be used with no penalty.
    (The IRS rule is 59½; the plan counts the year you turn 60.)
 2. From now on, spend what you need from the yearly withdrawal and move only the leftover into Roth. In the order above, your 401(k)/IRA now comes after brokerage and before Roth.
    (Before 59½, spending that money cost a 10% penalty. Now it doesn’t, so it is cheaper to spend than Roth money, which keeps growing tax-free.)
-> In the typical market of the table below, 2044: spent $195K; $161K from brokerage; $46K from 401(k)/IRA; $12K in taxes.
+> In the typical market of the table below, 2044: spent $195K; $168K from brokerage; $39K from 401(k)/IRA; $12K in taxes.
 
 ## 2046 · Spouse turns 60 (You 62 · Spouse 60)
 1. Spouse’s 401(k)/IRA and all of Spouse’s Roth can now be used with no penalty.
    (The IRS rule is 59½; the plan counts the year Spouse turns 60.)
 2. From now on, spend what you need from the yearly withdrawal and move only the leftover into Roth. In the order above, Spouse’s 401(k)/IRA now comes after brokerage and before Roth.
    (Before 59½, spending that money cost a 10% penalty. Now it doesn’t, so it is cheaper to spend than Roth money, which keeps growing tax-free.)
-> In the typical market of the table below, 2046: spent $196K; $165K from brokerage; $40K from 401(k)/IRA; $10K in taxes.
+> In the typical market of the table below, 2046: spent $196K; $178K from brokerage; $27K from 401(k)/IRA; $9K in taxes.
 
 ## 2049 · You turn 65 (You 65 · Spouse 63)
 1. You move to Medicare. Sign up in the 3 months before the birthday.
    (Signing up late carries a lifelong penalty. Health insurance for you goes from about $22,500 to about $10,600 a year in 2049, in today’s dollars.)
-> In the typical market of the table below, 2049: spent $186K; $110K from brokerage; $91K from 401(k)/IRA; $15K in taxes.
+> In the typical market of the table below, 2049: spent $186K; $146K from brokerage; $45K from 401(k)/IRA; $5K in taxes.
 
 ## 2051 · You start Social Security (age 67) · Spouse turns 65 (You 67 · Spouse 65)
 1. Apply for Social Security up to 4 months before you turn 67.
@@ -180,20 +202,29 @@ exports[`the playbook for fourteen household profiles > C. High income, $2.4M pr
    (From then on Spouse’s benefit adds about $33K a year in today’s dollars, so you take that much less from the accounts. It also counts as income, so there is less room under the 10% bracket and the yearly 401(k)/IRA withdrawal shrinks. The amount already assumes only 73% of the full benefit is paid by then, in case Congress does not fix the shortfall in Social Security’s trust fund. If it does, you will get more.)
 > In the typical market of the table below, 2053: spent $175K; $50K from Social Security; $157K from 401(k)/IRA; $32K in taxes.
 
+## 2056 · Last change to the asset mix (You 72 · Spouse 70)
+1. Move every invested account to 30% stocks / 70% bonds this year, the last step of the shift (cash stays cash). From now on, put every invested account back to that mix once a year.
+   (This is where Vanguard’s Target Retirement path ends, 7 years after you turn 65. A target-date fund dated near 2049, the year you turn 65, follows about this path and makes these moves for you; with separate stock and bond funds, you make them yourself. The results assume this mix in every account, every year from now on. This move sells some of what the brokerage account holds; the results already count the capital-gains tax on that sale in this year’s tax bill, so set it aside with the rest of the tax. Inside the 401(k)/IRA, Roth and HSA, moving costs no tax.)
+> In the typical market of the table below, 2056: spent $176K; $66K from Social Security; $141K from 401(k)/IRA; $30K in taxes.
+
 ## 2059 · You turn 75 (You 75 · Spouse 73)
 1. Take the required minimum withdrawal from your 401(k)/IRA every year before December 31. Spend it first; whatever you don’t need goes into the brokerage account.
    (The IRS now requires it (a “required minimum distribution”, or RMD): about 4% of the balance at first and a slightly bigger share each year, from an IRS table. Your brokerage will tell you the exact figure. Missing it costs a 25% penalty.)
-> In the typical market of the table below, 2059: spent $178K; $65K from Social Security; $143K from 401(k)/IRA; $101K of that required by the IRS; $31K in taxes.
+> In the typical market of the table below, 2059: spent $178K; $65K from Social Security; $143K from 401(k)/IRA; $85K of that required by the IRS; $31K in taxes.
 
 ## 2061 · Spouse turns 75 (You 77 · Spouse 75)
 1. Take the required minimum withdrawal from Spouse’s 401(k)/IRA every year before December 31. Spend it first; whatever you don’t need goes into the brokerage account.
    (The IRS now requires it (a “required minimum distribution”, or RMD): about 4% of the balance at first and a slightly bigger share each year, from an IRS table. Your brokerage will tell you the exact figure. Missing it costs a 25% penalty.)
-> In the typical market of the table below, 2061: spent $178K; $65K from Social Security; $365K from 401(k)/IRA; $365K of that required by the IRS; $156K not needed and reinvested; $96K in taxes.
+> In the typical market of the table below, 2061: spent $178K; $65K from Social Security; $255K from 401(k)/IRA; $255K of that required by the IRS; $78K not needed and reinvested; $64K in taxes.
 "
 `;
 
 exports[`the playbook for fourteen household profiles > D. Single earner; the spouse has no salary and no accounts 1`] = `
 "traditional, retire 2041
+
+## 2027 · Keep shifting the asset mix (You 43 · Spouse 41)
+1. Each year until you retire, move every invested account to that year’s mix (cash stays cash): 86% stocks / 14% bonds in 2027, then about 1.5 percentage points a year from stocks into bonds, to 65% stocks / 35% bonds in 2041, the year you retire.
+   (The shift is already under way: the results assume your accounts hold 87% stocks / 13% bonds in 2026, the plan’s first year. This follows Vanguard’s Target Retirement path, tied to the year you turn 65 (2049). A target-date fund dated near 2049, the year you turn 65, follows about this path and makes these moves for you; with separate stock and bond funds, you make them yourself. The results assume that year’s mix in every account each year. Each move sells some of what the brokerage account holds; the results already count the capital-gains tax on that sale, paid from the brokerage account itself. Inside the 401(k)/IRA and Roth, moving costs no tax.)
 
 ## 2041 · You retire (You 57 · Spouse 55)
 1. Live on about $76,500 a year plus healthcare, in today’s dollars.
@@ -212,45 +243,54 @@ exports[`the playbook for fourteen household profiles > D. Single earner; the sp
    (Cash and brokerage cost the least tax to spend. Roth money grows tax-free, so it is worth the most if it is left alone the longest.)
 6. Set aside the tax on what you take out, and pay it with your return in April or in four estimated payments during the year.
    (The money you take out has to cover the tax on it too; the plan’s withdrawals include it.)
-7. Once a year, put every invested account back to 70% stocks / 25% bonds / 5% cash (cash stays cash).
-   (The results assume this mix in every account, every year. Drifting toward more stocks raises the risk in a bad market; toward less lowers growth.)
+7. Once a year, move every invested account to that year’s mix (cash stays cash): 65% stocks / 35% bonds this year, then about 1.5 to 3 percentage points a year from stocks into bonds through 2056, and 30% stocks / 70% bonds from then on.
+   (This follows Vanguard’s Target Retirement path, tied to the year you turn 65 (2049). A target-date fund dated near 2049, the year you turn 65, follows about this path and makes these moves for you; with separate stock and bond funds, you make them yourself. Mix by year (stocks / bonds): 2042: 63 / 37 · 2043: 62 / 38 · 2044: 60 / 40 · 2045: 58 / 42 · 2046: 56 / 44 · … · 2056: 30 / 70. The results assume that year’s mix in every account. Each move sells some of what the brokerage account holds; the results already count the capital-gains tax on that sale in the year’s tax bill, so set it aside with the rest of the tax. Inside the 401(k)/IRA and Roth, moving costs no tax. Drifting toward more stocks raises the risk in a bad market; toward less lowers growth.)
 8. Once a year, enter your real balances here and recalculate.
    (Markets will not follow any single simulated path. If the chance your money lasts falls, spending is the lever to adjust early.)
-> In the typical market of the table below, 2041: spent $117K; $27K from cash; $95K from brokerage; $48K moved from 401(k)/IRA to Roth; $6K in taxes.
+> In the typical market of the table below, 2041: spent $117K; $35K from cash; $87K from brokerage; $49K moved from 401(k)/IRA to Roth; $5K in taxes.
 
 ## 2044 · You turn 60 (You 60 · Spouse 58)
 1. Your 401(k)/IRA and all of your Roth can now be used with no penalty.
    (The IRS rule is 59½; the plan counts the year you turn 60.)
 2. From now on, spend what you need from the yearly withdrawal and move only the leftover into Roth. In the order above, your 401(k)/IRA now comes after brokerage and before Roth.
    (Before 59½, spending that money cost a 10% penalty. Now it doesn’t, so it is cheaper to spend than Roth money, which keeps growing tax-free.)
-> In the typical market of the table below, 2044: spent $118K; $75K from brokerage; $49K from 401(k)/IRA; $6K in taxes.
+> In the typical market of the table below, 2044: spent $118K; $74K from brokerage; $50K from 401(k)/IRA; $6K in taxes.
 
 ## 2049 · You turn 65 (You 65 · Spouse 63)
 1. You move to Medicare. Sign up in the 3 months before the birthday.
    (Signing up late carries a lifelong penalty. Health insurance for you goes from about $22,500 to about $10,600 a year in 2049, in today’s dollars.)
-> In the typical market of the table below, 2049: spent $110K; $59K from brokerage; $56K from 401(k)/IRA; $5K in taxes.
+> In the typical market of the table below, 2049: spent $110K; $58K from brokerage; $56K from 401(k)/IRA; $5K in taxes.
 
 ## 2051 · You start Social Security (age 67) · Spouse turns 65 (You 67 · Spouse 65)
 1. Apply for Social Security up to 4 months before you turn 67.
    (From then on your benefit adds about $22K a year in today’s dollars, so you take that much less from the accounts. It also counts as income, so there is less room under the 10% bracket and the yearly 401(k)/IRA withdrawal shrinks. The amount already assumes only 73% of the full benefit is paid by then, in case Congress does not fix the shortfall in Social Security’s trust fund. If it does, you will get more.)
 2. Spouse moves to Medicare. Sign up in the 3 months before the birthday.
    (Signing up late carries a lifelong penalty. Health insurance for Spouse goes from about $23,200 to about $10,900 a year in 2051, in today’s dollars.)
-> In the typical market of the table below, 2051: spent $98K; $11K from Social Security; $42K from brokerage; $49K from 401(k)/IRA; $4K in taxes.
+> In the typical market of the table below, 2051: spent $98K; $11K from Social Security; $2K from brokerage; $97K from 401(k)/IRA; $11K in taxes.
 
 ## 2053 · Spouse starts Social Security (age 67) (You 69 · Spouse 67)
 1. Apply for Social Security up to 4 months before Spouse turns 67.
    (From then on Spouse’s benefit adds about $11K a year in today’s dollars, so you take that much less from the accounts. It also counts as income, so there is less room under the 10% bracket and the yearly 401(k)/IRA withdrawal shrinks. The amount already assumes only 73% of the full benefit is paid by then, in case Congress does not fix the shortfall in Social Security’s trust fund. If it does, you will get more.)
-> In the typical market of the table below, 2053: spent $99K; $27K from Social Security; $20K from brokerage; $58K from 401(k)/IRA; $7K in taxes.
+> In the typical market of the table below, 2053: spent $99K; $27K from Social Security; $82K from 401(k)/IRA; $10K in taxes.
+
+## 2056 · Last change to the asset mix (You 72 · Spouse 70)
+1. Move every invested account to 30% stocks / 70% bonds this year, the last step of the shift (cash stays cash). From now on, put every invested account back to that mix once a year.
+   (This is where Vanguard’s Target Retirement path ends, 7 years after you turn 65. A target-date fund dated near 2049, the year you turn 65, follows about this path and makes these moves for you; with separate stock and bond funds, you make them yourself. The results assume this mix in every account, every year from now on. This move sells some of what the brokerage account holds; the results already count the capital-gains tax on that sale in this year’s tax bill, so set it aside with the rest of the tax. Inside the 401(k)/IRA and Roth, moving costs no tax.)
+> In the typical market of the table below, 2056: spent $100K; $33K from Social Security; $77K from 401(k)/IRA; $10K in taxes.
 
 ## 2059 · You turn 75 (You 75 · Spouse 73)
 1. Take the required minimum withdrawal from your 401(k)/IRA every year before December 31. Spend it first; whatever you don’t need goes into the brokerage account.
    (The IRS now requires it (a “required minimum distribution”, or RMD): about 4% of the balance at first and a slightly bigger share each year, from an IRS table. Your brokerage will tell you the exact figure. Missing it costs a 25% penalty.)
-> In the typical market of the table below, 2059: spent $101K; $32K from Social Security; $309K from 401(k)/IRA; $309K of that required by the IRS; $167K not needed and reinvested; $74K in taxes.
+> In the typical market of the table below, 2059: spent $101K; $32K from Social Security; $119K from 401(k)/IRA; $119K of that required by the IRS; $32K not needed and reinvested; $18K in taxes.
 "
 `;
 
 exports[`the playbook for fourteen household profiles > E. Roth only: no pre-tax money at all 1`] = `
 "traditional, retire 2038
+
+## 2027 · Keep shifting the asset mix (You 43 · Spouse 41)
+1. Each year until you retire, move every invested account to that year’s mix (cash stays cash): 86% stocks / 14% bonds in 2027, then about 1.5 percentage points a year from stocks into bonds, to 69% stocks / 31% bonds in 2038, the year you retire.
+   (The shift is already under way: the results assume your accounts hold 87% stocks / 13% bonds in 2026, the plan’s first year. This follows Vanguard’s Target Retirement path, tied to the year you turn 65 (2049). A target-date fund dated near 2049, the year you turn 65, follows about this path and makes these moves for you; with separate stock and bond funds, you make them yourself. The results assume that year’s mix in every account each year. Each move sells some of what the brokerage account holds; the results already count the capital-gains tax on that sale, paid from the brokerage account itself. Inside the Roth, moving costs no tax.)
 
 ## 2038 · You retire (You 54 · Spouse 52)
 1. Live on about $76,500 a year plus healthcare, in today’s dollars.
@@ -265,8 +305,8 @@ exports[`the playbook for fourteen household profiles > E. Roth only: no pre-tax
    (Cash and brokerage cost the least tax to spend. Roth money grows tax-free, so it is worth the most if it is left alone the longest.)
 4. Set aside the tax on what you take out, and pay it with your return in April or in four estimated payments during the year.
    (The money you take out has to cover the tax on it too; the plan’s withdrawals include it.)
-5. Once a year, put every invested account back to 70% stocks / 25% bonds / 5% cash (cash stays cash).
-   (The results assume this mix in every account, every year. Drifting toward more stocks raises the risk in a bad market; toward less lowers growth.)
+5. Once a year, move every invested account to that year’s mix (cash stays cash): 69% stocks / 31% bonds this year, then about 1.5 to 3 percentage points a year from stocks into bonds through 2056, and 30% stocks / 70% bonds from then on.
+   (This follows Vanguard’s Target Retirement path, tied to the year you turn 65 (2049). A target-date fund dated near 2049, the year you turn 65, follows about this path and makes these moves for you; with separate stock and bond funds, you make them yourself. Mix by year (stocks / bonds): 2039: 68 / 32 · 2040: 66 / 34 · 2041: 65 / 35 · 2042: 63 / 37 · 2043: 62 / 38 · … · 2056: 30 / 70. The results assume that year’s mix in every account. Each move sells some of what the brokerage account holds; the results already count the capital-gains tax on that sale in the year’s tax bill, so set it aside with the rest of the tax. Inside the Roth, moving costs no tax. Drifting toward more stocks raises the risk in a bad market; toward less lowers growth.)
 6. Once a year, enter your real balances here and recalculate.
    (Markets will not follow any single simulated path. If the chance your money lasts falls, spending is the lever to adjust early.)
 > In the typical market of the table below, 2038: spent $115K; $28K from cash; $88K from brokerage; $1K in taxes.
@@ -297,6 +337,11 @@ exports[`the playbook for fourteen household profiles > E. Roth only: no pre-tax
 1. Apply for Social Security up to 4 months before Spouse turns 67.
    (From then on Spouse’s benefit adds about $22K a year in today’s dollars, so you take that much less from the accounts. The amount already assumes only 73% of the full benefit is paid by then, in case Congress does not fix the shortfall in Social Security’s trust fund. If it does, you will get more.)
 > In the typical market of the table below, 2053: spent $99K; $33K from Social Security; $66K from Roth.
+
+## 2056 · Last change to the asset mix (You 72 · Spouse 70)
+1. Move every invested account to 30% stocks / 70% bonds this year, the last step of the shift (cash stays cash). From now on, put every invested account back to that mix once a year.
+   (This is where Vanguard’s Target Retirement path ends, 7 years after you turn 65. A target-date fund dated near 2049, the year you turn 65, follows about this path and makes these moves for you; with separate stock and bond funds, you make them yourself. The results assume this mix in every account, every year from now on. This move sells some of what the brokerage account holds; the results already count the capital-gains tax on that sale in this year’s tax bill, so set it aside with the rest of the tax. Inside the Roth, moving costs no tax.)
+> In the typical market of the table below, 2056: spent $100K; $43K from Social Security; $57K from Roth.
 "
 `;
 
@@ -322,38 +367,43 @@ exports[`the playbook for fourteen household profiles > F. Already 63 and 61, re
    (It covers part of each year, and the accounts cover the rest.)
 7. Set aside the tax on what you take out, and pay it with your return in April or in four estimated payments during the year.
    (The money you take out has to cover the tax on it too; the plan’s withdrawals include it.)
-8. Once a year, put every invested account back to 70% stocks / 25% bonds / 5% cash (cash stays cash).
-   (The results assume this mix in every account, every year. Drifting toward more stocks raises the risk in a bad market; toward less lowers growth.)
+8. Once a year, move every invested account to that year’s mix (cash stays cash): 54% stocks / 46% bonds this year, then about 2 to 3 percentage points a year from stocks into bonds through 2035, and 30% stocks / 70% bonds from then on.
+   (This follows Vanguard’s Target Retirement path, tied to the year you turn 65 (2028). A target-date fund dated near 2028, the year you turn 65, follows about this path and makes these moves for you; with separate stock and bond funds, you make them yourself. Mix by year (stocks / bonds): 2027: 52 / 48 · 2028: 50 / 50 · 2029: 47 / 53 · 2030: 44 / 56 · 2031: 41 / 59 · … · 2035: 30 / 70. The results assume that year’s mix in every account. Each move sells some of what the brokerage account holds; the results already count the capital-gains tax on that sale in the year’s tax bill, so set it aside with the rest of the tax. Inside the 401(k)/IRA and Roth, moving costs no tax. Drifting toward more stocks raises the risk in a bad market; toward less lowers growth.)
 9. Once a year, enter your real balances here and recalculate.
    (Markets will not follow any single simulated path. If the chance your money lasts falls, spending is the lever to adjust early.)
-> In the typical market of the table below, 2026: spent $109K; $21K from Social Security; $30K from cash; $22K from brokerage; $39K from 401(k)/IRA; $4K in taxes.
+> In the typical market of the table below, 2026: spent $109K; $21K from Social Security; $30K from cash; $25K from brokerage; $36K from 401(k)/IRA; $4K in taxes.
 
 ## 2028 · You turn 65 (You 65 · Spouse 63)
 1. You move to Medicare. Sign up in the 3 months before the birthday.
    (Signing up late carries a lifelong penalty. Health insurance for you goes from about $16,500 to about $7,700 a year in 2028, in today’s dollars.)
-> In the typical market of the table below, 2028: spent $101K; $21K from Social Security; $43K from brokerage; $41K from 401(k)/IRA; $4K in taxes.
+> In the typical market of the table below, 2028: spent $101K; $21K from Social Security; $45K from brokerage; $39K from 401(k)/IRA; $4K in taxes.
 
 ## 2030 · Spouse turns 65 (You 67 · Spouse 65)
 1. Spouse moves to Medicare. Sign up in the 3 months before the birthday.
    (Signing up late carries a lifelong penalty. Health insurance for Spouse goes from about $17,000 to about $8,000 a year in 2030, in today’s dollars.)
-> In the typical market of the table below, 2030: spent $92K; $21K from Social Security; $34K from brokerage; $41K from 401(k)/IRA; $4K in taxes.
+> In the typical market of the table below, 2030: spent $92K; $21K from Social Security; $35K from brokerage; $40K from 401(k)/IRA; $4K in taxes.
 
 ## 2032 · Spouse starts Social Security (age 67) · Social Security cut (You 69 · Spouse 67)
 1. Apply for Social Security up to 4 months before Spouse turns 67.
    (From then on Spouse’s benefit adds about $23K a year in today’s dollars, so you take that much less from the accounts. It also counts as income, so there is less room under the 10% bracket and the yearly 401(k)/IRA withdrawal shrinks. The amount already assumes only 78% of the full benefit is paid by then, in case Congress does not fix the shortfall in Social Security’s trust fund. If it does, you will get more.)
 2. Expect smaller Social Security checks from 2032.
    (The plan counts only 78% of each check from then on, sliding to 62% by 2100, in case Congress does not fix the shortfall in the program’s trust fund. If it does, you will get more than planned.)
-> In the typical market of the table below, 2032: spent $93K; $28K from Social Security; $33K from brokerage; $36K from 401(k)/IRA; $4K in taxes.
+> In the typical market of the table below, 2032: spent $93K; $28K from Social Security; $30K from brokerage; $39K from 401(k)/IRA; $4K in taxes.
+
+## 2035 · Last change to the asset mix (You 72 · Spouse 70)
+1. Move every invested account to 30% stocks / 70% bonds this year, the last step of the shift (cash stays cash). From now on, put every invested account back to that mix once a year.
+   (This is where Vanguard’s Target Retirement path ends, 7 years after you turn 65. A target-date fund dated near 2028, the year you turn 65, follows about this path and makes these moves for you; with separate stock and bond funds, you make them yourself. The results assume this mix in every account, every year from now on. This move sells some of what the brokerage account holds; the results already count the capital-gains tax on that sale in this year’s tax bill, so set it aside with the rest of the tax. Inside the 401(k)/IRA and Roth, moving costs no tax.)
+> In the typical market of the table below, 2035: spent $94K; $39K from Social Security; $21K from brokerage; $37K from 401(k)/IRA; $4K in taxes.
 
 ## 2038 · You turn 75 (You 75 · Spouse 73)
 1. Take the required minimum withdrawal from your 401(k)/IRA every year before December 31. Spend it first; whatever you don’t need goes into the brokerage account.
    (The IRS now requires it (a “required minimum distribution”, or RMD): about 4% of the balance at first and a slightly bigger share each year, from an IRS table. Your brokerage will tell you the exact figure. Missing it costs a 25% penalty.)
-> In the typical market of the table below, 2038: spent $94K; $39K from Social Security; $8K from brokerage; $55K from 401(k)/IRA; $55K of that required by the IRS; $7K in taxes.
+> In the typical market of the table below, 2038: spent $94K; $39K from Social Security; $64K from 401(k)/IRA; $37K of that required by the IRS; $8K in taxes.
 
 ## 2040 · Spouse turns 75 (You 77 · Spouse 75)
 1. Take the required minimum withdrawal from Spouse’s 401(k)/IRA every year before December 31. Spend it first; whatever you don’t need goes into the brokerage account.
    (The IRS now requires it (a “required minimum distribution”, or RMD): about 4% of the balance at first and a slightly bigger share each year, from an IRS table. Your brokerage will tell you the exact figure. Missing it costs a 25% penalty.)
-> In the typical market of the table below, 2040: spent $95K; $39K from Social Security; $89K from 401(k)/IRA; $89K of that required by the IRS; $20K not needed and reinvested; $13K in taxes.
+> In the typical market of the table below, 2040: spent $95K; $39K from Social Security; $67K from 401(k)/IRA; $67K of that required by the IRS; $2K not needed and reinvested; $9K in taxes.
 "
 `;
 
@@ -363,6 +413,10 @@ exports[`the playbook for fourteen household profiles > G. Coast FIRE on the exa
 ## 2026 · Stop saving, keep working (You 42 · Spouse 40)
 1. Stop adding to savings, including the 401(k) contribution that earns the employer match.
    (Your paychecks cover all the bills, and the savings you already have keep growing untouched until you retire in 2049.)
+
+## 2027 · Keep shifting the asset mix (You 43 · Spouse 41)
+1. Each year until you retire, move every invested account to that year’s mix (cash stays cash): 86% stocks / 14% bonds in 2027, then about 1.5 to 2 percentage points a year from stocks into bonds, to 50% stocks / 50% bonds in 2049, the year you retire.
+   (The shift is already under way: the results assume your accounts hold 87% stocks / 13% bonds in 2026, the plan’s first year. This follows Vanguard’s Target Retirement path, tied to the year you turn 65 (2049). A target-date fund dated near 2049, the year you turn 65, follows about this path and makes these moves for you; with separate stock and bond funds, you make them yourself. The results assume that year’s mix in every account each year. Each move sells some of what the brokerage account holds; the results already count the capital-gains tax on that sale, paid from the brokerage account itself. Inside the 401(k)/IRA and Roth, moving costs no tax.)
 
 ## 2049 · You retire · You turn 65 (You 65 · Spouse 63)
 1. Live on about $76,500 a year plus healthcare, in today’s dollars.
@@ -383,33 +437,38 @@ exports[`the playbook for fourteen household profiles > G. Coast FIRE on the exa
    (Signing up late carries a lifelong penalty. Health insurance for you goes from about $22,500 to about $10,600 a year in 2049, in today’s dollars.)
 7. Set aside the tax on what you take out, and pay it with your return in April or in four estimated payments during the year.
    (The money you take out has to cover the tax on it too; the plan’s withdrawals include it.)
-8. Once a year, put every invested account back to 70% stocks / 25% bonds / 5% cash (cash stays cash).
-   (The results assume this mix in every account, every year. Drifting toward more stocks raises the risk in a bad market; toward less lowers growth.)
+8. Once a year, move every invested account to that year’s mix (cash stays cash): 50% stocks / 50% bonds this year, then about 3 percentage points a year from stocks into bonds through 2056, and 30% stocks / 70% bonds from then on.
+   (This follows Vanguard’s Target Retirement path, tied to the year you turn 65 (2049). A target-date fund dated near 2049, the year you turn 65, follows about this path and makes these moves for you; with separate stock and bond funds, you make them yourself. Mix by year (stocks / bonds): 2050: 47 / 53 · 2051: 44 / 56 · 2052: 41 / 59 · 2053: 39 / 61 · 2054: 36 / 64 · 2055: 33 / 67 · 2056: 30 / 70. The results assume that year’s mix in every account. Each move sells some of what the brokerage account holds; the results already count the capital-gains tax on that sale in the year’s tax bill, so set it aside with the rest of the tax. Inside the 401(k)/IRA and Roth, moving costs no tax. Drifting toward more stocks raises the risk in a bad market; toward less lowers growth.)
 9. Once a year, enter your real balances here and recalculate.
    (Markets will not follow any single simulated path. If the chance your money lasts falls, spending is the lever to adjust early.)
-> In the typical market of the table below, 2049: spent $110K; $32K from cash; $40K from brokerage; $42K from 401(k)/IRA; $5K in taxes.
+> In the typical market of the table below, 2049: spent $110K; $45K from cash; $23K from brokerage; $46K from 401(k)/IRA; $4K in taxes.
 
 ## 2051 · You start Social Security (age 67) · Spouse turns 65 (You 67 · Spouse 65)
 1. Apply for Social Security up to 4 months before you turn 67.
    (From then on your benefit adds about $22K a year in today’s dollars, so you take that much less from the accounts. It also counts as income, so there is less room under the 10% bracket and the yearly 401(k)/IRA withdrawal shrinks. The amount already assumes only 73% of the full benefit is paid by then, in case Congress does not fix the shortfall in Social Security’s trust fund. If it does, you will get more.)
 2. Spouse moves to Medicare. Sign up in the 3 months before the birthday.
    (Signing up late carries a lifelong penalty. Health insurance for Spouse goes from about $23,200 to about $10,900 a year in 2051, in today’s dollars.)
-> In the typical market of the table below, 2051: spent $98K; $11K from Social Security; $46K from brokerage; $46K from 401(k)/IRA; $5K in taxes.
+> In the typical market of the table below, 2051: spent $98K; $11K from Social Security; $50K from brokerage; $42K from 401(k)/IRA; $4K in taxes.
 
 ## 2053 · Spouse starts Social Security (age 67) (You 69 · Spouse 67)
 1. Apply for Social Security up to 4 months before Spouse turns 67.
    (From then on Spouse’s benefit adds about $22K a year in today’s dollars, so you take that much less from the accounts. It also counts as income, so there is less room under the 10% bracket and the yearly 401(k)/IRA withdrawal shrinks. The amount already assumes only 73% of the full benefit is paid by then, in case Congress does not fix the shortfall in Social Security’s trust fund. If it does, you will get more.)
-> In the typical market of the table below, 2053: spent $99K; $33K from Social Security; $42K from brokerage; $28K from 401(k)/IRA; $4K in taxes.
+> In the typical market of the table below, 2053: spent $99K; $33K from Social Security; $40K from brokerage; $30K from 401(k)/IRA; $4K in taxes.
+
+## 2056 · Last change to the asset mix (You 72 · Spouse 70)
+1. Move every invested account to 30% stocks / 70% bonds this year, the last step of the shift (cash stays cash). From now on, put every invested account back to that mix once a year.
+   (This is where Vanguard’s Target Retirement path ends, 7 years after you turn 65. A target-date fund dated near 2049, the year you turn 65, follows about this path and makes these moves for you; with separate stock and bond funds, you make them yourself. The results assume this mix in every account, every year from now on. This move sells some of what the brokerage account holds; the results already count the capital-gains tax on that sale in this year’s tax bill, so set it aside with the rest of the tax. Inside the 401(k)/IRA and Roth, moving costs no tax.)
+> In the typical market of the table below, 2056: spent $100K; $43K from Social Security; $34K from brokerage; $27K from 401(k)/IRA; $5K in taxes.
 
 ## 2059 · You turn 75 (You 75 · Spouse 73)
 1. Take the required minimum withdrawal from your 401(k)/IRA every year before December 31. Spend it first; whatever you don’t need goes into the brokerage account.
    (The IRS now requires it (a “required minimum distribution”, or RMD): about 4% of the balance at first and a slightly bigger share each year, from an IRS table. Your brokerage will tell you the exact figure. Missing it costs a 25% penalty.)
-> In the typical market of the table below, 2059: spent $101K; $43K from Social Security; $71K from 401(k)/IRA; $71K of that required by the IRS; $2K not needed and reinvested; $11K in taxes.
+> In the typical market of the table below, 2059: spent $101K; $43K from Social Security; $10K from brokerage; $57K from 401(k)/IRA; $57K of that required by the IRS; $9K in taxes.
 
 ## 2061 · Spouse turns 75 (You 77 · Spouse 75)
 1. Take the required minimum withdrawal from Spouse’s 401(k)/IRA every year before December 31. Spend it first; whatever you don’t need goes into the brokerage account.
    (The IRS now requires it (a “required minimum distribution”, or RMD): about 4% of the balance at first and a slightly bigger share each year, from an IRS table. Your brokerage will tell you the exact figure. Missing it costs a 25% penalty.)
-> In the typical market of the table below, 2061: spent $102K; $43K from Social Security; $164K from 401(k)/IRA; $164K of that required by the IRS; $71K not needed and reinvested; $35K in taxes.
+> In the typical market of the table below, 2061: spent $102K; $43K from Social Security; $165K from 401(k)/IRA; $165K of that required by the IRS; $69K not needed and reinvested; $37K in taxes.
 "
 `;
 
@@ -430,7 +489,7 @@ exports[`the playbook for fourteen household profiles > H. Yearly Roth conversio
 4. Set aside the tax on what you take out, and pay it with your return in April or in four estimated payments during the year.
    (The money you take out has to cover the tax on it too; the plan’s withdrawals include it.)
 5. Once a year, put every invested account back to 70% stocks / 25% bonds / 5% cash (cash stays cash).
-   (The results assume this mix in every account, every year. Drifting toward more stocks raises the risk in a bad market; toward less lowers growth.)
+   (This is the mix Fidelity’s FI Planner uses. The results assume this mix in every account, every year. Drifting toward more stocks raises the risk in a bad market; toward less lowers growth.)
 6. Once a year, enter your real balances here and recalculate.
    (Markets will not follow any single simulated path. If the chance your money lasts falls, spending is the lever to adjust early.)
 > In the typical market of the table below, 2039: spent $115K; $36K from cash; $80K from brokerage.
@@ -481,6 +540,10 @@ exports[`the playbook for fourteen household profiles > H. Yearly Roth conversio
 exports[`the playbook for fourteen household profiles > I. Ten-year age gap, 62 and 52 at retirement, with an HSA 1`] = `
 "traditional, retire 2034
 
+## 2027 · Keep shifting the asset mix (You 55 · Spouse 45)
+1. Each year until you retire, move every invested account to that year’s mix (cash stays cash): 68% stocks / 32% bonds in 2027, then about 1.5 to 2 percentage points a year from stocks into bonds, to 56% stocks / 44% bonds in 2034, the year you retire.
+   (The shift is already under way: the results assume your accounts hold 69% stocks / 31% bonds in 2026, the plan’s first year. This follows Vanguard’s Target Retirement path, tied to the year you turn 65 (2037). A target-date fund dated near 2037, the year you turn 65, follows about this path and makes these moves for you; with separate stock and bond funds, you make them yourself. The results assume that year’s mix in every account each year. Each move sells some of what the brokerage account holds; the results already count the capital-gains tax on that sale, paid from the brokerage account itself. Inside the 401(k)/IRA, Roth and HSA, moving costs no tax.)
+
 ## 2034 · You retire (You 62 · Spouse 52)
 1. Live on about $76,500 a year plus healthcare, in today’s dollars.
    (This is the budget the results are based on. Raise it with inflation each year: every figure here is in today’s dollars. Spending more than this, especially in the first years or in a bad market, is what runs money out early.)
@@ -501,28 +564,33 @@ exports[`the playbook for fourteen household profiles > I. Ten-year age gap, 62 
    (Cash and brokerage cost the least tax to spend. Roth money grows tax-free, so it is worth the most if it is left alone the longest.)
 7. Set aside the tax on what you take out, and pay it with your return in April or in four estimated payments during the year.
    (The money you take out has to cover the tax on it too; the plan’s withdrawals include it.)
-8. Once a year, put every invested account back to 70% stocks / 25% bonds / 5% cash (cash stays cash).
-   (The results assume this mix in every account, every year. Drifting toward more stocks raises the risk in a bad market; toward less lowers growth.)
+8. Once a year, move every invested account to that year’s mix (cash stays cash): 56% stocks / 44% bonds this year, then about 2 to 3 percentage points a year from stocks into bonds through 2044, and 30% stocks / 70% bonds from then on.
+   (This follows Vanguard’s Target Retirement path, tied to the year you turn 65 (2037). A target-date fund dated near 2037, the year you turn 65, follows about this path and makes these moves for you; with separate stock and bond funds, you make them yourself. Mix by year (stocks / bonds): 2035: 54 / 46 · 2036: 52 / 48 · 2037: 50 / 50 · 2038: 47 / 53 · 2039: 44 / 56 · … · 2044: 30 / 70. The results assume that year’s mix in every account. Each move sells some of what the brokerage account holds; the results already count the capital-gains tax on that sale in the year’s tax bill, so set it aside with the rest of the tax. Inside the 401(k)/IRA, Roth and HSA, moving costs no tax. Drifting toward more stocks raises the risk in a bad market; toward less lowers growth.)
 9. Once a year, enter your real balances here and recalculate.
    (Markets will not follow any single simulated path. If the chance your money lasts falls, spending is the lever to adjust early.)
-> In the typical market of the table below, 2034: spent $113K; $36K from the HSA; $28K from cash; $2K from brokerage; $51K from 401(k)/IRA; $4K in taxes.
+> In the typical market of the table below, 2034: spent $113K; $36K from the HSA; $29K from cash; $523 from brokerage; $51K from 401(k)/IRA; $4K in taxes.
 
 ## 2037 · You turn 65 (You 65 · Spouse 55)
 1. You move to Medicare. Sign up in the 3 months before the birthday.
    (Signing up late carries a lifelong penalty. Health insurance for you goes from about $18,800 to about $8,800 a year in 2037, in today’s dollars.)
-> In the typical market of the table below, 2037: spent $104K; $28K from the HSA; $28K from brokerage; $54K from 401(k)/IRA; $5K in taxes.
+> In the typical market of the table below, 2037: spent $104K; $27K from the HSA; $31K from brokerage; $51K from 401(k)/IRA; $5K in taxes.
 
 ## 2039 · You start Social Security (age 67) (You 67 · Spouse 57)
 1. Apply for Social Security up to 4 months before you turn 67.
    (From then on your benefit adds about $23K a year in today’s dollars, so you take that much less from the accounts. It also counts as income, so there is less room under the 10% bracket and the yearly 401(k)/IRA withdrawal shrinks. The amount already assumes only 76% of the full benefit is paid by then, in case Congress does not fix the shortfall in Social Security’s trust fund. If it does, you will get more.)
-> In the typical market of the table below, 2039: spent $105K; $11K from Social Security; $54K from brokerage; $44K from 401(k)/IRA; $5K in taxes.
+> In the typical market of the table below, 2039: spent $105K; $11K from Social Security; $56K from brokerage; $42K from 401(k)/IRA; $4K in taxes.
 
 ## 2042 · Spouse turns 60 (You 70 · Spouse 60)
 1. Spouse’s 401(k)/IRA and all of Spouse’s Roth can now be used with no penalty.
    (The IRS rule is 59½; the plan counts the year Spouse turns 60.)
 2. From now on, spend what you need from the yearly withdrawal and move only the leftover into Roth. In the order above, Spouse’s 401(k)/IRA now comes after brokerage and before Roth.
    (Before 59½, spending that money cost a 10% penalty. Now it doesn’t, so it is cheaper to spend than Roth money, which keeps growing tax-free.)
-> In the typical market of the table below, 2042: spent $106K; $23K from Social Security; $50K from brokerage; $38K from 401(k)/IRA; $4K in taxes.
+> In the typical market of the table below, 2042: spent $106K; $23K from Social Security; $53K from brokerage; $34K from 401(k)/IRA; $4K in taxes.
+
+## 2044 · Last change to the asset mix (You 72 · Spouse 62)
+1. Move every invested account to 30% stocks / 70% bonds this year, the last step of the shift (cash stays cash). From now on, put every invested account back to that mix once a year.
+   (This is where Vanguard’s Target Retirement path ends, 7 years after you turn 65. A target-date fund dated near 2037, the year you turn 65, follows about this path and makes these moves for you; with separate stock and bond funds, you make them yourself. The results assume this mix in every account, every year from now on. This move sells some of what the brokerage account holds; the results already count the capital-gains tax on that sale in this year’s tax bill, so set it aside with the rest of the tax. Inside the 401(k)/IRA, Roth and HSA, moving costs no tax.)
+> In the typical market of the table below, 2044: spent $107K; $23K from Social Security; $52K from brokerage; $37K from 401(k)/IRA; $4K in taxes.
 
 ## 2047 · You turn 75 · Spouse turns 65 (You 75 · Spouse 65)
 1. Take the required minimum withdrawal from your 401(k)/IRA every year before December 31. Spend it first; whatever you don’t need goes into the brokerage account.
@@ -531,22 +599,26 @@ exports[`the playbook for fourteen household profiles > I. Ten-year age gap, 62 
    (Signing up late carries a lifelong penalty. Health insurance for Spouse goes from about $21,900 to about $10,300 a year in 2047, in today’s dollars.)
 3. HSA money can now also be spent on anything else.
    (Once you are both 65 it is taxed like 401(k)/IRA money, with no penalty. The plan still uses it for medical bills first.)
-> In the typical market of the table below, 2047: spent $97K; $22K from Social Security; $38K from brokerage; $41K from 401(k)/IRA; $38K of that required by the IRS; $4K in taxes.
+> In the typical market of the table below, 2047: spent $97K; $22K from Social Security; $85K from 401(k)/IRA; $28K of that required by the IRS; $10K in taxes.
 
 ## 2049 · Spouse starts Social Security (age 67) (You 77 · Spouse 67)
 1. Apply for Social Security up to 4 months before Spouse turns 67.
    (From then on Spouse’s benefit adds about $22K a year in today’s dollars, so you take that much less from the accounts. It also counts as income, so there is less room under the 10% bracket and the yearly 401(k)/IRA withdrawal shrinks. The amount already assumes only 74% of the full benefit is paid by then, in case Congress does not fix the shortfall in Social Security’s trust fund. If it does, you will get more.)
-> In the typical market of the table below, 2049: spent $98K; $33K from Social Security; $27K from brokerage; $42K from 401(k)/IRA; $42K of that required by the IRS; $5K in taxes.
+> In the typical market of the table below, 2049: spent $98K; $33K from Social Security; $74K from 401(k)/IRA; $28K of that required by the IRS; $9K in taxes.
 
 ## 2057 · Spouse turns 75 (You 85 · Spouse 75)
 1. Take the required minimum withdrawal from Spouse’s 401(k)/IRA every year before December 31. Spend it first; whatever you don’t need goes into the brokerage account.
    (The IRS now requires it (a “required minimum distribution”, or RMD): about 4% of the balance at first and a slightly bigger share each year, from an IRS table. Your brokerage will tell you the exact figure. Missing it costs a 25% penalty.)
-> In the typical market of the table below, 2057: spent $100K; $43K from Social Security; $161K from 401(k)/IRA; $161K of that required by the IRS; $72K not needed and reinvested; $32K in taxes.
+> In the typical market of the table below, 2057: spent $100K; $43K from Social Security; $136K from 401(k)/IRA; $136K of that required by the IRS; $54K not needed and reinvested; $25K in taxes.
 "
 `;
 
 exports[`the playbook for fourteen household profiles > J. Filling the 22% bracket with $2.5M pre-tax 1`] = `
 "traditional, retire 2030
+
+## 2027 · Keep shifting the asset mix (You 43 · Spouse 41)
+1. Each year until you retire, move every invested account to that year’s mix (cash stays cash): 86% stocks / 14% bonds in 2027, then about 1.5 percentage points a year from stocks into bonds, to 81% stocks / 19% bonds in 2030, the year you retire.
+   (The shift is already under way: the results assume your accounts hold 87% stocks / 13% bonds in 2026, the plan’s first year. This follows Vanguard’s Target Retirement path, tied to the year you turn 65 (2049). A target-date fund dated near 2049, the year you turn 65, follows about this path and makes these moves for you; with separate stock and bond funds, you make them yourself. The results assume that year’s mix in every account each year. Each move sells some of what the brokerage account holds; the results already count the capital-gains tax on that sale, paid from the brokerage account itself. Inside the 401(k)/IRA and Roth, moving costs no tax.)
 
 ## 2030 · You retire (You 46 · Spouse 44)
 1. Live on about $76,500 a year plus healthcare, in today’s dollars.
@@ -565,11 +637,11 @@ exports[`the playbook for fourteen household profiles > J. Filling the 22% brack
    (Cash and brokerage cost the least tax to spend. Roth money grows tax-free, so it is worth the most if it is left alone the longest.)
 6. Set aside the tax on what you take out, and pay it with your return in April or in four estimated payments during the year.
    (The money you take out has to cover the tax on it too; the plan’s withdrawals include it.)
-7. Once a year, put every invested account back to 70% stocks / 25% bonds / 5% cash (cash stays cash).
-   (The results assume this mix in every account, every year. Drifting toward more stocks raises the risk in a bad market; toward less lowers growth.)
+7. Once a year, move every invested account to that year’s mix (cash stays cash): 81% stocks / 19% bonds this year, then about 1.5 to 3 percentage points a year from stocks into bonds through 2056, and 30% stocks / 70% bonds from then on.
+   (This follows Vanguard’s Target Retirement path, tied to the year you turn 65 (2049). A target-date fund dated near 2049, the year you turn 65, follows about this path and makes these moves for you; with separate stock and bond funds, you make them yourself. Mix by year (stocks / bonds): 2031: 80 / 20 · 2032: 78 / 22 · 2033: 77 / 23 · 2034: 75 / 25 · 2035: 74 / 26 · … · 2056: 30 / 70. The results assume that year’s mix in every account. Each move sells some of what the brokerage account holds; the results already count the capital-gains tax on that sale in the year’s tax bill, so set it aside with the rest of the tax. Inside the 401(k)/IRA and Roth, moving costs no tax. Drifting toward more stocks raises the risk in a bad market; toward less lowers growth.)
 8. Once a year, enter your real balances here and recalculate.
    (Markets will not follow any single simulated path. If the chance your money lasts falls, spending is the lever to adjust early.)
-> In the typical market of the table below, 2030: spent $110K; $38K from cash; $126K from brokerage; $239K moved from 401(k)/IRA to Roth; $53K in taxes.
+> In the typical market of the table below, 2030: spent $110K; $31K from cash; $141K from brokerage; $236K moved from 401(k)/IRA to Roth; $62K in taxes.
 
 ## 2044 · You turn 60 (You 60 · Spouse 58)
 1. Your 401(k)/IRA and all of your Roth can now be used with no penalty.
@@ -602,20 +674,29 @@ exports[`the playbook for fourteen household profiles > J. Filling the 22% brack
    (From then on Spouse’s benefit adds about $22K a year in today’s dollars, so you take that much less from the accounts. It also counts as income, so there is less room under the 22% bracket and the yearly 401(k)/IRA withdrawal shrinks. The amount already assumes only 73% of the full benefit is paid by then, in case Congress does not fix the shortfall in Social Security’s trust fund. If it does, you will get more.)
 > In the typical market of the table below, 2053: spent $99K; $33K from Social Security; $111K from 401(k)/IRA; $108K moved from 401(k)/IRA to Roth; $45K in taxes.
 
+## 2056 · Last change to the asset mix (You 72 · Spouse 70)
+1. Move every invested account to 30% stocks / 70% bonds this year, the last step of the shift (cash stays cash). From now on, put every invested account back to that mix once a year.
+   (This is where Vanguard’s Target Retirement path ends, 7 years after you turn 65. A target-date fund dated near 2049, the year you turn 65, follows about this path and makes these moves for you; with separate stock and bond funds, you make them yourself. The results assume this mix in every account, every year from now on. This move sells some of what the brokerage account holds; the results already count the capital-gains tax on that sale in this year’s tax bill, so set it aside with the rest of the tax. Inside the 401(k)/IRA and Roth, moving costs no tax.)
+> In the typical market of the table below, 2056: spent $100K; $43K from Social Security; $101K from 401(k)/IRA; $109K moved from 401(k)/IRA to Roth; $45K in taxes.
+
 ## 2059 · You turn 75 (You 75 · Spouse 73)
 1. Take the required minimum withdrawal from your 401(k)/IRA every year before December 31. Spend it first; whatever you don’t need goes into the brokerage account.
    (The IRS now requires it (a “required minimum distribution”, or RMD): about 4% of the balance at first and a slightly bigger share each year, from an IRS table. Your brokerage will tell you the exact figure. Missing it costs a 25% penalty.)
-> In the typical market of the table below, 2059: spent $101K; $43K from Social Security; $103K from 401(k)/IRA; $108K moved from 401(k)/IRA to Roth; $45K in taxes.
+> In the typical market of the table below, 2059: spent $101K; $43K from Social Security; $58K from Roth.
 
 ## 2061 · Spouse turns 75 (You 77 · Spouse 75)
 1. Take the required minimum withdrawal from Spouse’s 401(k)/IRA every year before December 31. Spend it first; whatever you don’t need goes into the brokerage account.
    (The IRS now requires it (a “required minimum distribution”, or RMD): about 4% of the balance at first and a slightly bigger share each year, from an IRS table. Your brokerage will tell you the exact figure. Missing it costs a 25% penalty.)
-> In the typical market of the table below, 2061: spent $102K; $43K from Social Security; $406K from 401(k)/IRA; $406K of that required by the IRS; $243K not needed and reinvested; $104K in taxes.
+> In the typical market of the table below, 2061: spent $102K; $43K from Social Security; $59K from Roth.
 "
 `;
 
 exports[`the playbook for fourteen household profiles > K. Spending so high that money runs out in the typical market 1`] = `
 "traditional, retire 2035
+
+## 2027 · Keep shifting the asset mix (You 43 · Spouse 41)
+1. Each year until you retire, move every invested account to that year’s mix (cash stays cash): 86% stocks / 14% bonds in 2027, then about 1.5 percentage points a year from stocks into bonds, to 74% stocks / 26% bonds in 2035, the year you retire.
+   (The shift is already under way: the results assume your accounts hold 87% stocks / 13% bonds in 2026, the plan’s first year. This follows Vanguard’s Target Retirement path, tied to the year you turn 65 (2049). A target-date fund dated near 2049, the year you turn 65, follows about this path and makes these moves for you; with separate stock and bond funds, you make them yourself. The results assume that year’s mix in every account each year. Each move sells some of what the brokerage account holds; the results already count the capital-gains tax on that sale, paid from the brokerage account itself. Inside the 401(k)/IRA and Roth, moving costs no tax.)
 
 ## 2035 · You retire (You 51 · Spouse 49)
 1. Live on about $200,000 a year plus healthcare, in today’s dollars.
@@ -634,11 +715,11 @@ exports[`the playbook for fourteen household profiles > K. Spending so high that
    (Cash and brokerage cost the least tax to spend. Roth money grows tax-free, so it is worth the most if it is left alone the longest.)
 6. Set aside the tax on what you take out, and pay it with your return in April or in four estimated payments during the year.
    (The money you take out has to cover the tax on it too; the plan’s withdrawals include it.)
-7. Once a year, put every invested account back to 70% stocks / 25% bonds / 5% cash (cash stays cash).
-   (The results assume this mix in every account, every year. Drifting toward more stocks raises the risk in a bad market; toward less lowers growth.)
+7. Once a year, move every invested account to that year’s mix (cash stays cash): 74% stocks / 26% bonds this year, then about 1.5 to 3 percentage points a year from stocks into bonds through 2056, and 30% stocks / 70% bonds from then on.
+   (This follows Vanguard’s Target Retirement path, tied to the year you turn 65 (2049). A target-date fund dated near 2049, the year you turn 65, follows about this path and makes these moves for you; with separate stock and bond funds, you make them yourself. Mix by year (stocks / bonds): 2036: 72 / 28 · 2037: 71 / 29 · 2038: 69 / 31 · 2039: 68 / 32 · 2040: 66 / 34 · … · 2056: 30 / 70. The results assume that year’s mix in every account. Each move sells some of what the brokerage account holds; the results already count the capital-gains tax on that sale in the year’s tax bill, so set it aside with the rest of the tax. Inside the 401(k)/IRA and Roth, moving costs no tax. Drifting toward more stocks raises the risk in a bad market; toward less lowers growth.)
 8. Once a year, enter your real balances here and recalculate.
    (Markets will not follow any single simulated path. If the chance your money lasts falls, spending is the lever to adjust early.)
-> In the typical market of the table below, 2035: spent $237K; $23K from cash; $230K from brokerage; $51K moved from 401(k)/IRA to Roth; $16K in taxes.
+> In the typical market of the table below, 2035: spent $237K; $42K from cash; $199K from brokerage; $47K moved from 401(k)/IRA to Roth; $4K in taxes.
 
 ## 2044 · You turn 60 (You 60 · Spouse 58)
 1. Your 401(k)/IRA and all of your Roth can now be used with no penalty.
@@ -665,6 +746,10 @@ exports[`the playbook for fourteen household profiles > K. Spending so high that
 ## 2053 · Spouse starts Social Security (age 67) (You 69 · Spouse 67)
 1. Apply for Social Security up to 4 months before Spouse turns 67.
    (From then on Spouse’s benefit adds about $22K a year in today’s dollars, so you take that much less from the accounts. It also counts as income, so there is less room under the 10% bracket and the yearly 401(k)/IRA withdrawal shrinks. The amount already assumes only 73% of the full benefit is paid by then, in case Congress does not fix the shortfall in Social Security’s trust fund. If it does, you will get more.)
+
+## 2056 · Last change to the asset mix (You 72 · Spouse 70)
+1. Move every invested account to 30% stocks / 70% bonds this year, the last step of the shift (cash stays cash). From now on, put every invested account back to that mix once a year.
+   (This is where Vanguard’s Target Retirement path ends, 7 years after you turn 65. A target-date fund dated near 2049, the year you turn 65, follows about this path and makes these moves for you; with separate stock and bond funds, you make them yourself. The results assume this mix in every account, every year from now on. This move sells some of what the brokerage account holds; the results already count the capital-gains tax on that sale in this year’s tax bill, so set it aside with the rest of the tax. Inside the 401(k)/IRA and Roth, moving costs no tax.)
 
 ## 2059 · You turn 75 (You 75 · Spouse 73)
 1. Take the required minimum withdrawal from your 401(k)/IRA every year before December 31. Spend it first; whatever you don’t need goes into the brokerage account.
@@ -698,8 +783,8 @@ exports[`the playbook for fourteen household profiles > L. Dated items: a mortga
    (Cash and brokerage cost the least tax to spend. Roth money grows tax-free, so it is worth the most if it is left alone the longest.)
 7. Set aside the tax on what you take out, and pay it with your return in April or in four estimated payments during the year.
    (The money you take out has to cover the tax on it too; the plan’s withdrawals include it.)
-8. Once a year, put every invested account back to 70% stocks / 25% bonds / 5% cash (cash stays cash).
-   (The results assume this mix in every account, every year. Drifting toward more stocks raises the risk in a bad market; toward less lowers growth.)
+8. Once a year, move every invested account to that year’s mix (cash stays cash): 70% stocks / 25% bonds / 5% cash this year, then about 3 percentage points a year from stocks into bonds and cash from 2044 through 2053, and 40% stocks / 50% bonds / 10% cash from then on.
+   (This is the path you entered: 70% stocks / 25% bonds / 5% cash at first, moving to 40% stocks / 50% bonds / 10% cash in equal steps, one in each year you are 60 to 69. Mix by year (stocks / bonds / cash): 2044: 67 / 28 / 5 · 2045: 64 / 30 / 6 · 2046: 61 / 33 / 6 · 2047: 58 / 35 / 7 · 2048: 55 / 38 / 7 · … · 2053: 40 / 50 / 10. The results assume that year’s mix in every account. Each move sells some of what the brokerage account holds; the results already count the capital-gains tax on that sale in the year’s tax bill, so set it aside with the rest of the tax. Inside the 401(k)/IRA and Roth, moving costs no tax. Drifting toward more stocks raises the risk in a bad market; toward less lowers growth.)
 9. Once a year, enter your real balances here and recalculate.
    (Markets will not follow any single simulated path. If the chance your money lasts falls, spending is the lever to adjust early.)
 > In the typical market of the table below, 2039: spent $144K; $150K from brokerage; $51K moved from 401(k)/IRA to Roth; $6K in taxes.
@@ -730,34 +815,40 @@ exports[`the playbook for fourteen household profiles > L. Dated items: a mortga
 ## 2050 · Home sale arrives (You 66 · Spouse 64)
 1. Home sale: about $400,000. Whatever you don’t need goes into the brokerage account.
    (It is not taxed, so it goes straight to savings or spending.)
-> In the typical market of the table below, 2050: spent $145K; $420K of other income; $38K moved from 401(k)/IRA to Roth; $271K not needed and reinvested; $4K in taxes.
+> In the typical market of the table below, 2050: spent $145K; $420K of other income; $38K moved from 401(k)/IRA to Roth; $270K not needed and reinvested; $5K in taxes.
 
 ## 2051 · You start Social Security (age 67) · Spouse turns 65 (You 67 · Spouse 65)
 1. Apply for Social Security up to 4 months before you turn 67.
    (From then on your benefit adds about $22K a year in today’s dollars, so you take that much less from the accounts. It also counts as income, so there is less room under the 10% bracket and the yearly 401(k)/IRA withdrawal shrinks. The amount already assumes only 73% of the full benefit is paid by then, in case Congress does not fix the shortfall in Social Security’s trust fund. If it does, you will get more.)
 2. Spouse moves to Medicare. Sign up in the 3 months before the birthday.
    (Signing up late carries a lifelong penalty. Health insurance for Spouse goes from about $23,200 to about $10,900 a year in 2051, in today’s dollars.)
-> In the typical market of the table below, 2051: spent $98K; $11K from Social Security; $20K of other income; $43K from brokerage; $27K from 401(k)/IRA; $3K in taxes.
+> In the typical market of the table below, 2051: spent $98K; $11K from Social Security; $20K of other income; $46K from brokerage; $25K from 401(k)/IRA; $3K in taxes.
 
-## 2053 · Spouse starts Social Security (age 67) (You 69 · Spouse 67)
+## 2053 · Spouse starts Social Security (age 67) · Last change to the asset mix (You 69 · Spouse 67)
 1. Apply for Social Security up to 4 months before Spouse turns 67.
    (From then on Spouse’s benefit adds about $22K a year in today’s dollars, so you take that much less from the accounts. It also counts as income, so there is less room under the 10% bracket and the yearly 401(k)/IRA withdrawal shrinks. The amount already assumes only 73% of the full benefit is paid by then, in case Congress does not fix the shortfall in Social Security’s trust fund. If it does, you will get more.)
-> In the typical market of the table below, 2053: spent $99K; $33K from Social Security; $17K of other income; $35K from brokerage; $17K from 401(k)/IRA; $3K in taxes.
+2. Move every invested account to 40% stocks / 50% bonds / 10% cash this year, the last step of the shift (cash stays cash). From now on, put every invested account back to that mix once a year.
+   (This is the path you entered: 70% stocks / 25% bonds / 5% cash at first, moving to 40% stocks / 50% bonds / 10% cash in equal steps, one in each year you are 60 to 69. The results assume this mix in every account, every year from now on. This move sells some of what the brokerage account holds; the results already count the capital-gains tax on that sale in this year’s tax bill, so set it aside with the rest of the tax. Inside the 401(k)/IRA and Roth, moving costs no tax.)
+> In the typical market of the table below, 2053: spent $99K; $33K from Social Security; $17K of other income; $37K from brokerage; $15K from 401(k)/IRA; $3K in taxes.
 
 ## 2059 · You turn 75 (You 75 · Spouse 73)
 1. Take the required minimum withdrawal from your 401(k)/IRA every year before December 31. Spend it first; whatever you don’t need goes into the brokerage account.
    (The IRS now requires it (a “required minimum distribution”, or RMD): about 4% of the balance at first and a slightly bigger share each year, from an IRS table. Your brokerage will tell you the exact figure. Missing it costs a 25% penalty.)
-> In the typical market of the table below, 2059: spent $101K; $43K from Social Security; $11K of other income; $57K from 401(k)/IRA; $10K of that required by the IRS; $9K in taxes.
+> In the typical market of the table below, 2059: spent $101K; $43K from Social Security; $11K of other income; $57K from 401(k)/IRA; $8K of that required by the IRS; $9K in taxes.
 
 ## 2061 · Spouse turns 75 (You 77 · Spouse 75)
 1. Take the required minimum withdrawal from Spouse’s 401(k)/IRA every year before December 31. Spend it first; whatever you don’t need goes into the brokerage account.
    (The IRS now requires it (a “required minimum distribution”, or RMD): about 4% of the balance at first and a slightly bigger share each year, from an IRS table. Your brokerage will tell you the exact figure. Missing it costs a 25% penalty.)
-> In the typical market of the table below, 2061: spent $102K; $43K from Social Security; $9K of other income; $62K from 401(k)/IRA; $62K of that required by the IRS; $2K not needed and reinvested; $10K in taxes.
+> In the typical market of the table below, 2061: spent $102K; $43K from Social Security; $9K of other income; $60K from 401(k)/IRA; $57K of that required by the IRS; $9K in taxes.
 "
 `;
 
 exports[`the playbook for fourteen household profiles > M. The spouse is older than "You": 56 and 62 at retirement 1`] = `
 "traditional, retire 2042
+
+## 2027 · Start shifting the asset mix (You 41 · Spouse 47)
+1. Each year until you retire, move every invested account to that year’s mix (cash stays cash): 89% stocks / 11% bonds in 2027, then about 1.5 percentage points a year from stocks into bonds, to 66% stocks / 34% bonds in 2042, the year you retire.
+   (Until now the results assume 90% stocks / 10% bonds in every account. This follows Vanguard’s Target Retirement path, tied to the year you turn 65 (2051). A target-date fund dated near 2051, the year you turn 65, follows about this path and makes these moves for you; with separate stock and bond funds, you make them yourself. The results assume that year’s mix in every account each year. Each move sells some of what the brokerage account holds; the results already count the capital-gains tax on that sale, paid from the brokerage account itself. Inside the 401(k)/IRA and Roth, moving costs no tax.)
 
 ## 2042 · You retire (You 56 · Spouse 62)
 1. Live on about $76,500 a year plus healthcare, in today’s dollars.
@@ -777,53 +868,62 @@ exports[`the playbook for fourteen household profiles > M. The spouse is older t
    (Cash and brokerage cost the least tax to spend. Roth money grows tax-free, so it is worth the most if it is left alone the longest.)
 6. Set aside the tax on what you take out, and pay it with your return in April or in four estimated payments during the year.
    (The money you take out has to cover the tax on it too; the plan’s withdrawals include it.)
-7. Once a year, put every invested account back to 70% stocks / 25% bonds / 5% cash (cash stays cash).
-   (The results assume this mix in every account, every year. Drifting toward more stocks raises the risk in a bad market; toward less lowers growth.)
+7. Once a year, move every invested account to that year’s mix (cash stays cash): 66% stocks / 34% bonds this year, then about 1.5 to 3 percentage points a year from stocks into bonds through 2058, and 30% stocks / 70% bonds from then on.
+   (This follows Vanguard’s Target Retirement path, tied to the year you turn 65 (2051). A target-date fund dated near 2051, the year you turn 65, follows about this path and makes these moves for you; with separate stock and bond funds, you make them yourself. Mix by year (stocks / bonds): 2043: 65 / 35 · 2044: 63 / 37 · 2045: 62 / 38 · 2046: 60 / 40 · 2047: 58 / 42 · … · 2058: 30 / 70. The results assume that year’s mix in every account. Each move sells some of what the brokerage account holds; the results already count the capital-gains tax on that sale in the year’s tax bill, so set it aside with the rest of the tax. Inside the 401(k)/IRA and Roth, moving costs no tax. Drifting toward more stocks raises the risk in a bad market; toward less lowers growth.)
 8. Once a year, enter your real balances here and recalculate.
    (Markets will not follow any single simulated path. If the chance your money lasts falls, spending is the lever to adjust early.)
-> In the typical market of the table below, 2042: spent $117K; $68K from cash; $6K from brokerage; $47K from 401(k)/IRA; $4K in taxes.
+> In the typical market of the table below, 2042: spent $117K; $36K from cash; $40K from brokerage; $46K from 401(k)/IRA; $5K in taxes.
 
 ## 2045 · Spouse turns 65 (You 59 · Spouse 65)
 1. Spouse moves to Medicare. Sign up in the 3 months before the birthday.
    (Signing up late carries a lifelong penalty. Health insurance for Spouse goes from about $21,200 to about $10,000 a year in 2045, in today’s dollars.)
-> In the typical market of the table below, 2045: spent $108K; $62K from brokerage; $50K from 401(k)/IRA; $5K in taxes.
+> In the typical market of the table below, 2045: spent $108K; $65K from brokerage; $48K from 401(k)/IRA; $6K in taxes.
 
 ## 2046 · You turn 60 (You 60 · Spouse 66)
 1. Your 401(k)/IRA and all of your Roth can now be used with no penalty.
    (The IRS rule is 59½; the plan counts the year you turn 60.)
 2. From now on, spend what you need from the yearly withdrawal and move only the leftover into Roth. In the order above, your 401(k)/IRA now comes after brokerage and before Roth.
    (Before 59½, spending that money cost a 10% penalty. Now it doesn’t, so it is cheaper to spend than Roth money, which keeps growing tax-free.)
-> In the typical market of the table below, 2046: spent $108K; $63K from brokerage; $50K from 401(k)/IRA; $5K in taxes.
+> In the typical market of the table below, 2046: spent $108K; $67K from brokerage; $47K from 401(k)/IRA; $6K in taxes.
 
 ## 2047 · Spouse starts Social Security (age 67) (You 61 · Spouse 67)
 1. Apply for Social Security up to 4 months before Spouse turns 67.
    (From then on Spouse’s benefit adds about $22K a year in today’s dollars, so you take that much less from the accounts. It also counts as income, so there is less room under the 10% bracket and the yearly 401(k)/IRA withdrawal shrinks. The amount already assumes only 74% of the full benefit is paid by then, in case Congress does not fix the shortfall in Social Security’s trust fund. If it does, you will get more.)
-> In the typical market of the table below, 2047: spent $109K; $11K from Social Security; $56K from brokerage; $47K from 401(k)/IRA; $5K in taxes.
+> In the typical market of the table below, 2047: spent $109K; $11K from Social Security; $65K from brokerage; $38K from 401(k)/IRA; $5K in taxes.
 
 ## 2051 · You turn 65 (You 65 · Spouse 71)
 1. You move to Medicare. Sign up in the 3 months before the birthday.
    (Signing up late carries a lifelong penalty. Health insurance for you goes from about $23,200 to about $10,900 a year in 2051, in today’s dollars.)
-> In the typical market of the table below, 2051: spent $98K; $22K from Social Security; $40K from brokerage; $42K from 401(k)/IRA; $6K in taxes.
+> In the typical market of the table below, 2051: spent $98K; $22K from Social Security; $50K from brokerage; $31K from 401(k)/IRA; $4K in taxes.
 
 ## 2053 · You start Social Security (age 67) (You 67 · Spouse 73)
 1. Apply for Social Security up to 4 months before you turn 67.
    (From then on your benefit adds about $22K a year in today’s dollars, so you take that much less from the accounts. It also counts as income, so there is less room under the 10% bracket and the yearly 401(k)/IRA withdrawal shrinks. The amount already assumes only 73% of the full benefit is paid by then, in case Congress does not fix the shortfall in Social Security’s trust fund. If it does, you will get more.)
-> In the typical market of the table below, 2053: spent $99K; $33K from Social Security; $31K from brokerage; $41K from 401(k)/IRA; $6K in taxes.
+> In the typical market of the table below, 2053: spent $99K; $33K from Social Security; $47K from brokerage; $23K from 401(k)/IRA; $4K in taxes.
 
 ## 2055 · Spouse turns 75 (You 69 · Spouse 75)
 1. Take the required minimum withdrawal from Spouse’s 401(k)/IRA every year before December 31. Spend it first; whatever you don’t need goes into the brokerage account.
    (The IRS now requires it (a “required minimum distribution”, or RMD): about 4% of the balance at first and a slightly bigger share each year, from an IRS table. Your brokerage will tell you the exact figure. Missing it costs a 25% penalty.)
-> In the typical market of the table below, 2055: spent $100K; $44K from Social Security; $97K from 401(k)/IRA; $97K of that required by the IRS; $22K not needed and reinvested; $20K in taxes.
+> In the typical market of the table below, 2055: spent $100K; $44K from Social Security; $82K from 401(k)/IRA; $82K of that required by the IRS; $12K not needed and reinvested; $14K in taxes.
+
+## 2058 · Last change to the asset mix (You 72 · Spouse 78)
+1. Move every invested account to 30% stocks / 70% bonds this year, the last step of the shift (cash stays cash). From now on, put every invested account back to that mix once a year.
+   (This is where Vanguard’s Target Retirement path ends, 7 years after you turn 65. A target-date fund dated near 2051, the year you turn 65, follows about this path and makes these moves for you; with separate stock and bond funds, you make them yourself. The results assume this mix in every account, every year from now on. This move sells some of what the brokerage account holds; the results already count the capital-gains tax on that sale in this year’s tax bill, so set it aside with the rest of the tax. Inside the 401(k)/IRA and Roth, moving costs no tax.)
+> In the typical market of the table below, 2058: spent $101K; $43K from Social Security; $79K from 401(k)/IRA; $79K of that required by the IRS; $7K not needed and reinvested; $14K in taxes.
 
 ## 2061 · You turn 75 (You 75 · Spouse 81)
 1. Take the required minimum withdrawal from your 401(k)/IRA every year before December 31. Spend it first; whatever you don’t need goes into the brokerage account.
    (The IRS now requires it (a “required minimum distribution”, or RMD): about 4% of the balance at first and a slightly bigger share each year, from an IRS table. Your brokerage will tell you the exact figure. Missing it costs a 25% penalty.)
-> In the typical market of the table below, 2061: spent $102K; $43K from Social Security; $362K from 401(k)/IRA; $362K of that required by the IRS; $203K not needed and reinvested; $100K in taxes.
+> In the typical market of the table below, 2061: spent $102K; $43K from Social Security; $207K from 401(k)/IRA; $207K of that required by the IRS; $98K not needed and reinvested; $49K in taxes.
 "
 `;
 
 exports[`the playbook for fourteen household profiles > N. Both born the same year, 57 at retirement, with an HSA 1`] = `
 "traditional, retire 2041
+
+## 2027 · Keep shifting the asset mix (You 43 · Spouse 43)
+1. Each year until you retire, move every invested account to that year’s mix (cash stays cash): 86% stocks / 14% bonds in 2027, then about 1.5 percentage points a year from stocks into bonds, to 65% stocks / 35% bonds in 2041, the year you retire.
+   (The shift is already under way: the results assume your accounts hold 87% stocks / 13% bonds in 2026, the plan’s first year. This follows Vanguard’s Target Retirement path, tied to the year you turn 65 (2049). A target-date fund dated near 2049, the year you turn 65, follows about this path and makes these moves for you; with separate stock and bond funds, you make them yourself. The results assume that year’s mix in every account each year. Each move sells some of what the brokerage account holds; the results already count the capital-gains tax on that sale, paid from the brokerage account itself. Inside the 401(k)/IRA, Roth and HSA, moving costs no tax.)
 
 ## 2041 · You retire (You 57 · Spouse 57)
 1. Live on about $76,500 a year plus healthcare, in today’s dollars.
@@ -844,11 +944,11 @@ exports[`the playbook for fourteen household profiles > N. Both born the same ye
    (Cash and brokerage cost the least tax to spend. Roth money grows tax-free, so it is worth the most if it is left alone the longest.)
 7. Set aside the tax on what you take out, and pay it with your return in April or in four estimated payments during the year.
    (The money you take out has to cover the tax on it too; the plan’s withdrawals include it.)
-8. Once a year, put every invested account back to 70% stocks / 25% bonds / 5% cash (cash stays cash).
-   (The results assume this mix in every account, every year. Drifting toward more stocks raises the risk in a bad market; toward less lowers growth.)
+8. Once a year, move every invested account to that year’s mix (cash stays cash): 65% stocks / 35% bonds this year, then about 1.5 to 3 percentage points a year from stocks into bonds through 2056, and 30% stocks / 70% bonds from then on.
+   (This follows Vanguard’s Target Retirement path, tied to the year you turn 65 (2049). A target-date fund dated near 2049, the year you turn 65, follows about this path and makes these moves for you; with separate stock and bond funds, you make them yourself. Mix by year (stocks / bonds): 2042: 63 / 37 · 2043: 62 / 38 · 2044: 60 / 40 · 2045: 58 / 42 · 2046: 56 / 44 · … · 2056: 30 / 70. The results assume that year’s mix in every account. Each move sells some of what the brokerage account holds; the results already count the capital-gains tax on that sale in the year’s tax bill, so set it aside with the rest of the tax. Inside the 401(k)/IRA, Roth and HSA, moving costs no tax. Drifting toward more stocks raises the risk in a bad market; toward less lowers growth.)
 9. Once a year, enter your real balances here and recalculate.
    (Markets will not follow any single simulated path. If the chance your money lasts falls, spending is the lever to adjust early.)
-> In the typical market of the table below, 2041: spent $117K; $40K from the HSA; $30K from cash; $52K from brokerage; $48K moved from 401(k)/IRA to Roth; $5K in taxes.
+> In the typical market of the table below, 2041: spent $117K; $40K from the HSA; $46K from cash; $35K from brokerage; $46K moved from 401(k)/IRA to Roth; $4K in taxes.
 
 ## 2044 · You turn 60 · Spouse turns 60 (You 60 · Spouse 60)
 1. Your 401(k)/IRA and all of your Roth can now be used with no penalty.
@@ -859,7 +959,7 @@ exports[`the playbook for fourteen household profiles > N. Both born the same ye
    (The IRS rule is 59½; the plan counts the year Spouse turns 60.)
 4. From now on, spend what you need from the yearly withdrawal and move only the leftover into Roth. In the order above, Spouse’s 401(k)/IRA now comes after brokerage and before Roth.
    (Before 59½, spending that money cost a 10% penalty. Now it doesn’t, so it is cheaper to spend than Roth money, which keeps growing tax-free.)
-> In the typical market of the table below, 2044: spent $118K; $73K from brokerage; $51K from 401(k)/IRA; $5K in taxes.
+> In the typical market of the table below, 2044: spent $118K; $75K from brokerage; $49K from 401(k)/IRA; $5K in taxes.
 
 ## 2049 · You turn 65 · Spouse turns 65 (You 65 · Spouse 65)
 1. You move to Medicare. Sign up in the 3 months before the birthday.
@@ -868,20 +968,25 @@ exports[`the playbook for fourteen household profiles > N. Both born the same ye
    (Signing up late carries a lifelong penalty. Health insurance for Spouse goes from about $22,500 to about $10,600 a year in 2049, in today’s dollars.)
 3. HSA money can now also be spent on anything else.
    (Once you are both 65 it is taxed like 401(k)/IRA money, with no penalty. The plan still uses it for medical bills first.)
-> In the typical market of the table below, 2049: spent $98K; $45K from brokerage; $57K from 401(k)/IRA; $5K in taxes.
+> In the typical market of the table below, 2049: spent $98K; $48K from brokerage; $55K from 401(k)/IRA; $5K in taxes.
 
 ## 2051 · You start Social Security (age 67) · Spouse starts Social Security (age 67) (You 67 · Spouse 67)
 1. Apply for Social Security up to 4 months before you turn 67.
    (From then on your benefit adds about $22K a year in today’s dollars, so you take that much less from the accounts. It also counts as income, so there is less room under the 10% bracket and the yearly 401(k)/IRA withdrawal shrinks. The amount already assumes only 73% of the full benefit is paid by then, in case Congress does not fix the shortfall in Social Security’s trust fund. If it does, you will get more.)
 2. Apply for Social Security up to 4 months before Spouse turns 67.
    (From then on Spouse’s benefit adds about $22K a year in today’s dollars, so you take that much less from the accounts. It also counts as income, so there is less room under the 10% bracket and the yearly 401(k)/IRA withdrawal shrinks. The amount already assumes only 73% of the full benefit is paid by then, in case Congress does not fix the shortfall in Social Security’s trust fund. If it does, you will get more.)
-> In the typical market of the table below, 2051: spent $98K; $22K from Social Security; $40K from brokerage; $40K from 401(k)/IRA; $3K in taxes.
+> In the typical market of the table below, 2051: spent $98K; $22K from Social Security; $41K from brokerage; $39K from 401(k)/IRA; $4K in taxes.
+
+## 2056 · Last change to the asset mix (You 72 · Spouse 72)
+1. Move every invested account to 30% stocks / 70% bonds this year, the last step of the shift (cash stays cash). From now on, put every invested account back to that mix once a year.
+   (This is where Vanguard’s Target Retirement path ends, 7 years after you turn 65. A target-date fund dated near 2049, the year you turn 65, follows about this path and makes these moves for you; with separate stock and bond funds, you make them yourself. The results assume this mix in every account, every year from now on. This move sells some of what the brokerage account holds; the results already count the capital-gains tax on that sale in this year’s tax bill, so set it aside with the rest of the tax. Inside the 401(k)/IRA, Roth and HSA, moving costs no tax.)
+> In the typical market of the table below, 2056: spent $100K; $43K from Social Security; $22K from brokerage; $38K from 401(k)/IRA; $3K in taxes.
 
 ## 2059 · You turn 75 · Spouse turns 75 (You 75 · Spouse 75)
 1. Take the required minimum withdrawal from your 401(k)/IRA every year before December 31. Spend it first; whatever you don’t need goes into the brokerage account.
    (The IRS now requires it (a “required minimum distribution”, or RMD): about 4% of the balance at first and a slightly bigger share each year, from an IRS table. Your brokerage will tell you the exact figure. Missing it costs a 25% penalty.)
 2. Take the required minimum withdrawal from Spouse’s 401(k)/IRA every year before December 31. Spend it first; whatever you don’t need goes into the brokerage account.
    (The IRS now requires it (a “required minimum distribution”, or RMD): about 4% of the balance at first and a slightly bigger share each year, from an IRS table. Your brokerage will tell you the exact figure. Missing it costs a 25% penalty.)
-> In the typical market of the table below, 2059: spent $101K; $43K from Social Security; $189K from 401(k)/IRA; $189K of that required by the IRS; $91K not needed and reinvested; $40K in taxes.
+> In the typical market of the table below, 2059: spent $101K; $43K from Social Security; $304K from 401(k)/IRA; $304K of that required by the IRS; $172K not needed and reinvested; $74K in taxes.
 "
 `;

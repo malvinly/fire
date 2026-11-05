@@ -16,7 +16,7 @@ makes one fail, recompute the expected value **by hand from the official source*
 comment) — never paste in whatever the engine now outputs. If your hand calculation disagrees with the
 engine, stop and report it: that is a bug, not a data update.
 
-**First, orient yourself.** Read `README.md`, `docs/DEVELOPMENT.md`, `docs/DECISIONS.md` (rows D10–D12, D24, D26, D31, D32, D58, D70, D82),
+**First, orient yourself.** Read `README.md`, `docs/DEVELOPMENT.md`, `docs/DECISIONS.md` (rows D8, D10–D12, D24, D26, D31, D32, D58, D70, D82, D97),
 `scripts/build-market-data.ts`, `src/data/rules.ts`, `src/engine/defaults.ts` and
 `src/engine/assumptions.ts`. Note today's date; call the current year **Y**. Run `npm install` and
 `npm test` to confirm everything passes before you change anything.
@@ -83,20 +83,41 @@ catch-up test hard-codes the 401(k)/IRA/HSA limits)
 **5. Fidelity defaults** (`src/engine/defaults.ts`)
 - Check Fidelity's FI Planner methodology PDF
   (https://www.fidelity.com/bin-public/060_www_fidelity_com/documents/FI_Planner_Methodology.pdf) and
-  retirement guidelines: planning age (96), confidence (90%), asset mix (70/25/5), spending factor
-  (0.85), wage growth (1.5%). Change a default only if Fidelity changed it; note it in the report.
+  retirement guidelines: planning age (96), confidence (90%), asset mix (70/25/5: `FIDELITY_MIX` in
+  `src/data/mixPaths.ts`, the "Fidelity" choice of "Asset mix over time", D97), spending factor (0.85), wage growth
+  (1.5%). Change a default only if Fidelity changed it; note it in the report. If the FI Planner's mix changed,
+  update `FIDELITY_MIX` and bump `DATA_VERSIONS.engine` in `src/engine/assumptions.ts` (results change for the same
+  inputs), and check the `MIX_SOURCES.fidelity` link still resolves.
+- Vanguard's Target Retirement glide path (D97: `VANGUARD_PATH` and `MIX_SOURCES.vanguard` in
+  `src/data/mixPaths.ts`, the default "Asset mix over time"). Find the newest Vanguard Target Retirement Funds
+  prospectus (SEC EDGAR, filer 752177, form 485BPOS) and re-read its glide-path chart and table (today: 90% stocks
+  at 50 and 25 years before the target year, 50% at it, 30% 25 years after), the "within seven years after
+  [target year]" sentence (each fund's mix becomes that of the Target Retirement Income Fund, today 30% stocks)
+  and the dated funds' target allocations (today they sit within about 1.5 points of stocks of the built-in points
+  90% / 60% / 50% / 30% at 25 and 5 years before, at, and 7 years after the target year). If Vanguard changed the
+  path, update `VANGUARD_PATH`, the expected values in `tests/mix.test.ts`, the label and URL in `MIX_SOURCES`, and
+  D97/D98; and because results change for the same inputs, bump `DATA_VERSIONS.engine` and refresh "Reproducing the
+  numbers" in `docs/DEVELOPMENT.md`. Either way, update `MIX_SOURCES.vanguard` to the newest prospectus (its title, date and quotes, which the About
+  tab and the asset-mix choice show; the path figures there are built from `VANGUARD_PATH`), re-check
+  that Vanguard's research still describes the path for retirement at age 65 (`MIX_SOURCES.vanguardResearch`;
+  D98 cites "Choice of equity landing points can benefit target-date investors", May 2025, and "Vanguard's approach
+  to target-date funds"), and confirm every `MIX_SOURCES` link and every link in D97 and D98 still resolves. Then read the About tab's asset-mix section in the app and confirm it
+  says only what the new documents support.
 - Example healthcare costs (D58: `healthcare` in `examplePlan`, and the `preMedicare` / `medicare` texts in
   `src/ui/helpText.ts`). Pre-65: KFF's average benchmark silver premium for a 40-year-old for year Y
   (search "KFF average benchmark premium Y"), scaled by the federal default age curve to ages 55/60/64;
   keep the same method (average from a mid-50s retirement to 65, plus ~$2–3k out-of-pocket) and the ACA
   out-of-pocket limit for Y. From 65: the Part B standard premium (CMS fact sheet), average Part D premium
   and Medigap Plan G at 65. Round to the nearest $500.
-- Common mixes in the "after you retire" help (D96: `RETIRED_MIX_EXAMPLES` in `src/ui/helpText.ts`). From each
-  fund's latest fact sheet (the issuer's own PDF, not an aggregator; `pdftotext -layout` reads it): stocks,
-  bonds and cash shares for each listed fund. Count TIPS and international bonds as bonds, commodities as
+- Common mixes in the "My own mix" stocks help (D97: `COMMON_MIXES` and the note under the list, `HELP.stocksNote`,
+  in `src/ui/helpText.ts`; `tests/helpText.test.ts`).
+  From each fund's latest fact sheet (the issuer's own PDF, not an aggregator; `pdftotext -layout` reads it):
+  stocks, bonds and cash shares for each listed fund. Count TIPS and international bonds as bonds, commodities as
   stocks, short-term and money-market funds as cash; round to whole percents adding to 100. Keep the same
   funds; if one was renamed, update its name, and drop a 2025 fund once it merges into its Income/Retirement
-  fund. Update the fact-sheet dates in the comment above the list and the date range in `retiredMixNote`.
+  fund. Update the fact-sheet dates in the comment above the list and in `HELP.stocksNote`, and re-check
+  the note's statement of how long each family keeps shifting after its target year against the prospectuses
+  (today: Vanguard within 7 years, Fidelity Freedom Index about 15 to 20, BlackRock LifePath Index not at all).
 
 **6. Reference test vs. FI Calc** (`tests/historical.test.ts`)
 - Open https://ficalc.app with its defaults ($1,000,000, $40,000 constant-dollar inflation-adjusted,
@@ -113,13 +134,15 @@ catch-up test hard-codes the 401(k)/IRA/HSA limits)
   (1.1%), the benefit rise it implies for someone now 40 and now 50 (27% / 14%) and the 1985–2024 average
   (0.9%). Re-check the rate against the new Trustees Report, extend the average's end year, and recompute the
   two percentages: (1 + g)^(years until that person turns 60).
-- The About tab and the "How this works" intro read `DATA_VERSIONS`, so they update themselves; confirm
+- The About tab's version line and the "How this works" intro read `DATA_VERSIONS`, so they update themselves
+  (the About tab's asset-mix section does not: it follows `src/data/mixPaths.ts`, step 5); confirm
   them in the browser in step 8.
 - `docs/DECISIONS.md`: D24–D26, D31–D32, D58 and the "Data update history" table.
 - `README.md`: the market-data year range. `docs/DEVELOPMENT.md` (Tests section): the SSA worked example numbers and the FI Calc "121-of-125".
 - `docs/DEVELOPMENT.md` (Reproducing the numbers): rerun the probe there, replace the results table and the
   "Before you act on these numbers" example, and say in a sentence that the change comes from the data
-  update. Don't bump `DATA_VERSIONS.engine`; the data versions already flag old sessions.
+  update. Don't bump `DATA_VERSIONS.engine`; the data versions already flag old sessions. The one exception is a
+  changed `VANGUARD_PATH` or `FIDELITY_MIX` (step 5): no data version covers them.
 - The 4% bond-interest floor and 2% dividend rate (`TAXABLE_YIELDS` in `src/engine/context.ts`, D70, D82) are
   described as close to today's rates. Don't change them; if today's 10-year yield or S&P 500 dividend yield
   has moved far from them, say so in the report.
@@ -140,5 +163,6 @@ catch-up test hard-codes the 401(k)/IRA/HSA limits)
   <year>", update balances, salaries and contributions, then Calculate. Plan files keep their own copy of the
   trust-fund assumption; if the Trustees numbers changed, edit the four trust-fund fields under Assumptions
   in each plan you carry forward ("Reset assumptions to defaults" also works, but resets every other
-  assumption too, such as the asset mix and state tax rate).
+  field under Assumptions (advanced) too, such as the state tax rate; it leaves the Investments section, the
+  asset-mix choice and fund fees, alone, so to take a new mix default pick the choice there).
 - Do not commit unless the user asks you to.

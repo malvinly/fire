@@ -1,7 +1,7 @@
 // Layer 5: common-sense properties on randomized plans.
 import { describe, expect, test } from 'vitest';
 import { LIMITS } from '../src/data/rules';
-import { buildContext } from '../src/engine/context';
+import { buildContext, mixByYear } from '../src/engine/context';
 import { examplePlan } from '../src/engine/defaults';
 import { bootstrapPaths, makeRng } from '../src/engine/returns';
 import { simulatePath } from '../src/engine/simulate';
@@ -33,7 +33,7 @@ function randomPlan(seed: number): Plan {
 function successRate(plan: Plan, retireYear: number, spending: number) {
   const ctx = buildContext(plan, { stopContributingYear: retireYear, retireYear, baseSpending: spending });
   const a = plan.assumptions;
-  const paths = bootstrapPaths(300, ctx.len, a.allocation, a.feeRate, a.blockLength, a.seed);
+  const paths = bootstrapPaths(300, ctx.len, mixByYear(plan), a.feeRate, a.blockLength, a.seed);
   let ok = 0;
   for (let p = 0; p < paths.n; p++) if (simulatePath(ctx, paths, p).success) ok++;
   return ok / paths.n;

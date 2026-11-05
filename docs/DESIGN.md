@@ -12,7 +12,7 @@ assumptions and implementation choices are listed in [DECISIONS.md](DECISIONS.md
 | Engaging Data | Monte Carlo, Social Security, Coast FIRE calculator | No historical backtest |
 | ProjectionLab | Year-by-year cash flow, Monte Carlo + historical, taxes | Weaker Roth-conversion/SS tools; paid |
 | Boldin | Deep tax modeling (Roth conversions, IRMAA), SS & spousal | No historical simulation; 1,000 MC runs |
-| Fidelity FI Planner | 90% confidence ("significantly below average"), 3% SWR, age 96, 70/25/5 | Uses one conservative constant return — ignores sequence risk; excludes Social Security |
+| Fidelity FI Planner | 90% confidence ("underperforming market conditions"; Fidelity's Planning & Guidance Center calls the same level "significantly below average"), 3% SWR, age 96, 70/25/5 | Uses one conservative constant return — ignores sequence risk; excludes Social Security |
 
 Key research points:
 - 4% is a 30-year rule. Early retirees face 50–60 years; ERN's series puts safe rates near 3.25–3.5%.
@@ -27,7 +27,9 @@ Key research points:
    still counts, and the results say how often that happens (D68). Results show Fidelity's three market
    conditions as 50th/25th/10th percentile bands.
 3. **Returns** — block bootstrap (main) + every historical window (cross-check); **stricter of the two**.
-   US data only (D89). Real (today's) dollars throughout.
+   US data only (D89). Real (today's) dollars throughout. Every invested account holds the same asset mix in a
+   given calendar year, rebalanced yearly: by default Vanguard's Target Retirement glide path to the first person's
+   65th year, or Fidelity's fixed 70/25/5, or the household's own two mixes and ages (D8, D97).
 4. **FIRE types** — Traditional (default spending = 0.85 × current), Chubby (a higher spending level; default
    spending = 1.2 × current), both after taking out ongoing dated items already paid today (D18, D57); Coast (stop contributing now, or cut back to
    contributions kept while coasting such as the 401(k) deferral that earns the match (D94); work until a chosen age, default 65; then

@@ -1,9 +1,11 @@
 // Hover/focus help for every input (the "?" next to a label). Written for someone who knows 401(k)/Roth/HSA
 // basics but isn't a finance expert. Keep each entry accurate to how the engine uses the value.
 
+import { FIDELITY_MIX } from '../data/mixPaths';
 import { TRUST_FUND_DEFAULT } from '../data/rules';
 import { DATA_VERSIONS } from '../engine/assumptions';
-import { CHUBBY_SPENDING_FACTOR, DEFAULT_ASSUMPTIONS } from '../engine/defaults';
+import { CHUBBY_SPENDING_FACTOR } from '../engine/defaults';
+import { mixPercents } from '../engine/mix';
 import { MARKET } from '../engine/returns';
 
 const tf = TRUST_FUND_DEFAULT;
@@ -28,7 +30,7 @@ export const HELP = {
     'The part of your Roth balance you put in yourself (not growth). You can take it out anytime without tax or penalty. Add up your Roth IRA contributions over the years (your broker lists them), plus Roth conversions done 5+ years ago. If unsure, enter 0 — the cautious choice.',
   hsaBalance: 'Your current HSA balance. The model pays healthcare costs from the HSA first.',
   taxable:
-    'Regular (non-retirement) investment accounts: brokerage, mutual funds, vested company stock. Invested with the same stock/bond mix as everything else. Its dividends and interest are taxed every year.',
+    'Regular (non-retirement) investment accounts: brokerage, mutual funds, vested company stock. Invested in the same asset mix as the retirement accounts (see Investments). Its dividends and interest are taxed every year.',
   taxableBasis:
     'What you originally paid for those investments; only growth above it is taxed when you sell. Your broker’s positions page shows it as “cost basis” or “total cost”. If unsure: the full balance ignores tax on gains (a bit optimistic); 0 taxes everything (pessimistic).',
   cash: 'Checking, savings, money market and CDs. Earns short-term Treasury rates (not stock returns), taxed every year, and is spent first when you retire.',
@@ -94,12 +96,18 @@ export const HELP = {
   endAge: 'Your money must not run out before the younger of you reaches this age. Fidelity uses 96. Higher is safer and pushes your dates later.',
   targetSuccess:
     'The share of simulated markets in which your money must last. 90% is Fidelity’s standard (it holds up in a “significantly below average” market). Higher is safer but means later dates and bigger numbers.',
-  stocks: 'Share of every invested account held in stocks, US or international, reset to this mix each year (not your cash account), also after you retire unless you switch to a different mix below. International funds such as VXUS are simulated as US stocks. Default 70% (Fidelity).',
-  bonds: 'Share held in 10-year US Treasury bonds; the rest is cash. Default 25%.',
-  retiredMix: 'From the year you retire, every invested account (not your cash account) switches to this mix, reset to it each year; the brokerage account’s tax on the switch is counted. Common mixes, stocks / bonds / cash:',
-  retiredMixNote:
-    'From fact sheets (June–September 2026), rounded; TIPS and international bonds count as bonds, money-market funds as cash. The 2025 funds keep shifting toward their Income/Retirement mix for 7 (Vanguard) or 10–19 (Fidelity) years after 2025; this switch happens once, so use the mix you’d hold for most of retirement.',
-  retiredBonds: 'Share held in 10-year US Treasury bonds after you retire; the rest is cash.',
+  // Investments (D97)
+  mixPlan:
+    'The share of every invested account (not your cash account) in stocks, bonds and cash, year by year, put back to that mix each year.',
+  mixPlanNote:
+    'Whichever you choose, stocks are simulated as US stocks and bonds as 10-year US Treasuries, whatever a real fund holds (international funds included). Vanguard’s path is tied to the year the first person under People turns 65, not your retirement date: it is designed around retiring at 65, and an earlier date would make it conservative sooner. Vanguard sells these funds in five-year steps; the one nearest the year you turn 65 is the closest match. The plan assumes your accounts hold this year’s mix today. In a later year the mix changes, the brokerage account sells part of itself and that tax is counted; retirement accounts and the HSA shift tax-free.',
+  stocks:
+    'Your own mix: the share of every invested account (not your cash account) held in stocks, US or international; international funds such as VXUS are simulated as US stocks. “At first” is held before the start age and “later” from the finish age on, with equal yearly steps in between. Common mixes, stocks / bonds / cash:',
+  stocksNote:
+    'Rounded, from the issuers’ documents of September 30, 2026; TIPS and international bonds count as bonds, money-market funds as cash. Each target-date fund here is a single point on a path that keeps moving: Vanguard’s funds reach their Income fund’s mix within 7 years after the target year, Fidelity’s Freedom Index funds keep shifting for about 15 to 20 years after it, and BlackRock’s LifePath Index funds stop moving at the target year.',
+  bonds: 'Share held in 10-year US Treasury bonds; the rest is cash.',
+  shiftStart: 'The first person’s age in the first year of the move from the “at first” mix toward the “later” one. Enter the same age in both boxes for one switch in that year.',
+  shiftEnd: 'The first person’s age in the year the “later” mix is reached. The move is made in equal steps, one in each year from the start age to this one.',
   fees: 'Average yearly fund cost plus any advisor fee. Each fund’s page lists its “expense ratio”; broad index funds are about 0.03–0.2%. Default 0.10%.',
   wageGrowth: 'How much faster than inflation your salary and contributions grow each year until you retire. Default 1.5% (Fidelity).',
   healthcareInflation: 'How much faster than general prices healthcare costs rise each year. Default 1.5%.',
@@ -119,19 +127,27 @@ export const HELP = {
 } as const;
 
 /**
- * Common mixes listed in the "after you retire" help (D96), as whole-percent stocks / bonds / cash. Target-date funds
- * are from the issuers' fact sheets (Fidelity and Vanguard September 30, 2026; BlackRock June 30, 2026; the range is
- * repeated in `retiredMixNote`): TIPS and international bonds counted as bonds, Fidelity's 2% commodities as stocks,
- * short-term funds as cash. Refresh with the yearly data update.
+ * Common mixes listed in the own-mix help (D97), as whole-percent stocks / bonds / cash. Target-date funds are from
+ * the issuers' documents (Vanguard and Fidelity fact sheets of September 30, 2026; BlackRock's product page as of
+ * September 30, 2026; Fidelity's prospectus of May 30, 2026 for how long its funds keep shifting, repeated in
+ * `stocksNote`): TIPS and international bonds counted as bonds, Fidelity's 2% commodities as stocks, short-term funds
+ * as cash. Refresh with the yearly data update.
  */
-export const RETIRED_MIX_EXAMPLES: { name: string; mix: [number, number, number] }[] = [
-  { name: 'This app’s default (Fidelity)', mix: [DEFAULT_ASSUMPTIONS.allocation.stocks, DEFAULT_ASSUMPTIONS.allocation.bonds, DEFAULT_ASSUMPTIONS.allocation.cash].map((x) => Math.round(x * 100)) as [number, number, number] },
+export const COMMON_MIXES: { name: string; mix: [number, number, number] }[] = [
+  { name: 'Fidelity’s FI Planner mix', mix: mixPercents(FIDELITY_MIX) },
   { name: 'Classic balanced fund', mix: [60, 40, 0] },
   { name: 'Fidelity Freedom Index 2025', mix: [50, 49, 1] },
   { name: 'Vanguard Target Retirement 2025', mix: [48, 52, 0] },
   { name: 'BlackRock LifePath Index Retirement', mix: [38, 59, 3] },
   { name: 'Vanguard Target Retirement Income', mix: [32, 68, 0] },
   { name: 'Fidelity Freedom Index Retirement', mix: [30, 64, 6] },
+];
+
+/** The three choices for "Asset mix over time", one line each, for the dropdown's help (D97). */
+export const MIX_CHOICES_HELP = [
+  'Vanguard Target Retirement path (the default): moves from mostly stocks to mostly bonds around 65, like Vanguard’s target-date funds.',
+  'Fidelity’s fixed mix: the same mix every year.',
+  'My own mix: a mix at first, a mix later, and the ages to move between them.',
 ];
 
 /** Shared explanation of the two ways results are tested. */
