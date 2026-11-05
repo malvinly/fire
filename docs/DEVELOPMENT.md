@@ -6,7 +6,8 @@ Everything needed to change, test or maintain the FIRE Planner. For using it, se
 ## Setup
 
 Requires Node 22.18+ (Vite and Vitest need 22.12+, and `npm run data:build` runs the `.ts` script directly,
-which Node does without flags from 22.18; Vitest doesn't support 23 or 25). Developed on Node 24.
+which Node does without flags from 22.18; Vitest doesn't support 23 or 25). Developed on Node 24, which the
+publish workflow also runs, so local checks and the workflow agree; Node 22 is not tested by the workflow.
 
 ```bash
 npm install

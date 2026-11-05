@@ -23,7 +23,9 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 22
+          # The version the project is developed and checked on (docs/DEVELOPMENT.md), so local checks and this
+          # workflow agree. Node 22 and 24 round Math.pow differently in the last bit, which once failed a test here.
+          node-version: 24
           cache: npm
       - run: npm ci
       - run: npm test

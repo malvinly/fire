@@ -461,7 +461,7 @@ describe('results before D97 are kept exactly (characterization)', () => {
     const d = detailFor(makeEngine(p), 'traditional', 2049);
     const sum = (x: number[]) => x.reduce((s, v) => s + v, 0);
     // Numbers are compared to 12 significant digits, not bit for bit: the constants were recorded on Node 24, and
-    // Node 22 (which the publish workflow runs) rounds Math.pow differently in the last bit for a few of these values.
+    // Node 22 (also supported, DEVELOPMENT.md) rounds Math.pow differently in the last bit for a few of these values.
     // Everything that is not a number, and every key, must match exactly.
     sameTo12Digits({
       success: d.success, penaltyRate: d.penaltyRate, failures: d.failures,
