@@ -142,8 +142,9 @@ Layered so each kind of mistake has a test that can catch it:
    your own mix's yearly steps, the share each shift sells, and whole percents that add up to 100 (D97).
 7. **Headline numbers** (`tests/solve.test.ts`) — the FIRE number, earliest date and Coast number pass at
    the value shown and fail just below it; stricter-of-two; percentile bands; worst-years ordering; results
-   from before D97 kept exactly for fixed mixes, and for D96's switch when the retirement year is the year the
-   first person turns 65 (characterization); on Vanguard's path, the earliest year by bisection (checked
+   from before D97 kept exactly for fixed mixes, and to 12 significant digits for D96's switch when the retirement
+   year is the year the first person turns 65 (characterization; that one is not bit for bit because Node 22 and
+   24 round `Math.pow` differently in the last bit); on Vanguard's path, the earliest year by bisection (checked
    against an exhaustive scan on own-mix plans), success never falling with a later year, and the FIRE
    number's projection and retirement-only test in each year's mix (D97).
 8. **Properties** (`tests/properties.test.ts`) — more spending never helps, more savings never delays FIRE.

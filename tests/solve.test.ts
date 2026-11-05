@@ -460,13 +460,29 @@ describe('results before D97 are kept exactly (characterization)', () => {
     });
     const d = detailFor(makeEngine(p), 'traditional', 2049);
     const sum = (x: number[]) => x.reduce((s, v) => s + v, 0);
-    expect({
+    // Numbers are compared to 12 significant digits, not bit for bit: the constants were recorded on Node 24, and
+    // Node 22 (which the publish workflow runs) rounds Math.pow differently in the last bit for a few of these values.
+    // Everything that is not a number, and every key, must match exactly.
+    sameTo12Digits({
       success: d.success, penaltyRate: d.penaltyRate, failures: d.failures,
       bandsLast: { p50: d.bands.p50.at(-1), p25: d.bands.p25.at(-1), p10: d.bands.p10.at(-1) },
       bandsSum: { p50: sum(d.bands.p50), p25: sum(d.bands.p25), p10: sum(d.bands.p10) },
       medianLast: d.medianPath.at(-1), p10Last: d.p10Path.at(-1),
-    }).toEqual(CHAR_SWITCH_AT_65);
+    }, CHAR_SWITCH_AT_65);
   });
+
+  function sameTo12Digits(actual: unknown, expected: unknown, path = 'result'): void {
+    if (typeof expected === 'number') {
+      expect(typeof actual, path).toBe('number');
+      expect(Math.abs((actual as number) - expected), path).toBeLessThanOrEqual(1e-12 * Math.max(1, Math.abs(expected)));
+    } else if (expected !== null && typeof expected === 'object') {
+      expect(actual !== null && typeof actual === 'object', path).toBe(true);
+      expect(Object.keys(actual as object).sort(), path).toEqual(Object.keys(expected).sort());
+      for (const [key, value] of Object.entries(expected)) sameTo12Digits((actual as Record<string, unknown>)[key], value, `${path}.${key}`);
+    } else {
+      expect(actual, path).toBe(expected);
+    }
+  }
 });
 
 describe('Vanguard’s path, the default (D97)', () => {
