@@ -20,8 +20,8 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
         with:
           # The version the project is developed and checked on (docs/DEVELOPMENT.md), so local checks and this
           # workflow agree. Node 22 and 24 round Math.pow differently in the last bit, which once failed a test here.
@@ -32,7 +32,7 @@ jobs:
       - run: npm run build
       # The launcher scripts are for the local copy (README → Run it yourself), not the site.
       - run: rm -f "dist/Start FIRE Planner.cmd" dist/serve.ps1
-      - uses: actions/upload-pages-artifact@v3
+      - uses: actions/upload-pages-artifact@v5
         with:
           path: dist
 
@@ -44,4 +44,4 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v5
