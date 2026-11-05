@@ -1,4 +1,4 @@
-import { useId, useRef, useState, type ReactNode } from 'react';
+import { useId, useLayoutEffect, useRef, useState, type ReactNode } from 'react';
 import { fieldBlock, moneyText, parseFieldText, parseYearText, yearTextFor } from './format';
 import { Icon, type IconName } from './icons';
 
@@ -9,14 +9,26 @@ import { Icon, type IconName } from './icons';
 export function Help({ text, children }: { text: ReactNode; children: ReactNode }) {
   const id = useId();
   const anchor = useRef<HTMLSpanElement>(null);
-  const [pos, setPos] = useState<{ left: number; top: number } | null>(null);
+  const [pos, setPos] = useState<{ left: number; top: number; labelTop: number } | null>(null);
   const show = () => {
     const r = anchor.current?.getBoundingClientRect();
     if (!r) return;
     const width = 300;
-    setPos({ left: Math.max(8, Math.min(r.left, window.innerWidth - width - 8)), top: r.bottom + 6 });
+    setPos({ left: Math.max(8, Math.min(r.left, window.innerWidth - width - 8)), top: r.bottom + 6, labelTop: r.top });
   };
   const hide = () => setPos(null);
+  // The tip's height is known only once it is shown, so its top is set here, before paint, and nowhere else: below the
+  // label if it fits, else above it, else as low as keeps it whole on screen (it may then cover the label). Tall tips
+  // such as the list of mixes after retiring (D96) need it.
+  const tip = useRef<HTMLSpanElement>(null);
+  useLayoutEffect(() => {
+    const el = tip.current;
+    if (!pos || !el) return;
+    const h = el.getBoundingClientRect().height;
+    const room = window.innerHeight - 8;
+    const top = pos.top + h <= room ? pos.top : pos.labelTop - h - 6 >= 8 ? pos.labelTop - h - 6 : Math.max(8, room - h);
+    el.style.top = `${top}px`;
+  }, [pos]);
   return (
     <span ref={anchor} className="help" onMouseEnter={show} onMouseLeave={hide} onFocus={show} onBlur={hide}>
       {children}
@@ -24,7 +36,7 @@ export function Help({ text, children }: { text: ReactNode; children: ReactNode 
         onClick={(e) => { e.preventDefault(); e.stopPropagation(); if (pos) hide(); else show(); }}>
         ?
       </button>
-      <span role="tooltip" id={id} className="help-tip" hidden={!pos} style={pos ?? undefined}>
+      <span ref={tip} role="tooltip" id={id} className="help-tip" hidden={!pos} style={pos ? { left: pos.left } : undefined}>
         {text}
       </span>
     </span>

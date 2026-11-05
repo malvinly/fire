@@ -1,6 +1,6 @@
 // Turns the simulator into answers: success rates, earliest retirement dates, FIRE numbers (D3, D5).
 
-import { bondInterestRate, buildContext, planYears, type Context } from './context';
+import { bondInterestRate, buildContext, mixSwitchShare, planYears, type Context } from './context';
 import { bootstrapPaths, constantPath, firstPaths, historicalPaths, MARKET, type ReturnPaths } from './returns';
 import { initialState, scaleState, simulatePath, totalBalance, type Mix, type State } from './simulate';
 import type { Plan, Scenario, YearRecord } from './types';
@@ -86,12 +86,12 @@ export interface Engine {
 export function makeEngine(plan: Plan): Engine {
   const a = plan.assumptions;
   const { startYear, endYear, len } = planYears(plan);
-  const boot = bootstrapPaths(a.paths, len, a.allocation, a.feeRate, a.blockLength, a.seed);
+  const boot = bootstrapPaths(a.paths, len, a.allocation, a.feeRate, a.blockLength, a.seed, undefined, a.retiredAllocation);
   return {
     plan,
     boot,
     search: firstPaths(boot, a.searchPaths),
-    hist: historicalPaths(len, a.allocation, a.feeRate),
+    hist: historicalPaths(len, a.allocation, a.feeRate, undefined, a.retiredAllocation),
     startYear,
     endYear,
     len,
@@ -155,7 +155,7 @@ function successRate(ctx: Context, paths: ReturnPaths, opts: RunOpts, shift = 0)
 function histFor(e: Engine, startIdx: number, retirementOnly: boolean): { paths: ReturnPaths; shift: number } {
   if (!retirementOnly || startIdx === 0) return { paths: e.hist, shift: 0 };
   const a = e.plan.assumptions;
-  return { paths: historicalPaths(e.len - startIdx, a.allocation, a.feeRate), shift: startIdx };
+  return { paths: historicalPaths(e.len - startIdx, a.allocation, a.feeRate, undefined, a.retiredAllocation), shift: startIdx };
 }
 
 export function evaluate(e: Engine, ctx: Context, opts: RunOpts = {}, full = false): Success {
@@ -190,17 +190,27 @@ function passes(s: Success, target: number): boolean {
   return s.combined >= target - 1e-9;
 }
 
-/** Smallest year in [lo, hi] whose scenario passes, searching on the path subset then confirming on all paths. */
+/**
+ * Smallest year in [lo, hi] whose scenario passes on the path subset, then the first year from there that also passes
+ * on all paths. Bisection assumes a later year never does worse, which holds while every year earns the same mix. With
+ * a mix after retiring (D96) it doesn't: an extra working year earns the working mix, so a crash that year can leave
+ * less than retiring into the other mix would. Traditional and Chubby then check every year from `lo`; Coast's search
+ * moves only the stop-saving year, so its switch year (the Coast age) stays put and bisection still holds.
+ */
 function earliestYear(e: Engine, tier: Tier, lo: number, hi: number): number | null {
   const target = e.plan.assumptions.targetSuccess;
   const ok = (y: number, full: boolean) => passes(evaluate(e, buildContext(e.plan, scenarioFor(e.plan, tier, y)), {}, full), target);
   if (!ok(hi, false)) return null;
   let a = lo;
   let b = hi;
-  while (a < b) {
-    const mid = Math.floor((a + b) / 2);
-    if (ok(mid, false)) b = mid;
-    else a = mid + 1;
+  if (tier !== 'coast' && mixSwitchShare(e.plan.assumptions) > 0) {
+    while (!ok(a, false)) a++; // stops by hi, which passed above
+  } else {
+    while (a < b) {
+      const mid = Math.floor((a + b) / 2);
+      if (ok(mid, false)) b = mid;
+      else a = mid + 1;
+    }
   }
   // Confirm on the full path set; move later if the subset was optimistic.
   for (let y = a; y <= hi; y++) if (ok(y, true)) return y;
@@ -223,7 +233,8 @@ export function averageBondInterestRate(): number {
 /**
  * Deterministic projection of balances to the start of `idx` using long-run average real returns and average
  * inflation (which shrinks cost basis and Roth principal in today's dollars, D63), with bond interest taxed at the
- * average rate the markets pay (D82).
+ * average rate the markets pay (D82). Callers project only up to the retirement year, so every projected year holds
+ * the working mix (D96).
  */
 export function projectState(ctx: Context, idx: number): State {
   const a = ctx.plan.assumptions;

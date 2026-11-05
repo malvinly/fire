@@ -3,7 +3,7 @@
 import { describe, expect, test } from 'vitest';
 import { buildContext } from '../src/engine/context';
 import { examplePlan } from '../src/engine/defaults';
-import { constantPath, historicalPaths, MARKET, type ReturnPaths } from '../src/engine/returns';
+import { bootstrapPaths, constantPath, historicalPaths, MARKET, type ReturnPaths } from '../src/engine/returns';
 import { initialState, scaleState, simulatePath } from '../src/engine/simulate';
 import {
   averageInflation, averageRealReturns, contributionMix, detailFor, evaluate, makeEngine, projectState, scenarioFor, solveTier,
@@ -416,5 +416,80 @@ describe('age-gap couples (D43)', () => {
     expect(a.earliest).not.toBeNull();
     expect(a.earliest!.year).toBe(b.earliest!.year);
     expect(a.searchLimit).toBe(2026 - 58 + 75); // the younger spouse's age 75
+  });
+});
+
+describe('asset mix after you retire (D96)', () => {
+  const withMix = (mix: Plan['assumptions']['retiredAllocation']) => {
+    const p = smallPlan();
+    p.assumptions.retiredAllocation = mix;
+    return makeEngine(p);
+  };
+
+  test('entering the working mix again changes nothing', () => {
+    const same = withMix({ ...plan.assumptions.allocation });
+    expect(solveTier(same, 'traditional')).toEqual(trad);
+    expect(solveTier(same, 'coast')).toEqual(coast);
+    const y = trad.earliest!.year;
+    expect(detailFor(same, 'traditional', y).bands).toEqual(detailFor(engine, 'traditional', y).bands);
+  });
+
+  test('a different mix leaves the working years alone and changes the retired years and the FIRE number', () => {
+    const y = trad.earliest!.year;
+    const idx = y - plan.startYear;
+    const safer = withMix({ stocks: 0.3, bonds: 0.6, cash: 0.1 });
+    const a = detailFor(engine, 'traditional', y).bands.p50;
+    const b = detailFor(safer, 'traditional', y).bands.p50;
+    expect(b.slice(0, idx)).toEqual(a.slice(0, idx));
+    expect(b[idx]).not.toBe(a[idx]);
+    // The FIRE number's retirement-only test runs entirely in the mix after retiring.
+    const ctx = buildContext(plan, scenarioFor(plan, 'traditional', y));
+    const start = scaleState(projectState(ctx, idx), trad.fireNumber!);
+    const opts = { startIdx: idx, startState: start, retirementOnly: true };
+    const saferCtx = buildContext(safer.plan, scenarioFor(safer.plan, 'traditional', y));
+    expect(evaluate(safer, saferCtx, opts, true).combined).not.toBe(evaluate(engine, ctx, opts, true).combined);
+    expect(solveTier(safer, 'traditional').fireNumber).not.toBe(trad.fireNumber);
+  });
+});
+
+describe('asset mix after you retire: engine wiring and the earliest-date search (D96, review)', () => {
+  const R = { stocks: 0.3, bonds: 0.6, cash: 0.1 };
+  const planWith = (retired: Plan['assumptions']['retiredAllocation'], allocation = plan.assumptions.allocation) => {
+    const p = smallPlan();
+    p.assumptions.allocation = { ...allocation };
+    p.assumptions.retiredAllocation = retired;
+    return p;
+  };
+  const switched = makeEngine(planWith(R));
+
+  test('both the simulated and the real past markets carry the mix after retiring', () => {
+    const a = plan.assumptions;
+    expect(Array.from(switched.boot.portfolioRetired)).toEqual(Array.from(bootstrapPaths(a.paths, switched.len, R, a.feeRate, a.blockLength, a.seed).portfolio));
+    expect(Array.from(switched.hist.portfolioRetired)).toEqual(Array.from(historicalPaths(switched.len, R, a.feeRate).portfolio));
+  });
+
+  test('the FIRE number’s retirement-only test runs every retired year in the mix after retiring, in both kinds of market', () => {
+    // From the same balances (no brokerage gain, so the switch costs no tax), a plan that switches to R at retirement
+    // must score exactly like a plan that holds R throughout.
+    const y = trad.earliest!.year;
+    const holdsR = makeEngine(planWith(null, R));
+    const ctxSwitch = buildContext(switched.plan, scenarioFor(switched.plan, 'traditional', y));
+    const ctxR = buildContext(holdsR.plan, scenarioFor(holdsR.plan, 'traditional', y));
+    const start = scaleState(projectState(ctxSwitch, ctxSwitch.retireIdx), 2_500_000);
+    start.taxableBasis = start.taxable;
+    const opts = { startIdx: ctxSwitch.retireIdx, startState: start, retirementOnly: true };
+    const a = evaluate(switched, ctxSwitch, opts, true);
+    const b = evaluate(holdsR, ctxR, opts, true);
+    expect(a.historical).not.toBeNull();
+    expect(a.bootstrap).toBe(b.bootstrap);
+    expect(a.historical).toBe(b.historical);
+  });
+
+  test('with a mix after retiring, the earliest year is the first year that passes (every earlier year checked)', () => {
+    const t = solveTier(switched, 'traditional');
+    const y = t.earliest!.year;
+    const rate = (year: number) => evaluate(switched, buildContext(switched.plan, scenarioFor(switched.plan, 'traditional', year)), {}, true).combined;
+    expect(rate(y)).toBeGreaterThanOrEqual(target - 1e-9);
+    for (let year = plan.startYear; year < y; year++) expect(rate(year)).toBeLessThan(target - 1e-9);
   });
 });

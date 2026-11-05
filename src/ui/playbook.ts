@@ -3,7 +3,7 @@
 // data so it can be tested; `PlaybookPanel` in Results.tsx draws it as a timeline.
 
 import { FEDERAL, RULES_YEAR, rmdStartAge } from '../data/rules';
-import { timingYear } from '../engine/context';
+import { mixSwitchShare, timingYear } from '../engine/context';
 import { RUN_OUT_SHORTFALL } from '../engine/simulate';
 import { ownClaimFactor, payableShare, spousalClaimFactor } from '../engine/socialSecurity';
 import type { Detail } from '../engine/solve';
@@ -262,11 +262,18 @@ export function buildPlaybook(plan: Plan, detail: Detail): Playbook {
     action: 'Set aside the tax on what you take out, and pay it with your return in April or in four estimated payments during the year.',
     why: 'The money you take out has to cover the tax on it too; the plan’s withdrawals include it.',
   });
-  const alloc = a.allocation;
-  steps.push({
-    action: `Once a year, put every invested account back to ${pct(alloc.stocks)} stocks / ${pct(alloc.bonds)} bonds / ${pct(alloc.cash)} cash (cash stays cash).`,
-    why: 'The results assume this mix in every account, every year. Drifting toward more stocks raises the risk in a bad market; toward less lowers growth.',
-  });
+  const switching = a.retiredAllocation !== null && mixSwitchShare(a) > 0; // D96
+  const alloc = switching ? a.retiredAllocation! : a.allocation;
+  const mix = `${pct(alloc.stocks)} stocks / ${pct(alloc.bonds)} bonds / ${pct(alloc.cash)} cash`;
+  steps.push(switching
+    ? {
+        action: `Move every invested account to ${mix} (cash stays cash), and once a year put it back to that mix.`,
+        why: `The results assume you switch to this mix the year you retire and keep it every year after${has.taxable ? ', and they include the capital-gains tax on what the switch sells in the brokerage account' : ''}. Drifting toward more stocks raises the risk in a bad market; toward less lowers growth.`,
+      }
+    : {
+        action: `Once a year, put every invested account back to ${mix} (cash stays cash).`,
+        why: 'The results assume this mix in every account, every year. Drifting toward more stocks raises the risk in a bad market; toward less lowers growth.',
+      });
   steps.push({
     action: 'Once a year, enter your real balances here and recalculate.',
     why: 'Markets will not follow any single simulated path. If the chance your money lasts falls, spending is the lever to adjust early.',

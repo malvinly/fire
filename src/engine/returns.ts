@@ -16,14 +16,21 @@ export const MARKET: { firstYear: number; lastYear: number; generated: string; y
 export interface ReturnPaths {
   n: number;
   len: number;
-  /** Portfolio real return after fees for the chosen allocation. */
+  /** Portfolio real return after fees for the mix while working. */
   portfolio: Float64Array;
+  /**
+   * The same years' portfolio return for the mix after retiring (D96). With no such mix it is the very same array as
+   * `portfolio`, so the default costs no memory; with one it is a separate array. Code that writes returns in place
+   * or swaps in a new `portfolio` must therefore set both (tests that write `portfolio` alone rely on the default).
+   */
+  portfolioRetired: Float64Array;
   /** Real return on the cash account. */
   cash: Float64Array;
   inflation: Float64Array;
   /**
    * Nominal 10-year Treasury yield at the start of each year (D82). Single precision: it only sets the taxed bond
    * interest, and a fourth double-precision array would add a third to each worker's memory at 50,000 markets (D60).
+   * A mix after retiring does add one (`portfolioRetired`, D96): its returns compound, so they keep full precision.
    */
   bondYield: Float32Array;
   /** For historical paths, the calendar year each path starts in. */
@@ -68,18 +75,23 @@ export function makeRng(seed: number): () => number {
   };
 }
 
-function alloc(n: number, len: number): Omit<ReturnPaths, 'startYears'> {
+function alloc(n: number, len: number, separateRetired: boolean): Omit<ReturnPaths, 'startYears'> {
+  const portfolio = new Float64Array(n * len);
   return {
     n,
     len,
-    portfolio: new Float64Array(n * len),
+    portfolio,
+    portfolioRetired: separateRetired ? new Float64Array(n * len) : portfolio,
     cash: new Float64Array(n * len),
     inflation: new Float64Array(n * len),
     bondYield: new Float32Array(n * len),
   };
 }
 
-/** Circular block bootstrap of real history (D4). */
+/**
+ * Circular block bootstrap of real history (D4). With `retiredAllocation`, each simulated year also carries that
+ * same historical year's return for the mix after retiring (D96).
+ */
 export function bootstrapPaths(
   n: number,
   len: number,
@@ -88,11 +100,13 @@ export function bootstrapPaths(
   blockLength: number,
   seed: number,
   years?: MarketYear[],
+  retiredAllocation: Allocation | null = null,
 ): ReturnPaths {
   const hist = realYears(allocation, feeRate, years);
+  const retired = retiredAllocation ? realYears(retiredAllocation, feeRate, years) : null;
   const N = hist.length;
   const rng = makeRng(seed);
-  const out = alloc(n, len);
+  const out = alloc(n, len, retired !== null);
   for (let p = 0; p < n; p++) {
     let src = 0;
     for (let t = 0; t < len; t++) {
@@ -101,6 +115,7 @@ export function bootstrapPaths(
       const h = hist[src];
       const i = p * len + t;
       out.portfolio[i] = h.portfolio;
+      if (retired) out.portfolioRetired[i] = retired[src].portfolio;
       out.cash[i] = h.cash;
       out.inflation[i] = h.inflation;
       out.bondYield[i] = h.bondYield;
@@ -109,17 +124,28 @@ export function bootstrapPaths(
   return out;
 }
 
-/** Every complete historical window of `len` years (D3). Empty if history is shorter than `len`. */
-export function historicalPaths(len: number, allocation: Allocation, feeRate: number, years?: MarketYear[]): ReturnPaths {
+/**
+ * Every complete historical window of `len` years (D3). Empty if history is shorter than `len`. With
+ * `retiredAllocation`, each year also carries its return for the mix after retiring (D96).
+ */
+export function historicalPaths(
+  len: number,
+  allocation: Allocation,
+  feeRate: number,
+  years?: MarketYear[],
+  retiredAllocation: Allocation | null = null,
+): ReturnPaths {
   const src = years ?? MARKET.years;
   const hist = realYears(allocation, feeRate, src);
+  const retired = retiredAllocation ? realYears(retiredAllocation, feeRate, src) : null;
   const n = Math.max(0, hist.length - len + 1);
-  const out = alloc(n, len);
+  const out = alloc(n, len, retired !== null);
   for (let p = 0; p < n; p++) {
     for (let t = 0; t < len; t++) {
       const h = hist[p + t];
       const i = p * len + t;
       out.portfolio[i] = h.portfolio;
+      if (retired) out.portfolioRetired[i] = retired[p + t].portfolio;
       out.cash[i] = h.cash;
       out.inflation[i] = h.inflation;
       out.bondYield[i] = h.bondYield;
@@ -130,10 +156,11 @@ export function historicalPaths(len: number, allocation: Allocation, feeRate: nu
 
 /**
  * A single path with the same real return every year — for tests and the deterministic sanity check. A `bondYield`
- * below the 4% floor (the default 0) taxes bond interest at the floor (D82).
+ * below the 4% floor (the default 0) taxes bond interest at the floor (D82). The mix after retiring earns the same
+ * return.
  */
 export function constantPath(len: number, portfolio: number, cash = portfolio, inflation = 0, bondYield = 0): ReturnPaths {
-  const out = alloc(1, len);
+  const out = alloc(1, len, false);
   out.portfolio.fill(portfolio);
   out.cash.fill(cash);
   out.inflation.fill(inflation);
@@ -145,10 +172,12 @@ export function constantPath(len: number, portfolio: number, cash = portfolio, i
 export function firstPaths(paths: ReturnPaths, n: number): ReturnPaths {
   if (n >= paths.n) return paths;
   const k = n * paths.len;
+  const portfolio = paths.portfolio.subarray(0, k);
   return {
     n,
     len: paths.len,
-    portfolio: paths.portfolio.subarray(0, k),
+    portfolio,
+    portfolioRetired: paths.portfolioRetired === paths.portfolio ? portfolio : paths.portfolioRetired.subarray(0, k),
     cash: paths.cash.subarray(0, k),
     inflation: paths.inflation.subarray(0, k),
     bondYield: paths.bondYield.subarray(0, k),

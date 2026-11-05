@@ -6,6 +6,7 @@ export const DEFAULT_ASSUMPTIONS: Assumptions = {
   endAge: 96, // Fidelity planning age
   targetSuccess: 0.9, // Fidelity "significantly below average market"
   allocation: { stocks: 0.7, bonds: 0.25, cash: 0.05 }, // Fidelity FI Planner mix
+  retiredAllocation: null, // the same mix after retiring (D96)
   feeRate: 0.001,
   wageGrowth: 0.015, // Fidelity real wage growth
   healthcareInflation: 0.015,

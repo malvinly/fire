@@ -198,11 +198,14 @@ export function fieldProblems(raw: unknown): string[] {
     const at = 'assumptions.';
     c.num(a, 'endAge', at, { int: true, ...L.endAge });
     c.num(a, 'targetSuccess', at, L.targetSuccess);
-    const alloc = c.obj(a, 'allocation', at);
-    if (alloc) {
-      const parts = ['stocks', 'bonds', 'cash'].map((k) => c.num(alloc, k, `${at}allocation.`, rate) ?? 0);
-      if (Math.abs(parts[0] + parts[1] + parts[2] - 1) > 1e-6) c.problems.push(`${at}allocation must add up to 100%.`);
-    }
+    const mix = (key: string) => {
+      const alloc = c.obj(a, key, at);
+      if (!alloc) return;
+      const parts = ['stocks', 'bonds', 'cash'].map((k) => c.num(alloc, k, `${at}${key}.`, rate) ?? 0);
+      if (Math.abs(parts[0] + parts[1] + parts[2] - 1) > 1e-6) c.problems.push(`${at}${key} must add up to 100%.`);
+    };
+    mix('allocation');
+    if (a.retiredAllocation !== null) mix('retiredAllocation'); // null = the same mix after retiring (D96)
     c.num(a, 'feeRate', at, rate);
     c.num(a, 'wageGrowth', at, L.growth);
     c.num(a, 'healthcareInflation', at, L.growth);

@@ -43,6 +43,8 @@ export function describeAssumptions(plan: Plan): AssumptionRow[] {
   const tf = a.ssTrustFund;
   const alloc = a.allocation;
   const allocSame = alloc.stocks === d.allocation.stocks && alloc.bonds === d.allocation.bonds && alloc.cash === d.allocation.cash;
+  const retired = a.retiredAllocation;
+  const mixText = (m: typeof alloc) => `${pct(m.stocks, 0)} stocks / ${pct(m.bonds, 0)} bonds / ${pct(m.cash, 0)} cash`;
   const tfSame = JSON.stringify(tf) === JSON.stringify(d.ssTrustFund);
 
   return [
@@ -61,8 +63,10 @@ export function describeAssumptions(plan: Plan): AssumptionRow[] {
       why: 'Any number; the same number always gives the same results.', decision: 'D4' },
 
     // Markets
-    { group: 'Markets', label: 'Asset mix', value: `${pct(alloc.stocks, 0)} stocks / ${pct(alloc.bonds, 0)} bonds / ${pct(alloc.cash, 0)} cash, reset to this mix each year`, status: st(allocSame),
+    { group: 'Markets', label: 'Asset mix', value: `${mixText(alloc)}, reset to this mix each year${retired ? ' until you retire' : ''}`, status: st(allocSame),
       why: "Fidelity's FI Planner mix. Applies to every invested account.", source: fid, decision: 'D8' },
+    { group: 'Markets', label: 'Asset mix after you retire', value: retired ? `${mixText(retired)}, from the retirement year on` : 'The same mix', status: st(retired === null),
+      why: 'From the year you retire, every invested account moves to this mix and is reset to it each year. The brokerage account pays capital-gains tax that year on what the move sells; retirement accounts move tax-free.', decision: 'D96' },
     { group: 'Markets', label: 'Fund fees', value: pct(a.feeRate, 2), status: st(a.feeRate === d.feeRate),
       why: 'Subtracted from returns every year.', decision: 'D8' },
     { group: 'Markets', label: 'Historical data', value: `${MARKET.firstYear}–${MARKET.lastYear}, January to January`, status: 'fixed',

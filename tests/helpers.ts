@@ -51,5 +51,6 @@ export function ctxFor(plan: Plan, scenario: Scenario = retiredNow(plan)) {
  */
 export function noYields(ctx: Context): Context {
   ctx.incomeMix = { stocks: 0, bonds: 0, cash: 0 };
+  ctx.incomeMixRetired = { stocks: 0, bonds: 0, cash: 0 };
   return ctx;
 }

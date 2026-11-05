@@ -84,6 +84,8 @@ export interface Assumptions {
   endAge: number;
   targetSuccess: number; // 0-1
   allocation: { stocks: number; bonds: number; cash: number }; // fractions summing to 1
+  /** The mix every invested account switches to in the retirement year (D96); null = keep `allocation`. */
+  retiredAllocation: { stocks: number; bonds: number; cash: number } | null;
   feeRate: number;
   wageGrowth: number; // real
   healthcareInflation: number; // real, above CPI

@@ -29,6 +29,16 @@ describe('older plan files', () => {
     expect(s.plan.you.coastContributions).toEqual({ pretax: 0, employerMatch: 0, roth: 0, hsa: 0 });
     expect(s.plan.spouse.coastContributions).toEqual({ pretax: 0, employerMatch: 0, roth: 0, hsa: 0 });
   });
+
+  test('a file saved before the mix after retiring existed keeps one mix throughout (D96)', () => {
+    const s = parseSession(sessionText((plan) => { delete (plan.assumptions as Record<string, unknown>).retiredAllocation; }));
+    expect(s.plan.assumptions.retiredAllocation).toBeNull();
+  });
+
+  test('a mix after retiring is saved and loaded as entered (D96)', () => {
+    const s = parseSession(sessionText((plan) => { (plan.assumptions as Record<string, unknown>).retiredAllocation = { stocks: 0.4, bonds: 0.5, cash: 0.1 }; }));
+    expect(s.plan.assumptions.retiredAllocation).toEqual({ stocks: 0.4, bonds: 0.5, cash: 0.1 });
+  });
 });
 
 test('dated income saved before the "taxed" flag existed is taxed (D66)', () => {
@@ -52,6 +62,9 @@ describe('damaged or out-of-range plans are rejected with a clear message (D71)'
     ['0 simulated markets', (p) => { p.assumptions.paths = 0; }, /assumptions\.paths/],
     ['a negative balance', (p) => { p.you.balances.pretax = -5_000; }, /you\.balances\.pretax/],
     ['a negative amount kept while coasting', (p) => { p.spouse.coastContributions.roth = -1; }, /spouse\.coastContributions\.roth/],
+    ['a mix after retiring that does not add up to 100%', (p) => { p.assumptions.retiredAllocation = { stocks: 0.5, bonds: 0.6, cash: 0 }; }, /assumptions\.retiredAllocation must add up/],
+    ['a mix after retiring saved as text', (p) => { p.assumptions.retiredAllocation = '40/60'; }, /assumptions\.retiredAllocation/],
+    ['a negative bond share after retiring', (p) => { p.assumptions.retiredAllocation = { stocks: 1.1, bonds: -0.1, cash: 0 }; }, /assumptions\.retiredAllocation\.bonds/],
     ['a tax rate above 100%', (p) => { p.assumptions.stateTaxRate = 1.5; }, /assumptions\.stateTaxRate/],
     ['a trust-fund share below 0%', (p) => { p.assumptions.ssTrustFund.endPct = -0.1; }, /assumptions\.ssTrustFund\.endPct/],
     ['a fractional plan age', (p) => { p.assumptions.endAge = 96.5; }, /assumptions\.endAge/],

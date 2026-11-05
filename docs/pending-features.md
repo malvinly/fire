@@ -83,8 +83,8 @@ of your stocks are international. For example, with 70% in stocks and a third of
 ### For implementers
 
 - **Where:** results state in `src/App.tsx`; `TierCard` (`src/ui/Results.tsx:76`). `feeRate` is subtracted
-  in `realYears` (`src/engine/returns.ts:46`, used by the simulated and historical markets) and in
-  `averageRealReturns` (`src/engine/solve.ts:235`, the FIRE number's projection in `projectState`). The fee
+  in `realYears` (`src/engine/returns.ts:53`, used by the simulated and historical markets) and in
+  `averageRealReturns` (`src/engine/solve.ts:246`, the FIRE number's projection in `projectState`). The fee
   leaves each market's 10-year yield (`bondYield`, D82) alone, so bond interest is taxed the same; whether
   lower returns should also mean lower taxed yields is a question for the maintainer.
 - **First version:**

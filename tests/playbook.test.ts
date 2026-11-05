@@ -247,6 +247,20 @@ describe('the routine also covers the budget, rebalancing and dated items', () =
     ]);
   });
 
+  test('with a mix after retiring, the routine moves every account to it and says the brokerage tax is counted (D96)', () => {
+    const plan = examplePlan(2026);
+    plan.assumptions.retiredAllocation = { stocks: 0.4, bonds: 0.5, cash: 0.1 };
+    const step = buildPlaybook(plan, detail(plan, 2041)).phases[0].steps.at(-2)!;
+    expect(step.action).toBe('Move every invested account to 40% stocks / 50% bonds / 10% cash (cash stays cash), and once a year put it back to that mix.');
+    expect(step.why).toMatch(/include the capital-gains tax on what the switch sells in the brokerage account/);
+    // A household without a brokerage account doesn't hear about it (D93).
+    plan.household.taxable = plan.household.taxableBasis = plan.household.taxableContribution = 0;
+    expect(buildPlaybook(plan, detail(plan, 2041)).phases[0].steps.at(-2)!.why).not.toMatch(/brokerage/);
+    // The working mix entered again is no switch at all.
+    plan.assumptions.retiredAllocation = { ...plan.assumptions.allocation };
+    expect(buildPlaybook(plan, detail(plan, 2041)).phases[0].steps.at(-2)!.action).toBe('Once a year, put every invested account back to 70% stocks / 25% bonds / 5% cash (cash stays cash).');
+  });
+
   test('dated items after retirement become phases: an ongoing cost ending, income starting, a one-time sale', () => {
     const plan = examplePlan(2026);
     plan.datedItems = [

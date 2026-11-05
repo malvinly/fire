@@ -239,6 +239,8 @@ dialog::backdrop { background: rgba(0, 0, 0, 0.55); backdrop-filter: blur(3px); 
   pointer-events: none; white-space: normal;
 }
 .help-tip[hidden] { display: none; }
+.help-tip ul { margin: 6px 0; padding-left: 16px; }
+.help-tip li b { white-space: nowrap; }
 
 /* ---- Control rows under a panel heading (not squeezed to the right) ---- */
 .control-row { display: flex; gap: 20px 28px; align-items: flex-start; flex-wrap: wrap; margin-top: 12px; }

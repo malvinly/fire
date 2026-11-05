@@ -1,5 +1,7 @@
 // Default spending levels (D18, D57).
 import { describe, expect, test } from 'vitest';
+import { describeAssumptions } from '../src/engine/assumptions';
+import { RETIRED_MIX_EXAMPLES } from '../src/ui/helpText';
 import { DEFAULT_ASSUMPTIONS, chubbyDefaultSpending, examplePlan, exampleStatus, searchPathsFor, fidelityDefaultSpending, untouchedSections } from '../src/engine/defaults';
 
 describe('default spending', () => {
@@ -114,4 +116,28 @@ describe('fields still holding example values (D64)', () => {
     expect(untouchedSections(plan)).toEqual([]);
     expect(exampleStatus(plan).fields.size).toBe(0);
   });
+});
+
+describe('How this works: the mix after retiring (D96)', () => {
+  const row = (plan: ReturnType<typeof examplePlan>, label: string) => describeAssumptions(plan).find((r) => r.label === label)!;
+
+  test('off by default: one mix throughout', () => {
+    const plan = examplePlan(2026);
+    expect(DEFAULT_ASSUMPTIONS.retiredAllocation).toBeNull();
+    expect(row(plan, 'Asset mix after you retire')).toMatchObject({ value: 'The same mix', status: 'default' });
+    expect(row(plan, 'Asset mix').value).toBe('70% stocks / 25% bonds / 5% cash, reset to this mix each year');
+  });
+
+  test('set: both rows say when each mix applies', () => {
+    const plan = examplePlan(2026);
+    plan.assumptions.retiredAllocation = { stocks: 0.4, bonds: 0.5, cash: 0.1 };
+    expect(row(plan, 'Asset mix after you retire')).toMatchObject({ value: '40% stocks / 50% bonds / 10% cash, from the retirement year on', status: 'changed' });
+    expect(row(plan, 'Asset mix').value).toBe('70% stocks / 25% bonds / 5% cash, reset to this mix each year until you retire');
+  });
+});
+
+test('every common mix in the after-retiring help adds up to 100%, and the first is the app’s default (D96)', () => {
+  for (const x of RETIRED_MIX_EXAMPLES) expect(x.mix[0] + x.mix[1] + x.mix[2]).toBe(100);
+  const d = DEFAULT_ASSUMPTIONS.allocation;
+  expect(RETIRED_MIX_EXAMPLES[0].mix).toEqual([d.stocks, d.bonds, d.cash].map((v) => Math.round(v * 100)));
 });

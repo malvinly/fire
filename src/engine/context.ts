@@ -67,16 +67,30 @@ export interface Context {
   hsaPenalty: Uint8Array;
   fillTop: number; // 0 = no bracket fill
   /**
-   * The plan's asset mix, as the shares of the brokerage balance that pay dividends (`stocks`), bond interest
+   * The asset mix while working, as the shares of the brokerage balance that pay dividends (`stocks`), bond interest
    * (`bonds`) and the T-bill rate (`cash`) each year (D70, D82) — shares, not yields. A copy of the allocation so
    * tests can switch brokerage income off (`noYields` in tests/helpers.ts). The cash account's interest doesn't
    * depend on it.
    */
   incomeMix: { stocks: number; bonds: number; cash: number };
+  /** The same for retired years: the mix after retiring, or the working mix when there is none (D96). */
+  incomeMixRetired: { stocks: number; bonds: number; cash: number };
+  /** Share of each account sold to move to the mix after retiring in the retirement year (`mixSwitchShare`, D96). */
+  mixSwitch: number;
   pia: [number, number];
 }
 
 /** The last plan year: the younger spouse reaches the plan-to age (D2). */
+/**
+ * The share of every invested account sold (and the same amount bought) to move from the working mix to the mix after
+ * retiring: the sum of the shares that shrink. 0 with no second mix, or one equal to the working mix (D96).
+ */
+export function mixSwitchShare(a: Plan['assumptions']): number {
+  const r = a.retiredAllocation;
+  if (!r) return 0;
+  return Math.max(0, a.allocation.stocks - r.stocks) + Math.max(0, a.allocation.bonds - r.bonds) + Math.max(0, a.allocation.cash - r.cash);
+}
+
 export function planEndYear(plan: Plan): number {
   return Math.max(plan.you.birthYear, plan.spouse.birthYear) + plan.assumptions.endAge;
 }
@@ -177,6 +191,8 @@ export function buildContext(plan: Plan, scenario: Scenario): Context {
     hsaPenalty: new Uint8Array(len),
     fillTop: a.bracketFill === 'none' ? 0 : bracketTop(a.bracketFill),
     incomeMix: { ...a.allocation },
+    incomeMixRetired: { ...(a.retiredAllocation ?? a.allocation) },
+    mixSwitch: mixSwitchShare(a),
     pia: [0, 0],
   };
 

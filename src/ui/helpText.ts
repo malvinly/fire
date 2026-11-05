@@ -3,7 +3,7 @@
 
 import { TRUST_FUND_DEFAULT } from '../data/rules';
 import { DATA_VERSIONS } from '../engine/assumptions';
-import { CHUBBY_SPENDING_FACTOR } from '../engine/defaults';
+import { CHUBBY_SPENDING_FACTOR, DEFAULT_ASSUMPTIONS } from '../engine/defaults';
 import { MARKET } from '../engine/returns';
 
 const tf = TRUST_FUND_DEFAULT;
@@ -94,8 +94,12 @@ export const HELP = {
   endAge: 'Your money must not run out before the younger of you reaches this age. Fidelity uses 96. Higher is safer and pushes your dates later.',
   targetSuccess:
     'The share of simulated markets in which your money must last. 90% is Fidelity’s standard (it holds up in a “significantly below average” market). Higher is safer but means later dates and bigger numbers.',
-  stocks: 'Share of every invested account held in stocks, US or international, reset to this mix each year (not your cash account). International funds such as VXUS are simulated as US stocks. Default 70% (Fidelity).',
+  stocks: 'Share of every invested account held in stocks, US or international, reset to this mix each year (not your cash account), also after you retire unless you switch to a different mix below. International funds such as VXUS are simulated as US stocks. Default 70% (Fidelity).',
   bonds: 'Share held in 10-year US Treasury bonds; the rest is cash. Default 25%.',
+  retiredMix: 'From the year you retire, every invested account (not your cash account) switches to this mix, reset to it each year; the brokerage account’s tax on the switch is counted. Common mixes, stocks / bonds / cash:',
+  retiredMixNote:
+    'From fact sheets (June–September 2026), rounded; TIPS and international bonds count as bonds, money-market funds as cash. The 2025 funds keep shifting toward their Income/Retirement mix for 7 (Vanguard) or 10–19 (Fidelity) years after 2025; this switch happens once, so use the mix you’d hold for most of retirement.',
+  retiredBonds: 'Share held in 10-year US Treasury bonds after you retire; the rest is cash.',
   fees: 'Average yearly fund cost plus any advisor fee. Each fund’s page lists its “expense ratio”; broad index funds are about 0.03–0.2%. Default 0.10%.',
   wageGrowth: 'How much faster than inflation your salary and contributions grow each year until you retire. Default 1.5% (Fidelity).',
   healthcareInflation: 'How much faster than general prices healthcare costs rise each year. Default 1.5%.',
@@ -113,6 +117,22 @@ export const HELP = {
   tfEnd: `The share falls steadily until this year, then stays flat. Default ${tf.endYear}.`,
   tfEndPct: `Share of benefits paid from that year on. Default ${pct(tf.endPct)}. Set both shares to 0% to leave Social Security out entirely (Fidelity FI Planner style).`,
 } as const;
+
+/**
+ * Common mixes listed in the "after you retire" help (D96), as whole-percent stocks / bonds / cash. Target-date funds
+ * are from the issuers' fact sheets (Fidelity and Vanguard September 30, 2026; BlackRock June 30, 2026; the range is
+ * repeated in `retiredMixNote`): TIPS and international bonds counted as bonds, Fidelity's 2% commodities as stocks,
+ * short-term funds as cash. Refresh with the yearly data update.
+ */
+export const RETIRED_MIX_EXAMPLES: { name: string; mix: [number, number, number] }[] = [
+  { name: 'This app’s default (Fidelity)', mix: [DEFAULT_ASSUMPTIONS.allocation.stocks, DEFAULT_ASSUMPTIONS.allocation.bonds, DEFAULT_ASSUMPTIONS.allocation.cash].map((x) => Math.round(x * 100)) as [number, number, number] },
+  { name: 'Classic balanced fund', mix: [60, 40, 0] },
+  { name: 'Fidelity Freedom Index 2025', mix: [50, 49, 1] },
+  { name: 'Vanguard Target Retirement 2025', mix: [48, 52, 0] },
+  { name: 'BlackRock LifePath Index Retirement', mix: [38, 59, 3] },
+  { name: 'Vanguard Target Retirement Income', mix: [32, 68, 0] },
+  { name: 'Fidelity Freedom Index Retirement', mix: [30, 64, 6] },
+];
 
 /** Shared explanation of the two ways results are tested. */
 export const METHODS_HELP =

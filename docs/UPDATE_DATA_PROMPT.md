@@ -91,6 +91,12 @@ catch-up test hard-codes the 401(k)/IRA/HSA limits)
   keep the same method (average from a mid-50s retirement to 65, plus ~$2–3k out-of-pocket) and the ACA
   out-of-pocket limit for Y. From 65: the Part B standard premium (CMS fact sheet), average Part D premium
   and Medigap Plan G at 65. Round to the nearest $500.
+- Common mixes in the "after you retire" help (D96: `RETIRED_MIX_EXAMPLES` in `src/ui/helpText.ts`). From each
+  fund's latest fact sheet (the issuer's own PDF, not an aggregator; `pdftotext -layout` reads it): stocks,
+  bonds and cash shares for each listed fund. Count TIPS and international bonds as bonds, commodities as
+  stocks, short-term and money-market funds as cash; round to whole percents adding to 100. Keep the same
+  funds; if one was renamed, update its name, and drop a 2025 fund once it merges into its Income/Retirement
+  fund. Update the fact-sheet dates in the comment above the list and the date range in `retiredMixNote`.
 
 **6. Reference test vs. FI Calc** (`tests/historical.test.ts`)
 - Open https://ficalc.app with its defaults ($1,000,000, $40,000 constant-dollar inflation-adjusted,

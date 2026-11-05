@@ -9,7 +9,7 @@ import { FIELD_LIMITS, birthYearProblem, coastAgeProblem, coastKeptProblem } fro
 import { DatedItemsEditor } from './DatedItemsEditor';
 import { Help, NumberField, Section, SelectField, TextField } from './fields';
 import { money, percent, whose } from './format';
-import { HELP } from './helpText';
+import { HELP, RETIRED_MIX_EXAMPLES } from './helpText';
 
 type Update = (fn: (draft: Plan) => void) => void;
 
@@ -223,6 +223,22 @@ export function InputsPanel({ plan, update }: { plan: Plan; update: Update }) {
           <NumberField label="Bonds share" help={HELP.bonds} kind="percent" {...RATE} value={a.allocation.bonds}
             onChange={(v) => update((d) => { setAllocation(d, 'bonds', v ?? 0); })}
             hint={`Cash = the rest (${percent(a.allocation.cash)})`} />
+        </div>
+        <label className="check">
+          <input type="checkbox" checked={a.retiredAllocation !== null}
+            onChange={(e) => { const on = e.target.checked; update((d) => { d.assumptions.retiredAllocation = on ? { ...d.assumptions.allocation } : null; }); }} />
+          <Help text={RETIRED_MIX_HELP}>Switch to a different mix when you retire</Help>
+        </label>
+        {a.retiredAllocation && (
+          <div className="grid2">
+            <NumberField label="Stocks share after you retire" help={RETIRED_MIX_HELP} kind="percent" {...RATE} value={a.retiredAllocation.stocks}
+              onChange={(v) => update((d) => { setAllocation(d, 'stocks', v ?? 0, 'retiredAllocation'); })} />
+            <NumberField label="Bonds share after you retire" help={HELP.retiredBonds} kind="percent" {...RATE} value={a.retiredAllocation.bonds}
+              onChange={(v) => update((d) => { setAllocation(d, 'bonds', v ?? 0, 'retiredAllocation'); })}
+              hint={`Cash = the rest (${percent(a.retiredAllocation.cash)})`} />
+          </div>
+        )}
+        <div className="grid2">
           <NumberField label="Fund fees (expense ratio)" help={HELP.fees} kind="percent" {...RATE} value={a.feeRate} step={0.01}
             warn={a.feeRate > 0.03 ? 'Unusually high: most funds charge under 1%, and fees come off returns every year.' : null} onChange={(v) => update((d) => { d.assumptions.feeRate = v ?? 0; })} />
           <NumberField label="Raises above inflation" help={HELP.wageGrowth} kind="percent" {...GROWTH} value={a.wageGrowth} onChange={(v) => update((d) => { d.assumptions.wageGrowth = v ?? 0; })} />
@@ -258,8 +274,20 @@ export function InputsPanel({ plan, update }: { plan: Plan; update: Update }) {
   );
 }
 
-function setAllocation(d: Plan, key: 'stocks' | 'bonds', v: number) {
-  const al = d.assumptions.allocation;
+/** The "after you retire" help: what the switch does and common mixes to enter (D96). */
+const RETIRED_MIX_HELP = (
+  <>
+    {HELP.retiredMix}
+    <ul>
+      {RETIRED_MIX_EXAMPLES.map((x) => <li key={x.name}>{x.name}: <b>{x.mix.join(' / ')}</b></li>)}
+    </ul>
+    {HELP.retiredMixNote}
+  </>
+);
+
+function setAllocation(d: Plan, key: 'stocks' | 'bonds', v: number, which: 'allocation' | 'retiredAllocation' = 'allocation') {
+  const al = d.assumptions[which];
+  if (!al) return;
   al[key] = Math.min(1, Math.max(0, v));
   const other = key === 'stocks' ? 'bonds' : 'stocks';
   al[other] = Math.min(al[other], 1 - al[key]);
