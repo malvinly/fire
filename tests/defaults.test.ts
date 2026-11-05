@@ -124,7 +124,8 @@ describe('Asset mix over time: defaults and the How-this-works row (D97)', () =>
     expect(rows).toHaveLength(1);
     return rows[0];
   };
-  const shiftWhy = 'In each year the mix changes, the brokerage account sells part of itself to move to the new mix and pays capital-gains tax on that part of its gain; retirement accounts and the HSA move tax-free.';
+  const shiftWhy = 'When the mix changes, the brokerage account pays capital-gains tax on what it sells; retirement accounts and the HSA move tax-free.';
+  const vanguardWhy = 'The path’s points come from Vanguard’s prospectus. It is tied to age 65, not to your retirement year, because Vanguard’s research paper “Choice of equity landing points can benefit target-date investors” designs it around retiring at 65.';
   const resetWhy = 'Every invested account holds the year’s mix and is put back to it each year.';
 
   test('new plans follow Vanguard’s path; your own mix starts as a fixed 70/25/5 with Vanguard’s timing', () => {
@@ -138,9 +139,9 @@ describe('Asset mix over time: defaults and the How-this-works row (D97)', () =>
   test('Vanguard (default): the target year, and this year’s, the target year’s and the final mix', () => {
     const plan = examplePlan(2026); // You born 1984: 65 in 2049; 2026 is 23 years before
     expect(row(plan)).toEqual({
-      group: 'Markets', label: 'Asset mix', status: 'default', decision: 'D8, D97', source: MIX_SOURCES.vanguard,
+      group: 'Markets', label: 'Asset mix', status: 'default', decision: 'D8, D97, D98', source: MIX_SOURCES.vanguard,
       value: 'Vanguard’s Target Retirement path with 2049 as its target year (You: age 65): 87% stocks / 13% bonds in 2026, 50% stocks / 50% bonds in 2049, and 30% stocks / 70% bonds from 2056 on',
-      why: `${resetWhy} ${shiftWhy}`,
+      why: `${resetWhy} ${shiftWhy} ${vanguardWhy}`,
     });
   });
 

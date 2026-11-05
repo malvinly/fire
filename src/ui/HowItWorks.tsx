@@ -7,6 +7,19 @@ import type { Plan } from '../engine/types';
 
 const groupId = (g: string) => `group-${g.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`;
 
+/** "D8, D97" as links to those rows of the decisions log (each row carries an `<a id="d8">` anchor). */
+function DecisionLinks({ decision }: { decision: string }) {
+  const ids = decision.split(', ');
+  return (
+    <span className="muted"> ({ids.map((d, i) => (
+      <Fragment key={d}>
+        {i > 0 && ', '}
+        <a className="muted" href={`${REPO_URL}/blob/main/docs/DECISIONS.md#${d.toLowerCase()}`} target="_blank" rel="noreferrer">{d}</a>
+      </Fragment>
+    ))})</span>
+  );
+}
+
 /** `focusGroup`: a group to scroll to on opening (the warnings panel links to the limitations). */
 export function HowItWorks({ plan, focusGroup }: { plan: Plan; focusGroup?: string | null }) {
   const rows = describeAssumptions(plan);
@@ -48,7 +61,7 @@ export function HowItWorks({ plan, focusGroup }: { plan: Plan; focusGroup?: stri
                   <td>
                     {r.status !== 'fixed' && <span className={`tag ${r.status}`}>{r.status === 'default' ? 'default' : 'yours'}</span>}
                   </td>
-                  <td className="text-2">{r.why}{r.decision && <span className="muted"> ({r.decision})</span>}</td>
+                  <td className="text-2">{r.why}{r.decision && <DecisionLinks decision={r.decision} />}</td>
                   <td>{r.source ? (r.source.url ? <a href={r.source.url} target="_blank" rel="noreferrer">{r.source.label}</a> : r.source.label) : ''}</td>
                 </tr>
               ))}

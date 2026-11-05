@@ -65,11 +65,11 @@ export function describeAssumptions(plan: Plan): AssumptionRow[] {
     { group: 'Markets', label: 'Fund fees', value: pct(a.feeRate, 2), status: st(a.feeRate === d.feeRate),
       why: 'Subtracted from returns every year.', decision: 'D8' },
     { group: 'Markets', label: 'Historical data', value: `${MARKET.firstYear}–${MARKET.lastYear}, January to January`, status: 'fixed',
-      why: 'Stocks: S&P 500 total return. Bonds: 10-year Treasury. Inflation: CPI. Each January’s 10-year Treasury yield sets the taxed bond interest (D82).', source: { label: 'Robert Shiller, ie_data.xls', url: 'https://shillerdata.com/' }, decision: 'D10' },
+      why: 'Stocks: S&P 500 total return. Bonds: 10-year Treasury. Inflation: CPI. Each January’s 10-year Treasury yield sets the taxed bond interest.', source: { label: 'Robert Shiller, ie_data.xls', url: 'https://shillerdata.com/' }, decision: 'D10, D82' },
     { group: 'Markets', label: 'Cash returns', value: 'Short-term Treasury rates from 1928; before that the 10-year Treasury yield', status: 'fixed',
       why: 'No free T-bill series exists before 1928; yield curves were fairly flat then.', source: { label: 'Aswath Damodaran, histretSP.xls', url: 'https://pages.stern.nyu.edu/~adamodar/New_Home_Page/datafile/histret.html' }, decision: 'D11' },
     { group: 'Markets', label: "Today's dollars", value: 'All amounts are after inflation', status: 'fixed',
-      why: "Each historical year's actual inflation converts returns, so no inflation forecast is needed. Amounts fixed in actual dollars — brokerage cost basis, Roth contributions and conversions — shrink with inflation, so gains and early Roth access are counted at today's value.", decision: 'D6, D63' },
+      why: "Each historical year's actual inflation converts returns, so no inflation forecast is needed. Amounts fixed in actual dollars, such as brokerage cost basis, shrink with inflation.", decision: 'D6, D63' },
     { group: 'Markets', label: 'Timing', value: 'Contributions and withdrawals at the start of each year', status: 'fixed',
       why: 'Same convention as FI Calc; slightly conservative for withdrawals.', decision: 'D7' },
 
@@ -85,11 +85,11 @@ export function describeAssumptions(plan: Plan): AssumptionRow[] {
     { group: 'Work & spending', label: 'Coast FIRE: stop working at',
       value: `your age ${plan.household.coastRetireAge}` + (kept > 0 ? `, keeping ${usd(kept)}/yr of contributions` : ''),
       status: st(plan.household.coastRetireAge === 65 && kept === 0),
-      why: 'Coast = stop contributing now (or cut back to the contributions kept while coasting, employer match included; they grow with wages and are capped like today’s), keep working (paycheck covers spending) until this age, then Traditional spending.', decision: 'D69, D94' },
+      why: 'Stop contributing now (or keep only the contributions you chose to keep), keep working with the paycheck covering spending until this age, then spend at the Traditional level.', decision: 'D69, D94' },
     { group: 'Work & spending', label: 'While working', value: 'Paycheck covers all spending', status: 'fixed',
-      why: 'The portfolio only receives contributions until the retirement date, and each account pays the yearly tax on its own dividends and interest (D70).', decision: 'D16' },
+      why: 'The portfolio only receives contributions until the retirement date, and each account pays the yearly tax on its own dividends and interest.', decision: 'D16, D70' },
     { group: 'Work & spending', label: 'Dated items', value: `${plan.datedItems.length} item(s)`, status: 'fixed',
-      why: 'Ongoing items already paid today are part of the paycheck budget until retirement. Everything else dated before retirement is paid from (or saved to) cash and brokerage savings, with tax on any gains; a cost savings can’t cover counts as running out. Fixed-dollar items shrink with inflation. Income is taxed as ordinary income unless marked untaxed (a home sale, a cash gift).', decision: 'D17, D19, D66' },
+      why: 'Items you already pay today come out of the paycheck until retirement. Other items before retirement are paid from cash and brokerage savings, with tax on any gains; a cost savings can’t cover counts as running out. Income is taxed unless marked untaxed (a home sale, a cash gift).', decision: 'D17, D19, D66' },
 
     // Healthcare
     { group: 'Healthcare', label: 'Healthcare inflation', value: `${pct(a.healthcareInflation)} above inflation`, status: st(a.healthcareInflation === d.healthcareInflation),
@@ -103,26 +103,26 @@ export function describeAssumptions(plan: Plan): AssumptionRow[] {
     { group: 'Social Security', label: 'Trust fund cut', value: `100% until ${tf.startYear}, then ${pct(tf.startPct, 0)} falling to ${pct(tf.endPct, 0)} by ${tf.endYear}`, status: st(tfSame),
       why: 'Plans conservatively for the retirement trust fund’s officially projected shortfall. Set both shares to 100% for no cut.', source: { label: '2026 Trustees Report', url: 'https://www.ssa.gov/oact/trsum/' }, decision: 'D26' },
     { group: 'Social Security', label: 'Wage growth above inflation', value: `${pct(a.ssWageGrowth)} a year`, status: st(a.ssWageGrowth === d.ssWageGrowth),
-      why: 'Benefits follow the national wage level in the year each of you turns 60. 0% (the default) leaves benefits at today’s wage level, which understates them if wages outgrow prices: at the Trustees’ 1.1%, by about 27% for someone now 40 and 14% for someone now 50. Statement estimates assume 0% too, so they are scaled the same way. From 1985 to 2024 real wage growth was about 0.9% a year; with an earnings record the rise is a little smaller, because future pay counts against the higher wage level.', source: { label: '2026 Trustees Report', url: 'https://www.ssa.gov/oact/trsum/' }, decision: 'D24, D77' },
+      why: 'Benefits follow the national wage level in the year each of you turns 60. The 0% default keeps them at today’s level, which understates them if wages outgrow prices: at the Trustees’ 1.1%, by about 27% for someone now 40.', source: { label: '2026 Trustees Report', url: 'https://www.ssa.gov/oact/trsum/' }, decision: 'D24, D77' },
     { group: 'Social Security', label: 'Claim ages', value: `${plan.you.name} ${plan.you.socialSecurity.claimAge}, ${plan.spouse.name} ${plan.spouse.socialSecurity.claimAge}`,
       status: st(plan.you.socialSecurity.claimAge === EXAMPLE_CLAIM_AGE && plan.spouse.socialSecurity.claimAge === EXAMPLE_CLAIM_AGE),
       why: 'Early claiming reduces, delayed claiming (to 70) increases benefits; spousal top-up included.', decision: 'D25' },
 
     // Taxes & accounts
     { group: 'Taxes & accounts', label: 'Federal tax', value: `${RULES_YEAR} married filing jointly, standard deduction ${usd(FEDERAL.standardDeduction)}`, status: 'fixed',
-      why: 'Brackets, 0/15/20% capital gains, tax on part of Social Security, and the 3.8% extra tax on investment income for high earners. While working, only the extra tax that Social Security, RMDs, taxed dated income and investment income add on top of wages is counted (D49, D66, D70).', source: { label: 'IRS 2026 inflation adjustments', url: 'https://www.irs.gov/newsroom/irs-releases-tax-inflation-adjustments-for-tax-year-2026-including-amendments-from-the-one-big-beautiful-bill' }, decision: 'D32' },
+      why: 'Brackets, 0/15/20% capital gains, tax on part of Social Security, and the 3.8% extra tax on investment income for high earners. While working, only the tax added on top of wages is counted.', source: { label: 'IRS 2026 inflation adjustments', url: 'https://www.irs.gov/newsroom/irs-releases-tax-inflation-adjustments-for-tax-year-2026-including-amendments-from-the-one-big-beautiful-bill' }, decision: 'D32, D49, D66, D70' },
     { group: 'Taxes & accounts', label: 'State tax', value: pct(a.stateTaxRate), status: st(a.stateTaxRate === d.stateTaxRate),
       why: 'Flat rate on taxable income excluding Social Security. Use the rate of the state you expect to retire in (0% for no-income-tax states).', decision: 'D33' },
     { group: 'Taxes & accounts', label: 'Brokerage and cash income', value: `Taxed every year: dividends ${pct(TAXABLE_YIELDS.stockDividends, 0)} of stocks, interest on bonds at each market’s 10-year yield (at least ${pct(TAXABLE_YIELDS.bondInterest, 0)}), T-bill interest on cash`, status: 'fixed',
-      why: `Dividends are taxed like long-term gains and interest as ordinary income, each year, and then reinvested. While you work, the tax comes out of those accounts; in retirement it is part of the year’s tax bill. Bond interest follows each simulated or past market’s own January 10-year yield (near 15% in 1982), but never less than ${pct(TAXABLE_YIELDS.bondInterest, 0)} (about today’s), so low-rate years such as the 1940s are taxed at that rate. Dividends stay at ${pct(TAXABLE_YIELDS.stockDividends, 0)}, a little above today’s yield: history’s higher dividend yields came from a time before companies paid shareholders mostly through buybacks.`, decision: 'D34, D70, D82' },
+      why: `Dividends are taxed like long-term gains and interest as ordinary income, each year, then reinvested. Bond interest follows each market’s own 10-year yield, never below ${pct(TAXABLE_YIELDS.bondInterest, 0)} (about today’s). Dividends stay at ${pct(TAXABLE_YIELDS.stockDividends, 0)}, a little above today’s yield, since companies now pay shareholders mostly through buybacks.`, decision: 'D34, D70, D82' },
     { group: 'Taxes & accounts', label: 'Yearly Roth conversions', value: a.bracketFill === 'none' ? 'Off' : `Fill the ${a.bracketFill}% bracket every retired year`, status: st(a.bracketFill === d.bracketFill),
-      why: 'Pre-tax money up to the top of this bracket is withdrawn; what you don\'t spend is converted to Roth and usable after 5 years. It helps an early retirement only if it becomes usable before its owner turns 60 (the older spouse\'s money goes first). The 10% default did better than 12% or Off on the example plan.', decision: 'D29' },
+      why: 'Pre-tax money up to the top of this bracket is withdrawn; what you don\'t spend is converted to Roth and usable after 5 years. The 10% default did better than 12% or Off on the example plan.', decision: 'D29' },
     { group: 'Taxes & accounts', label: 'Before 59½', value: 'cash → brokerage → Roth contributions → Roth conversions 5+ years old → 401(k)/IRA with 10% penalty → newer conversions (10% penalty) → Roth earnings (tax + penalty) → HSA', status: 'fixed',
       why: 'Penalized withdrawals are allowed as a last resort and flagged, not treated as failure.', decision: 'D27, D68' },
     { group: 'Taxes & accounts', label: 'Required minimum distributions (RMDs)', value: `${plan.you.name} from ${rmdStartAge(plan.you.birthYear)}, ${plan.spouse.name} from ${rmdStartAge(plan.spouse.birthYear)} (IRS Uniform Lifetime Table)`, status: 'fixed',
       why: 'Surplus RMD money is reinvested in the taxable account.', decision: 'D31' },
     { group: 'Taxes & accounts', label: 'Contribution limits', value: `401(k) ${usd(LIMITS.employee401k)}, IRA ${usd(LIMITS.ira)}, HSA family ${usd(LIMITS.hsaFamily)}`, status: 'fixed',
-      why: 'Contributions are capped at these limits every year (catch-ups from 50, HSA from 55); money above a limit is not saved elsewhere. The limits stay flat in today’s dollars. HSA contributions stop once a person is 65 and receiving Social Security, which enrolls them in Medicare (D95).', decision: 'D15' },
+      why: 'Capped every year (catch-ups from 50, HSA from 55) and flat in today’s dollars; money above a limit is not saved elsewhere. HSA contributions stop at Medicare (65 and receiving Social Security).', decision: 'D15, D95' },
 
     // Limitations (D75)
     { group: LIMITS_GROUP, label: 'Both of you alive to the end', value: 'Assumed', status: 'fixed',
@@ -140,9 +140,7 @@ export function describeAssumptions(plan: Plan): AssumptionRow[] {
     { group: LIMITS_GROUP, label: 'Where each investment is held', value: 'Same mix in every account', status: 'fixed',
       why: 'Holding bonds in retirement accounts and stocks in the brokerage account could lower taxes a little.', decision: 'D8' },
     { group: LIMITS_GROUP, label: 'Markets', value: `US history ${MARKET.firstYear}–${MARKET.lastYear} only`, status: 'fixed',
-      why: 'US markets were among the best in the world over this period. International funds are simulated as US stocks, which leans optimistic. Assuming lower returns than history, and comparing with a saved baseline, are planned.', decision: 'D10' },
-    { group: LIMITS_GROUP, label: 'Also planned', value: 'Full year-by-year table; report export for AI review', status: 'fixed',
-      why: 'Features not built yet; they add views, not changes to the results above.' },
+      why: 'US markets were among the best in the world over this period. International funds are simulated as US stocks, which leans optimistic.', decision: 'D10' },
   ];
 }
 
@@ -177,10 +175,13 @@ function assetMixRow(plan: Plan): AssumptionRow {
     value = `${mixLabel(a.allocation)} until ${shifts.first - 1}, then ${steps} equal yearly steps from ${shifts.first} to ${shifts.last} ` +
       `(${name}: ages ${a.shiftStartAge} to ${a.shiftEndAge}), reaching ${mixLabel(a.laterAllocation)}`;
   }
+  const vanguard = a.mixPlan === 'vanguard';
   const why = 'Every invested account holds the year’s mix and is put back to it each year.' + (shifts
-    ? ' In each year the mix changes, the brokerage account sells part of itself to move to the new mix and pays capital-gains tax on that part of its gain; retirement accounts and the HSA move tax-free.'
+    ? ' When the mix changes, the brokerage account pays capital-gains tax on what it sells; retirement accounts and the HSA move tax-free.'
+    : '') + (vanguard
+    ? ` The path’s points come from Vanguard’s prospectus. It is tied to age ${VANGUARD_PATH.targetAge}, not to your retirement year, because Vanguard’s research paper “${MIX_SOURCES.vanguardResearch.title}” designs it around retiring at ${VANGUARD_PATH.targetAge}.`
     : '');
-  return { group: 'Markets', label: 'Asset mix', value, status: a.mixPlan === 'vanguard' ? 'default' : 'changed', why, ...(source ? { source } : {}), decision: 'D8, D97' };
+  return { group: 'Markets', label: 'Asset mix', value, status: vanguard ? 'default' : 'changed', why, ...(source ? { source } : {}), decision: vanguard ? 'D8, D97, D98' : 'D8, D97' };
 }
 
 /** The "How this works" group listing what the model leaves out; the warnings panel links to it (D75). */

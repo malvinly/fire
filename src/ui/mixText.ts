@@ -1,5 +1,4 @@
-// The Investments section's logic (D97): what it says under "Asset mix over time", the About page's path figures,
-// which shift ages it refuses, how a typed share changes a mix, and what "Reset assumptions to defaults" keeps.
+// The Investments section's logic (D97): what it says under "Asset mix over time", which shift ages it refuses, how a typed share changes a mix, and what "Reset assumptions to defaults" keeps.
 // Plain functions so they can be tested (D87). Every mix shown goes through mixPercents, so none adds up to 99 or 101.
 
 import { FIDELITY_MIX, VANGUARD_PATH } from '../data/mixPaths';
@@ -77,23 +76,6 @@ export function shiftAgeProblem(a: Assumptions, which: 'start' | 'end', age: num
 /** The dropdown option for Fidelity's fixed mix, e.g. "Fidelity’s fixed mix (70/25/5)". */
 export function fidelityOptionLabel(): string {
   return `Fidelity’s fixed mix (${mixPercents(FIDELITY_MIX).join('/')})`;
-}
-
-/** Vanguard's path in whole percents and years, for the About page: the flat start, the target year and the final mix. */
-export function vanguardPathFacts() {
-  const pts = VANGUARD_PATH.points;
-  const stocks = (x: number) => mixPercents({ stocks: x, bonds: 1 - x, cash: 0 })[0];
-  const first = pts[0];
-  const final = pts[pts.length - 1];
-  const target = pts.find((p) => p.years === 0);
-  if (!target) throw new Error('VANGUARD_PATH needs a point at the target year');
-  return {
-    firstStocks: stocks(first.stocks),
-    firstYearsBefore: -first.years,
-    targetStocks: stocks(target.stocks),
-    finalStocks: stocks(final.stocks),
-    finalYearsAfter: final.years,
-  };
 }
 
 /**

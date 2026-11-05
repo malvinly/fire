@@ -97,12 +97,12 @@ catch-up test hard-codes the 401(k)/IRA/HSA limits)
   90% / 60% / 50% / 30% at 25 and 5 years before, at, and 7 years after the target year). If Vanguard changed the
   path, update `VANGUARD_PATH`, the expected values in `tests/mix.test.ts`, the label and URL in `MIX_SOURCES`, and
   D97/D98; and because results change for the same inputs, bump `DATA_VERSIONS.engine` and refresh "Reproducing the
-  numbers" in `docs/DEVELOPMENT.md`. Either way, update `MIX_SOURCES.vanguard` to the newest prospectus (its title, date and quotes, which the About
-  tab and the asset-mix choice show; the path figures there are built from `VANGUARD_PATH`), re-check
+  numbers" in `docs/DEVELOPMENT.md`. Either way, update `MIX_SOURCES.vanguard` to the newest prospectus (its title and date, which the About
+  tab and the "How this works" asset-mix row show), re-check
   that Vanguard's research still describes the path for retirement at age 65 (`MIX_SOURCES.vanguardResearch`;
   D98 cites "Choice of equity landing points can benefit target-date investors", May 2025, and "Vanguard's approach
-  to target-date funds"), and confirm every `MIX_SOURCES` link and every link in D97 and D98 still resolves. Then read the About tab's asset-mix section in the app and confirm it
-  says only what the new documents support.
+  to target-date funds"), and confirm every `MIX_SOURCES` link and every link in D97 and D98 still resolves. Then read the About tab's asset-mix paragraph and the "How this works" asset-mix row in the app and confirm they
+  say only what the new documents support.
 - Example healthcare costs (D58: `healthcare` in `examplePlan`, and the `preMedicare` / `medicare` texts in
   `src/ui/helpText.ts`). Pre-65: KFF's average benchmark silver premium for a 40-year-old for year Y
   (search "KFF average benchmark premium Y"), scaled by the federal default age curve to ages 55/60/64;
@@ -135,7 +135,7 @@ catch-up test hard-codes the 401(k)/IRA/HSA limits)
   (0.9%). Re-check the rate against the new Trustees Report, extend the average's end year, and recompute the
   two percentages: (1 + g)^(years until that person turns 60).
 - The About tab's version line and the "How this works" intro read `DATA_VERSIONS`, so they update themselves
-  (the About tab's asset-mix section does not: it follows `src/data/mixPaths.ts`, step 5); confirm
+  (the About tab's asset-mix paragraph does not: it follows `src/data/mixPaths.ts`, step 5); confirm
   them in the browser in step 8.
 - `docs/DECISIONS.md`: D24–D26, D31–D32, D58 and the "Data update history" table.
 - `README.md`: the market-data year range. `docs/DEVELOPMENT.md` (Tests section): the SSA worked example numbers and the FI Calc "121-of-125".

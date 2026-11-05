@@ -16,6 +16,33 @@ npm run dev
 
 The dev server runs at http://localhost:5391 and reloads as you edit.
 
+## A permanent local copy
+
+The public site is the built app, published from this repository by GitHub Pages (`.github/workflows/pages.yml`
+builds `dist/` on every push to `main`). For a local copy that runs without the development server:
+
+```bash
+npm run build
+```
+
+This creates a self-contained `dist/` folder. To use it, **double-click `Start FIRE Planner.cmd`** inside
+`dist/`. It opens the planner in your browser at http://localhost:4391; keep the small window it opens
+while you use the planner, and close it when you're done. It needs nothing else installed: no Node.js,
+no terminal, no internet.
+
+You can copy the whole `dist/` folder anywhere (e.g. `Documents\FIRE Planner`) and start it from there
+the same way. Tip: right-click `Start FIRE Planner.cmd` → *Send to* → *Desktop (create shortcut)*.
+
+Notes:
+- Opening `dist/index.html` directly does **not** work: browsers only run the app's background
+  calculator from a web address, which is what the launcher provides.
+- `dist/` is not in git. Rebuild (and re-copy) after pulling changes or after the yearly data update.
+- The built copy (port 4391), the development server (port 5391) and the public site count as different
+  websites to the browser: each asks you to choose your plans folder once and keeps its own unsaved draft.
+  Your plan files themselves are shared.
+- From a terminal, `npm run preview` serves the same `dist/` folder at http://localhost:4393, its own address with
+  its own draft and folder choice.
+
 ## Scripts
 
 | Command | What it does |
@@ -48,7 +75,7 @@ code comments cite) first. Planned work is in [pending-features.md](pending-feat
    - If results change for the same inputs, bump `DATA_VERSIONS.engine` in `src/engine/assumptions.ts`
      (D59) so saved sessions are flagged for recalculation, and refresh
      [Reproducing the numbers](#reproducing-the-numbers).
-   - Record any judgement call as a new D-number in DECISIONS.md (the next free number is **D99**). Update
+   - Record any judgement call as a new D-number in DECISIONS.md (the next free number is **D100**). Update
      an existing D-row if its behavior changes, and update the "Which way the assumptions lean" table.
    - If the change affects an assumption shown to users, update its row in `describeAssumptions` in
      `src/engine/assumptions.ts` (the "How this works" page) and its help text in `src/ui/helpText.ts`.
@@ -59,6 +86,10 @@ code comments cite) first. Planned work is in [pending-features.md](pending-feat
      `src/ui/playbook.ts` (D93), then run
      `tests/playbook-engine.test.ts` and review the diff of `tests/__snapshots__/playbook-profiles.test.ts.snap`
      before accepting it with `-u`.
+   - If the change alters what the Plan tab shows, retake the README screenshots in `docs/images/`: the
+     built-in example plan (a fresh browser profile, so no saved draft), a 1400 × 1000 window at 2× scale,
+     dark theme; `results-dark.png` is the whole window after **Calculate**, `savings-chart-dark.png` the
+     "Your savings over time" panel down to its legend.
    - Remove a finished item from pending-features.md.
 5. **Adding a field to `Plan`** (`src/engine/types.ts`) needs care. Session files (`schemaVersion: 1`,
    `src/ui/sessions.ts`) and the browser draft (`loadDraft` in `src/App.tsx`) are loaded as saved. A new
@@ -117,6 +148,7 @@ docs/
   UPDATE_DATA_PROMPT.md  copy-paste prompt for an LLM to refresh the data
   DEVELOPMENT.md         this file
   pending-features.md    planned new features, by importance
+  images/                README screenshots of the example plan
 ```
 
 Terminology: the UI says "simulated markets" and "real past markets"; the code says bootstrap and
@@ -238,7 +270,7 @@ previous panel: no borderline lines, Chubby 2043 and $3.28M, $2.52M for Traditio
 Market data, tax brackets, Social Security constants and the Trustees Report change every year.
 Paste [`UPDATE_DATA_PROMPT.md`](UPDATE_DATA_PROMPT.md) into a new LLM coding session in this folder;
 it refreshes the data, re-checks the reference tests by hand, and verifies the build. Pushing `main`
-then republishes the public site; a local copy needs rebuilding (see the README).
+then republishes the public site; a local copy needs rebuilding (see [A permanent local copy](#a-permanent-local-copy)).
 
 ## Privacy
 

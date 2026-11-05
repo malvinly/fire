@@ -1,9 +1,9 @@
 // What the Investments section says about "Asset mix over time" (D97), and which shift ages it refuses.
 import { describe, expect, test } from 'vitest';
-import { FIDELITY_MIX, VANGUARD_PATH } from '../src/data/mixPaths';
+import { FIDELITY_MIX } from '../src/data/mixPaths';
 import { DEFAULT_ASSUMPTIONS, examplePlan } from '../src/engine/defaults';
 import type { Plan } from '../src/engine/types';
-import { MIX_AGE_RANGE_MESSAGE, fidelityOptionLabel, fidelitySentence, ownMixLine, resetAdvancedAssumptions, shiftAgeProblem, vanguardPathFacts, vanguardSentence, withShare } from '../src/ui/mixText';
+import { MIX_AGE_RANGE_MESSAGE, fidelityOptionLabel, fidelitySentence, ownMixLine, resetAdvancedAssumptions, shiftAgeProblem, vanguardSentence, withShare } from '../src/ui/mixText';
 
 /** The example plan (2026) with You born in `born` and optionally renamed. */
 function planFor(born = 1984, name = 'You'): Plan {
@@ -145,19 +145,6 @@ describe('Reset assumptions to defaults', () => {
     expect(r.ssTrustFund).not.toBe(DEFAULT_ASSUMPTIONS.ssTrustFund);
     expect(r.allocation).not.toBe(a.allocation);
     expect(r.laterAllocation).not.toBe(a.laterAllocation);
-  });
-});
-
-describe('Vanguard path facts for the About page', () => {
-  test('read from VANGUARD_PATH', () => {
-    const pts = VANGUARD_PATH.points;
-    const at = (years: number) => Math.round(pts.find((p) => p.years === years)!.stocks * 100);
-    expect(vanguardPathFacts()).toEqual({
-      firstStocks: Math.round(pts[0].stocks * 100), firstYearsBefore: -pts[0].years,
-      targetStocks: at(0),
-      finalStocks: Math.round(pts[pts.length - 1].stocks * 100), finalYearsAfter: pts[pts.length - 1].years,
-    });
-    expect(vanguardPathFacts()).toEqual({ firstStocks: 90, firstYearsBefore: 25, targetStocks: 50, finalStocks: 30, finalYearsAfter: 7 });
   });
 });
 

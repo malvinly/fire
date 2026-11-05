@@ -15,8 +15,7 @@ const VANGUARD_RESEARCH = { title: 'Choice of equity landing points can benefit 
 
 /**
  * Where the built-in choices come from; shown on the About page, in "How this works" and in help. `label` is the full
- * citation ("How this works"); `title` and `date` are the About page's link text and date; `quotes` are verbatim from
- * the document (check them when the document is refreshed).
+ * citation ("How this works"); `title` and `date` are the About page's link text and date.
  */
 export const MIX_SOURCES = {
   vanguard: {
@@ -28,12 +27,10 @@ export const MIX_SOURCES = {
     label: 'Fidelity FI Planner methodology',
     url: 'https://www.fidelity.com/bin-public/060_www_fidelity_com/documents/FI_Planner_Methodology.pdf',
     title: 'methodology',
-    quotes: ['a hypothetical investment mix of 70% stocks, 25% bonds and 5% short term investments is used throughout the experience'],
   },
   vanguardResearch: {
     label: `Vanguard research paper “${VANGUARD_RESEARCH.title}”, ${VANGUARD_RESEARCH.date}`,
     url: 'https://workplace.vanguard.com/content/dam/inst/iig-transformation/insights/pdf/2025/231657-02_TDF_PTDF_OTH-TRIGT-Research.pdf',
     ...VANGUARD_RESEARCH,
-    quotes: ['50% equity at age 65', '30% equity around age 72'],
   },
 };
