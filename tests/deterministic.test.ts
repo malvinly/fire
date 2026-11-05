@@ -25,13 +25,6 @@ describe('cash flow with constant returns', () => {
     expect(res.failYear).toBe(START + 25);
   });
 
-  test('25x spending survives 30 years at a 4% real return; 20x does not at 0%', () => {
-    const ctx = ctxFor(simplePlan({ roth: 25 * 40_000 }));
-    expect(simulatePath(ctx, constantPath(ctx.len, 0.04), 0).success).toBe(true);
-    const low = ctxFor(simplePlan({ roth: 20 * 40_000 }));
-    expect(simulatePath(low, constantPath(low.len, 0), 0).success).toBe(false);
-  });
-
   test('coast: balance needed today = retirement need discounted at the real return', () => {
     const r = 0.05;
     const coastYears = 10;

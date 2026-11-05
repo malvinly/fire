@@ -39,7 +39,8 @@ describe('before 59½', () => {
     expect(at60.penaltyWithdrawals).toBe(0);
   });
 
-  test('Roth ladder: conversions become spendable after 5 years, avoiding penalties', () => {
+  // The 5-year timing itself is pinned by paths.test.ts ("conversions become spendable in the 5th year after").
+  test('Roth ladder with a brokerage bridge that lasts until conversions season: no penalty in any year', () => {
     const plan = earlyRetiree(45);
     plan.assumptions.bracketFill = '12';
     plan.household.taxable = plan.household.taxableBasis = 300_000; // bridges ~7 years
@@ -54,14 +55,6 @@ describe('before 59½', () => {
     expect(res.usedPenalty).toBe(false);
   });
 
-  test('unseasoned conversions cannot be spent penalty-free', () => {
-    const plan = earlyRetiree(45);
-    plan.assumptions.bracketFill = '12';
-    plan.you.balances.pretax = 1_500_000; // no taxable bridge at all
-    const ctx = ctxFor(plan);
-    const res = simulatePath(ctx, constantPath(ctx.len, 0.03), 0, { record: true });
-    expect(res.records![0].penaltyWithdrawals + res.records![1].penaltyWithdrawals).toBeGreaterThan(0);
-  });
 });
 
 describe('required minimum distributions', () => {

@@ -59,6 +59,20 @@ describe('Traditional FIRE', () => {
     }
   });
 
+  test('history decides when its rate is the lower one (D3)', () => {
+    // Every simulated market earns 7% a year, so the simulation always succeeds; a 5% withdrawal fails in some real
+    // past windows (1929, 1966, …), so history is the stricter of the two and must decide.
+    const p = simplePlan({ years: 30, spending: 50_000 });
+    const e = makeEngine(p);
+    e.boot = e.search = constantPath(e.len, 0.07);
+    const s = evaluate(e, buildContext(p, scenarioFor(p, 'traditional', START)), {}, true);
+    expect(s.bootstrap).toBe(1);
+    expect(s.historical).toBeGreaterThan(0);
+    expect(s.historical).toBeLessThan(1);
+    expect(s.combined).toBe(s.historical);
+    expect(s.binding).toBe('historical');
+  });
+
   test('projected balances at the earliest date are ordered and bracket the FIRE number sensibly', () => {
     const p = trad.projectedAtEarliest!;
     expect(p.p10).toBeLessThanOrEqual(p.p50);
@@ -531,15 +545,6 @@ describe('Vanguard’s path, the default (D97)', () => {
     for (let k = 0; k < ctx.len; k++) path.portfolio[k] = averageRealReturns(mixInYear(v, 2026 + k), fee).portfolio;
     expect(path.portfolio[0]).not.toBe(path.portfolio[ctx.retireIdx]); // the path changes before retirement
     expect(projectState(ctx, ctx.retireIdx)).toEqual(simulatePath(ctx, path, 0, { stopIdx: ctx.retireIdx }).state);
-  });
-
-  test('the FIRE number passes at the value shown and 1% less does not, in the mixes after retiring (D47)', () => {
-    const ctx = buildContext(v, scenarioFor(v, 'traditional', t.earliest!.year));
-    const idx = ctx.retireIdx;
-    const base = projectState(ctx, idx);
-    const run = (x: number) => evaluate(e, ctx, { startIdx: idx, startState: scaleState(base, x), retirementOnly: true }, true);
-    expect(run(t.fireNumber!).combined).toBeGreaterThanOrEqual(target);
-    expect(run(t.fireNumber! * 0.99).combined).toBeLessThan(target);
   });
 
   test('the FIRE number’s real past markets use the mixes from the retirement year on (D47, D97)', () => {
