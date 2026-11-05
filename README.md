@@ -10,7 +10,7 @@ published as is, not as a calculator for everyone, and it is not financial advic
 
 ## What it tells you
 
-| | |
+| FIRE type | Answer |
 |---|---|
 | **Traditional FIRE** | The earliest year both of you can stop working, and the savings you need by then. |
 | **Chubby FIRE** | The same, at a higher spending level (default 1.2 × today's spending). |

@@ -87,9 +87,10 @@ code comments cite) first. Planned work is in [pending-features.md](pending-feat
      `tests/playbook-engine.test.ts` and review the diff of `tests/__snapshots__/playbook-profiles.test.ts.snap`
      before accepting it with `-u`.
    - If the change alters what the Plan tab shows, retake the README screenshots in `docs/images/`: the
-     built-in example plan (a fresh browser profile, so no saved draft), a 1400 × 1000 window at 2× scale,
-     dark theme; `results-dark.png` is the whole window after **Calculate**, `savings-chart-dark.png` the
-     "Your savings over time" panel down to its legend.
+     built-in example plan (a fresh browser profile, so no saved draft), a 1600 × 1000 window at 2× scale
+     (narrower windows wrap the three result cards onto two rows), dark theme; `results-dark.png` is the
+     window from the top down to the "Before you act on these numbers" panel after **Calculate**,
+     `savings-chart-dark.png` the "Your savings over time" panel down to its legend.
    - Remove a finished item from pending-features.md.
 5. **Adding a field to `Plan`** (`src/engine/types.ts`) needs care. Session files (`schemaVersion: 1`,
    `src/ui/sessions.ts`) and the browser draft (`loadDraft` in `src/App.tsx`) are loaded as saved. A new
